@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Student List{% endblock %}
+{% block content %}
+    <h1>Student List</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p><strong>{{ message }}</strong></p>
+        {% endfor %}
+    {% endif %}
+
+    <p>Total Students: {{ total_students }}</p>
+    <p>Active Students: {{ active_students }}</p>
+
+    {% if students %}
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Age</th>
+                <th>Course</th>
+                <th>Marks</th>
+                <th>Joined Date</th>
+                <th>Status</th>
+                <th>Result</th>
+            </tr>
+            {% for student in students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.age }}</td>
+                    <td>{{ student.course }}</td>
+                    <td>{{ student.marks }}</td>
+                    <td>{{ student.joined_date }}</td>
+                    <td>
+                        {% if student.is_active %}
+                            Active
+                        {% else %}
+                            Inactive
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if student.marks >= 40 %}
+                            Pass
+                        {% else %}
+                            Fail
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No students found yet.</p>
+    {% endif %}
+
+    <p><a href="{% url 'add_student' %}">Add Student</a></p>
+{% endblock %}
