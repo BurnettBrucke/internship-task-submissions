@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student List</title>
+</head>
+<body>
+
+<h1>Student List</h1>
+
+<h3>Total Students: {{ total_students }}</h3>
+<h3>Active Students: {{ active_students }}</h3>
+
+<table border="2" cellpadding="10">
+<tr>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Age</th>
+    <th>Course</th>
+    <th>Marks</th>
+    <th>Joined Date</th>
+    <th>Active</th>
+    <th>Result</th>
+</tr>
+
+{% for student in students %}<!--This is like a for-->
+<tr>
+    <td>{{ student.name }}</td>
+    <td>{{ student.email }}</td>
+    <td>{{ student.age }}</td>
+    <td>{{ student.course }}</td>
+    <td>{{ student.marks }}</td>
+    <td>{{ student.joined_date }}</td>
+    <td>{{ student.active }}</td>
+
+    <td>
+        {% if student.marks >= 40 %}
+            Pass
+        {% else %}
+            Fail
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>
