@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Form</title>
-</head>
-<body>
+{% extends "base.html" %}
+{%block content%}
 
     <h1>Student Form</h1>
 
@@ -19,9 +13,11 @@
     <form method="POST">
 
         {% csrf_token %}
-
+        <h3> Student info</h3>
         {{ form.as_p }}
-
+        <hr>
+        <h3>student personal info</h3>
+        {{profile_form.as_p}}
         <button type="submit">
             Save
         </button>
@@ -34,5 +30,5 @@
 
     </form>
 
-</body>
-</html>
+
+{%endblock%}

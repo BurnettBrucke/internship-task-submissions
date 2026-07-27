@@ -1,25 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student List</title>
-</head>
-<body>
+{% extends "base.html" %}
+{%block content%}
+
      <h1>Student System</h1>
     <a href="{% url 'add_student' %}">
         <button>Add Student</button>
     </a>
     <br><br>
-
-    <!-- Success Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <p style="color:green;">
-                {{ message }}
-            </p>
-        {% endfor %}
-    {% endif %}
 
     <table border="1" cellpadding="10" cellspacing="0">
 
@@ -34,6 +20,8 @@
             <th>Age</th>
 
             <th>Course</th>
+
+            <th>Department</th>
 
             <th>Marks</th>
 
@@ -53,9 +41,16 @@
 
             <td>{{ student.email }}</td>
 
-            <td>{{ student.age }}</td>
+            <td>{{ student.profile.age }}</td>
 
-            <td>{{ student.course }}</td>
+            <td> {%for course in student.course.all%}
+                    {{ course }}
+                {%empty%}
+                    no course assign
+                {%endfor%}
+            </td>
+
+            <td>{{ student.department }}</td>
 
             <td>{{ student.marks }}</td>
 
@@ -99,5 +94,4 @@
 
     </table>
 
-</body>
-</html>
+{%endblock%}

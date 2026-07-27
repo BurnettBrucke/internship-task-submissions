@@ -1,10 +1,17 @@
 from django import forms 
-from .models import Student 
+from .models import Student, StudentProfile
 
+# student form 
 class StudentForm(forms.ModelForm):
     class Meta:
         model=Student
         fields="__all__"
+
+        exclude=['age','active_status']
+
+        widgets = {
+            "course": forms.CheckboxSelectMultiple(),
+        }
 
     def clean_age(self):
         age=self.cleaned_data['age']
@@ -24,4 +31,14 @@ class StudentForm(forms.ModelForm):
             if marks<0 or marks>100: 
                 raise forms.ValidationError("marks must be between 0 to 100")
             return marks
+
+# student profile form
+class StudentProfileForm(forms.ModelForm):
+    class Meta:
+        model=StudentProfile
+        fields = [
+            "phone",
+            "address",
+            "DoB",
+        ]
     
