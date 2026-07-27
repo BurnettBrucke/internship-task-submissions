@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Student List{% endblock %}
+{% block content %}
+    <h1>Student List</h1>
+
+    <p>Total Students: {{ total_students }} | Active Students: {{ active_students }}</p>
+
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search name, email or course">
+
+        <select name="department">
+            <option value="">All Departments</option>
+            {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"s" %}selected{% endif %}>
+                    {{ dept.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="course">
+            <option value="">All Courses</option>
+            {% for course in courses %}
+                <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:"s" %}selected{% endif %}>
+                    {{ course.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+
+        <select name="result">
+            <option value="">Pass/Fail</option>
+            <option value="pass" {% if selected_result == "pass" %}selected{% endif %}>Pass</option>
+            <option value="fail" {% if selected_result == "fail" %}selected{% endif %}>Fail</option>
+        </select>
+
+        <button type="submit">Filter</button>
+        <a href="{% url 'student_list' %}">Clear</a>
+    </form>
+
+    <br>
+
+    {% if students %}
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Courses</th>
+                <th>Marks</th>
+                <th>Result</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            {% for student in students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.department.name|default:"—" }}</td>
+                    <td>{{ student.courses.count }}</td>
+                    <td>{{ student.marks }}</td>
+                    <td>{{ student.result_status }}</td>
+                    <td>{% if student.is_active %}Active{% else %}Inactive{% endif %}</td>
+                    <td>
+                        <a href="{% url 'student_detail' student.pk %}">View</a>
+                        <a href="{% url 'edit_student' student.pk %}">Edit</a>
+                        <a href="{% url 'delete_student' student.pk %}">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No students found.</p>
+    {% endif %}
+
+    <p><a href="{% url 'add_student' %}">Add Student</a></p>
+{% endblock %}

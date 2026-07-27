@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+    <h1>Student Training Portal — Dashboard</h1>
+
+    <ul>
+        <li>Total Students: {{ total_students }}</li>
+        <li>Active Students: {{ active_students }}</li>
+        <li>Total Departments: {{ total_departments }}</li>
+        <li>Total Courses: {{ total_courses }}</li>
+        <li>Average Marks: {{ average_marks|floatformat:2 }}</li>
+        <li>
+            Highest Scoring Student:
+            {% if top_student %}
+                {{ top_student.name }} ({{ top_student.marks }})
+            {% else %}
+                —
+            {% endif %}
+        </li>
+    </ul>
+
+    <h2>Recently Joined Students</h2>
+    {% if recent_students %}
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Joined</th>
+            </tr>
+            {% for student in recent_students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.joined_date }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No students found.</p>
+    {% endif %}
+
+    <p><a href="{% url 'student_list' %}">Go to Student List</a></p>
+{% endblock %}

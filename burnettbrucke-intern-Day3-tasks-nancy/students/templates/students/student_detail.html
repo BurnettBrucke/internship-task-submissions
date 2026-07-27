@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }}{% endblock %}
+{% block content %}
+    <h1>{{ student.name }}</h1>
+
+    <p>Email: {{ student.email }}</p>
+    <p>Age: {{ student.age }}</p>
+    <p>Department: {{ student.department.name|default:"Unassigned" }}</p>
+    <p>Marks: {{ student.marks }} ({{ student.result_status }})</p>
+    <p>Joined: {{ student.joined_date }}</p>
+    <p>Status: {% if student.is_active %}Active{% else %}Inactive{% endif %}</p>
+
+    <p>Courses:</p>
+    <ul>
+        {% for course in student.courses.all %}
+            <li>{{ course.name }} ({{ course.code }})</li>
+        {% empty %}
+            <li>No courses enrolled.</li>
+        {% endfor %}
+    </ul>
+
+    {% if student.profile %}
+        <p>Phone: {{ student.profile.phone }}</p>
+        <p>Address: {{ student.profile.address }}</p>
+        <p>Date of Birth: {{ student.profile.date_of_birth }}</p>
+    {% else %}
+        <p>No profile on file.</p>
+    {% endif %}
+
+    <p>
+        <a href="{% url 'edit_student' student.pk %}">Edit</a> |
+        <a href="{% url 'delete_student' student.pk %}">Delete</a> |
+        <a href="{% url 'student_list' %}">Back to Student List</a>
+    </p>
+{% endblock %}

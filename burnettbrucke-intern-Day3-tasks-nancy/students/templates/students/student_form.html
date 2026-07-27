@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == "edit" %}Edit Student{% else %}Add Student{% endif %}{% endblock %}
+{% block content %}
+    {% if mode == "edit" %}
+        <h1>Edit Student: {{ student.name }}</h1>
+    {% else %}
+        <h1>Add Student</h1>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Student</button>
+    </form>
+
+    <p>
+        {% if mode == "edit" %}
+            <a href="{% url 'student_detail' student.pk %}">Cancel</a> |
+        {% endif %}
+        <a href="{% url 'student_list' %}">Back to Student List</a>
+    </p>
+{% endblock %}
