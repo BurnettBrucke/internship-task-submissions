@@ -71,13 +71,13 @@ def logout_user(request):
 def dashboard(request):
     total_std=Student.objects.count()
 
-    active_std=Student.objects.filter(active_status='pass')
+    active_std=Student.objects.filter(active_status='pass').count()
 
     total_dept=Department.objects.count()
 
     total_course=Course.objects.count()
 
-    avg_marks=Student.objects.aaggregate(Avg('marks'))
+    avg_marks=Student.objects.aggregate(Avg('marks'))
 
     highest_std=Student.objects.order_by('-marks').first()
 
@@ -85,11 +85,12 @@ def dashboard(request):
 
     context={
         "total_students":total_std,
-        "active_student":active_std,
-        'total_department':total_dept,
-        'total_course':total_course,
+        "active_students":active_std,
+        'total_departments':total_dept,
+        'total_courses':total_course,
         "highest_student":highest_std,
-        "recent_std":recently_joined
+        "recent_students":recently_joined,
+        "average_marks": avg_marks
     }
 
     return render(request,'dashboard.html',context)
