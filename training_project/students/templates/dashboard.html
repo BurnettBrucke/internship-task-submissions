@@ -1,133 +1,85 @@
 {% extends "base.html" %}
 
+{% block title %}
+Student Dashboard
+{% endblock %}
+
 {% block content %}
 
-<h2 class="mb-4">Student Training Portal Dashboard</h2>
+<div class="container mt-4">
 
-<div class="row">
+    <h2>Welcome {{ student.name }}</h2>
 
-    <!-- Total Students -->
-    <div class="col-md-4 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <h5 class="card-title">Total Students</h5>
-                <h2>{{ total_students }}</h2>
-            </div>
-        </div>
-    </div>
+    <div class="row mt-4">
 
-    <!-- Active Students -->
-    <div class="col-md-4 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <h5 class="card-title">Active Students</h5>
-                <h2>{{ active_students }}</h2>
-            </div>
-        </div>
-    </div>
+        <div class="col-md-6">
 
-    <!-- Departments -->
-    <div class="col-md-4 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <h5 class="card-title">Departments</h5>
-                <h2>{{ total_departments }}</h2>
-            </div>
-        </div>
-    </div>
+            <div class="card p-3">
 
-    <!-- Courses -->
-    <div class="col-md-4 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <h5 class="card-title">Courses</h5>
-                <h2>{{ total_courses }}</h2>
-            </div>
-        </div>
-    </div>
+                <h5>Student Information</h5>
 
-    <!-- Average Marks -->
-    <div class="col-md-4 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <h5 class="card-title">Average Marks</h5>
+                <hr>
 
-                {% if average_marks.marks__avg %}
-                    <h2>{{ average_marks.marks__avg|floatformat:2 }}</h2>
-                {% else %}
-                    <h2>0</h2>
-                {% endif %}
+                <p><strong>Name :</strong> {{ student.name }}</p>
+
+                <p><strong>Email :</strong> {{ student.email }}</p>
+
+                <p><strong>Department :</strong> {{ student.department.name }}</p>
+
+                <p><strong>Marks :</strong> {{ student.marks }}</p>
+
+                <p>
+
+                    <strong>Status :</strong>
+
+                    {% if student.active_status == "pass" %}
+
+                        <span class="badge bg-success">PASS</span>
+
+                    {% else %}
+
+                        <span class="badge bg-danger">FAIL</span>
+
+                    {% endif %}
+
+                </p>
 
             </div>
+
         </div>
-    </div>
 
-    <!-- Highest Scorer -->
-    <div class="col-md-4 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <h5 class="card-title">Highest Scorer</h5>
+        <div class="col-md-6">
 
-                {% if highest_student %}
-                    <h5>{{ highest_student.name }}</h5>
-                    <p>{{ highest_student.marks }} Marks</p>
-                {% else %}
-                    <p>No Student</p>
-                {% endif %}
+            <div class="card p-3">
+
+                <h5>Courses</h5>
+
+                <hr>
+
+                <ul>
+
+                    {% for course in student.course.all %}
+
+                        <li>
+
+                            {{ course.course_name }}
+
+                        </li>
+
+                    {% empty %}
+
+                        <li>No Courses Assigned</li>
+
+                    {% endfor %}
+
+                </ul>
 
             </div>
+
         </div>
+
     </div>
 
 </div>
-
-<hr>
-
-<h3>Recently Joined Students</h3>
-
-<table class="table table-bordered table-hover">
-
-    <thead class="table-dark">
-
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Department</th>
-            <th>Marks</th>
-        </tr>
-
-    </thead>
-
-    <tbody>
-
-        {% for student in recent_students %}
-
-        <tr>
-
-            <td>{{ student.name }}</td>
-
-            <td>{{ student.email }}</td>
-
-            <td>{{ student.department.name }}</td>
-
-            <td>{{ student.marks }}</td>
-
-        </tr>
-
-        {% empty %}
-
-        <tr>
-
-            <td colspan="4" class="text-center">
-                No Recent Students
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </tbody>
-
-</table>
 
 {% endblock %}

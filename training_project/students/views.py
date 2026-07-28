@@ -3,9 +3,11 @@ from django.contrib import messages
 from django.contrib.auth.models import User 
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
-from .models import *
+from .models import Student, Department, Course, StudentProfile, UserProfile
 from .form import StudentForm,StudentProfileForm
 from django.db.models import Avg
+from.decorator import role_required
+from django.http import HttpResponseForbidden
 
 # home page
 def home(request):
@@ -28,11 +30,13 @@ def register(request):
             messages.error(request,"user already exists")
             return redirect('register')
 
-        User.objects.create_user(
+        new_user=User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
+
+        UserProfile.objects.create(user=new_user,role="STUDENT")
         messages.success(request,'Account created succesfully.')
         return redirect('login')
         
@@ -46,15 +50,21 @@ def login_user(request):
         password=request.POST['password']
 
         user=authenticate(request,username=username,password=password)
-        # user = authenticate(request, username=username, password=password)
-
         print("Username:", username)
         print("Password:", password)
         print("User:", user)
 
         if user is not None:
             login(request,user)
-            return redirect('student_list')
+
+            if user.profile.role=="ADMIN":
+                return redirect('admin_dashboard')
+
+            elif user.profile.role=="TRAINER":
+                return redirect('trainer_dashboard')
+
+            elif user.profile.role=="STUDENT":
+                return redirect('dashboard')
         else:
             messages.error(request,"invalid user name or password")
             return redirect("home")  
@@ -67,33 +77,91 @@ def logout_user(request):
     messages.success(request,"logout succesfully")
     return redirect('home')
 
-# dashboard
-def dashboard(request):
-    total_std=Student.objects.count()
+# admin dashboard
+@login_required
+@role_required("ADMIN")
+def admin_dashboard(request):
+   students=Student.objects.count()
 
-    active_std=Student.objects.filter(active_status='pass').count()
+   courses=Course.objects.count()
 
-    total_dept=Department.objects.count()
+   dept=Department.objects.count()
 
-    total_course=Course.objects.count()
+   trainers=UserProfile.objects.filter(role='TRAINER').count()
 
-    avg_marks=Student.objects.aggregate(Avg('marks'))
+   highest=Student.objects.order_by('-marks').first()
 
-    highest_std=Student.objects.order_by('-marks').first()
+   recent=Student.objects.order_by("-join_date")[:5]
+   context={
+       "students":students,
+       "courses":courses,
+       "dept":dept,
+       "trainers":trainers,
+       "highest":highest,
+       "recent":recent
+       }
+   return render(request,'admin-dashboard.html',context)
 
-    recently_joined=Student.objects.order_by("-join_date")[:5]
+
+# trainer dashboard
+@login_required
+@role_required("TRAINER")
+def trainer_dashboard(request):
+    trainer=request.user.profile
+    courses=Course.objects.filter(
+        assigned_trainer__trainer=trainer).distinct()
+    students = Student.objects.filter(
+        course__assigned_trainer__trainer=trainer
+    ).select_related(
+        "department"
+    ).prefetch_related(
+        "course").distinct()
 
     context={
-        "total_students":total_std,
-        "active_students":active_std,
-        'total_departments':total_dept,
-        'total_courses':total_course,
-        "highest_student":highest_std,
-        "recent_students":recently_joined,
-        "average_marks": avg_marks
+        "students":students,
+        "courses":courses,
+        "total_students":students.count(),
+        "total_course":courses.count()
     }
+    return render(request,'trainer-dashboard.html',context)
 
+# dashboard
+@login_required
+@role_required("STUDENT")
+def dashboard(request):
+    student=request.user.student
+    print(student)
+    context={
+        "student":student
+    }
     return render(request,'dashboard.html',context)
+
+# def dashboard(request):
+#     total_std=Student.objects.count()
+
+#     active_std=Student.objects.filter(active_status='pass').count()
+
+#     total_dept=Department.objects.count()
+
+#     total_course=Course.objects.count()
+
+#     avg_marks=Student.objects.aggregate(Avg('marks'))
+
+#     highest_std=Student.objects.order_by('-marks').first()
+
+#     recently_joined=Student.objects.order_by("-join_date")[:5]
+
+#     context={
+#         "total_students":total_std,
+#         "active_students":active_std,
+#         'total_departments':total_dept,
+#         'total_courses':total_course,
+#         "highest_student":highest_std,
+#         "recent_students":recently_joined,
+#         "average_marks": avg_marks
+#     }
+
+#     return render(request,'dashboard.html',context)
 
 
 
@@ -102,9 +170,7 @@ def dashboard(request):
 @login_required
 def student_list(request):
     print(request.user)
-
     print(request.user.is_authenticated)
-
     students = Student.objects.all()
 
     context = {
@@ -118,6 +184,9 @@ def student_list(request):
 def student_detail(request, id):
 
     student = get_object_or_404(Student, id=id)
+    if request.user.profile.role == "STUDENT":
+        if request.user.student != student:
+            return HttpResponseForbidden("403 Forbidden")
 
     context = {
         "student": student
@@ -213,3 +282,12 @@ def delete_student(request, id):
     }
 
     return render(request, "student_confirm_delete.html", context)
+
+
+# change password
+def change_password(request):
+    if request.method=='POST':
+        pass
+    else:
+        pass
+    return render(request,'change_password.html')

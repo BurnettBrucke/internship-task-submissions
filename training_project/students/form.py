@@ -7,7 +7,7 @@ class StudentForm(forms.ModelForm):
         model=Student
         fields="__all__"
 
-        exclude=['age','active_status']
+        exclude=['user','active_status']
 
         widgets = {
             "course": forms.CheckboxSelectMultiple(),

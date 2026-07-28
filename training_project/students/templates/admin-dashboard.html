@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4 text-center">Admin Dashboard</h2>
+
+    <!-- Cards -->
+    <div class="row">
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary shadow">
+                <div class="card-body text-center">
+                    <h5>Total Students</h5>
+                    <h2>{{ students }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success shadow">
+                <div class="card-body text-center">
+                    <h5>Total Courses</h5>
+                    <h2>{{ courses }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning shadow">
+                <div class="card-body text-center">
+                    <h5>Departments</h5>
+                    <h2>{{ dept }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-danger shadow">
+                <div class="card-body text-center">
+                    <h5>Trainers</h5>
+                    <h2>{{ trainers }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Highest Scorer -->
+    <div class="card shadow mt-4">
+
+        <div class="card-header bg-dark text-white">
+            Highest Scoring Student
+        </div>
+
+        <div class="card-body">
+
+            {% if highest %}
+
+                <h4>{{ highest.name }}</h4>
+
+                <p>
+                    Department :
+                    <strong>{{ highest.department.name }}</strong>
+                </p>
+
+                <p>
+                    Marks :
+                    <span class="badge bg-success">
+                        {{ highest.marks }}
+                    </span>
+                </p>
+
+            {% else %}
+
+                <p>No Student Found.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- Recent Students -->
+
+    <div class="card shadow mt-4">
+
+        <div class="card-header bg-primary text-white">
+            Recently Joined Students
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Marks</th>
+                        <th>Status</th>
+                        <th>Join Date</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for student in recent %}
+
+                    <tr>
+
+                        <td>{{ student.name }}</td>
+
+                        <td>{{ student.email }}</td>
+
+                        <td>{{ student.department.name }}</td>
+
+                        <td>{{ student.marks }}</td>
+
+                        <td>
+
+                            {% if student.active_status == "pass" %}
+
+                                <span class="badge bg-success">
+                                    PASS
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    FAIL
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>{{ student.join_date }}</td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="6" class="text-center">
+
+                            No Students Found
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
