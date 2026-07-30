@@ -8,6 +8,11 @@ from .form import StudentForm,StudentProfileForm
 from django.db.models import Avg
 from.decorator import role_required
 from django.http import HttpResponseForbidden
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 
 # home page
 def home(request):
@@ -22,12 +27,24 @@ def register(request):
         password=request.POST['password']
         confirm_password=request.POST['confirm_password']
 
-        if password!=confirm_password:
-            messages.error(request,"password do not match")
-            return redirect('register')
 
         if User.objects.filter(username=username).exists():
             messages.error(request,"user already exists")
+            return redirect('register')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request,"email already exixts")
+            return redirect('register')
+
+        if password!=confirm_password:
+            messages.error(request,"passwords do not match")
+            return redirect('register')
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request,error)
             return redirect('register')
 
         new_user=User.objects.create_user(
@@ -43,19 +60,45 @@ def register(request):
     return render(request,"register.html")
 
 
+
+from django.utils import timezone
+from datetime import timedelta
+
 # login page
 def login_user(request):
+    print("LOGIN VIEW CALLED")
     if request.method=="POST":
         username=request.POST['username']
         password=request.POST['password']
 
+
+        db_user=User.objects.filter(username=username).first()
+
+        if db_user :
+            print("Locked Until:", db_user.profile.locked_until)
+            print("Current Time:", timezone.now())
+            if(db_user.profile.locked_until and 
+               db_user.profile.locked_until > timezone.now()):
+                print("account locked")
+                print("Locked Until:", db_user.profile.locked_until)
+                messages.error(request,"Your account is locked. Please try again after 10 minutes.")
+                return redirect('home')
+        
+        print("DB USER:", db_user)
         user=authenticate(request,username=username,password=password)
         print("Username:", username)
         print("Password:", password)
         print("User:", user)
 
         if user is not None:
+            user.profile.failed_attempts=0
+            user.profile.locked_until = None
+            user.profile.save()
             login(request,user)
+            messages.success(request, "Login successful.")
+
+            if not request.POST.get('remember_me'):
+                request.session.set_expiry(0)
 
             if user.profile.role=="ADMIN":
                 return redirect('admin_dashboard')
@@ -66,6 +109,16 @@ def login_user(request):
             elif user.profile.role=="STUDENT":
                 return redirect('dashboard')
         else:
+            if db_user:
+                db_user.profile.failed_attempts+=1
+                print("Failed Attempts:", db_user.profile.failed_attempts)
+                if db_user.profile.failed_attempts>=5:
+                    db_user.profile.locked_until=(
+                        timezone.now()+timedelta(minutes=10)
+                    )
+                    print("Locked Until:", db_user.profile.locked_until)
+
+                db_user.profile.save()
             messages.error(request,"invalid user name or password")
             return redirect("home")  
     return render(request,'login.html')
@@ -285,9 +338,59 @@ def delete_student(request, id):
 
 
 # change password
+@login_required
 def change_password(request):
+
     if request.method=='POST':
-        pass
+        form=PasswordChangeForm(request.user,request.POST)
+        if form.is_valid():
+            user=form.save()
+            update_session_auth_hash(request,user)
+            messages.success(request,"password change successfully")
+            if user.profile.role=="ADMIN":
+                return redirect('admin_dashboard')
+            
+            elif user.profile.role=="TRAINER":
+                return redirect('trainer_dashboard')
+            
+            elif user.profile.role=="STUDENT":
+                return redirect('dashboard')
+        else:
+            messages.error(request,"enter correct details")
+            
     else:
-        pass
-    return render(request,'change_password.html')
+        form=PasswordChangeForm(request.user)
+
+    context={
+        "form":form
+    }
+    return render(request,'change_password.html',context)
+
+
+@login_required
+@role_required("ADMIN")
+def user_list(request):
+    users=User.objects.all()
+    context={
+        "users":users
+    }
+
+    return render(request,'user_list.html',context)
+
+def toggle_status(request,user_id):
+    user=get_object_or_404(User,id=user_id)
+    user.is_active=not user.is_active
+    user.save()
+    return redirect('user_list')
+
+def make_trainer(request,user_id):
+    user=get_object_or_404(User,id=user_id)
+    user.profile.role="TRAINER"
+    user.profile.save()
+    return redirect('user_list')
+
+def remove_trainer(request,user_id):
+    user=get_object_or_404(User,id=user_id)
+    user.profile.role="STUDENT"
+    user.profile.save()
+    return redirect('user_list')

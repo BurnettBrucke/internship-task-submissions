@@ -1,176 +1,149 @@
 {% extends "base.html" %}
 
-{% block title %}
-Admin Dashboard
-{% endblock %}
+{% block title %}Admin Dashboard | Student Training Portal{% endblock %}
 
 {% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-12">
+        
+        <!-- Dashboard Header & Top Actions -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-speedometer2 text-primary fs-3"></i>
+                <h2 class="fw-bold text-dark m-0">Admin Dashboard</h2>
+            </div>
+            <a href="{% url 'user_list' %}" class="btn btn-primary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-gear-fill"></i> Manage Users
+            </a>
+        </div>
 
-<div class="container mt-4">
+        <!-- Metric Analytics Grid -->
+        <div class="row g-3 mb-4">
+            <!-- Total Students -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="small fw-medium text-secondary text-uppercase tracking-wider">Students</span>
+                        <i class="bi bi-people text-primary fs-4"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-0">{{ students }}</h3>
+                </div>
+            </div>
 
-    <h2 class="mb-4 text-center">Admin Dashboard</h2>
+            <!-- Total Courses -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="small fw-medium text-secondary text-uppercase tracking-wider">Courses</span>
+                        <i class="bi bi-book text-success fs-4"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-0">{{ courses }}</h3>
+                </div>
+            </div>
 
-    <!-- Cards -->
-    <div class="row">
+            <!-- Departments -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="small fw-medium text-secondary text-uppercase tracking-wider">Depts</span>
+                        <i class="bi bi-building text-warning fs-4"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-0">{{ dept }}</h3>
+                </div>
+            </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-primary shadow">
-                <div class="card-body text-center">
-                    <h5>Total Students</h5>
-                    <h2>{{ students }}</h2>
+            <!-- Trainers -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="small fw-medium text-secondary text-uppercase tracking-wider">Trainers</span>
+                        <i class="bi bi-person-badge text-danger fs-4"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-0">{{ trainers }}</h3>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-success shadow">
-                <div class="card-body text-center">
-                    <h5>Total Courses</h5>
-                    <h2>{{ courses }}</h2>
+        <div class="row g-4">
+            <!-- Highest Scorer Panel -->
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm p-4 bg-white h-100">
+                    <div class="d-flex align-items-center gap-2 mb-3 border-bottom pb-2">
+                        <i class="bi bi-trophy text-warning fs-4"></i>
+                        <h5 class="fw-bold text-dark m-0">Top Achiever</h5>
+                    </div>
+                    
+                    {% if highest %}
+                        <h4 class="fw-bold text-primary mb-2">{{ highest.name }}</h4>
+                        <p class="text-secondary small mb-2">
+                            Department: <strong class="text-dark">{{ highest.department.name }}</strong>
+                        </p>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="small text-secondary">Score:</span>
+                            <span class="badge bg-success-subtle text-success px-2.5 py-1.5 fw-semibold">
+                                {{ highest.marks }} Marks
+                            </span>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-emoji-neutral d-block mb-1 fs-4"></i>
+                            No Student Found.
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-warning shadow">
-                <div class="card-body text-center">
-                    <h5>Departments</h5>
-                    <h2>{{ dept }}</h2>
-                </div>
-            </div>
-        </div>
+            <!-- Recent Students Table View -->
+            <div class="col-12 col-lg-8">
+                <div class="card border-0 shadow-sm p-4 bg-white h-100">
+                    <div class="d-flex align-items-center gap-2 mb-3 border-bottom pb-2">
+                        <i class="bi bi-clock-history text-secondary fs-4"></i>
+                        <h5 class="fw-bold text-dark m-0">Recently Joined Students</h5>
+                    </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-danger shadow">
-                <div class="card-body text-center">
-                    <h5>Trainers</h5>
-                    <h2>{{ trainers }}</h2>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-secondary small">
+                                <tr>
+                                    <th scope="col" class="fw-semibold">Name</th>
+                                    <th scope="col" class="fw-semibold">Email</th>
+                                    <th scope="col" class="fw-semibold">Department</th>
+                                    <th scope="col" class="fw-semibold">Marks</th>
+                                    <th scope="col" class="fw-semibold">Status</th>
+                                    <th scope="col" class="fw-semibold">Join Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in recent %}
+                                <tr>
+                                    <td class="fw-medium text-dark">{{ student.name }}</td>
+                                    <td class="text-secondary small">{{ student.email }}</td>
+                                    <td class="text-muted small">{{ student.department.name }}</td>
+                                    <td class="fw-semibold">{{ student.marks }}</td>
+                                    <td>
+                                        {% if student.active_status == "pass" %}
+                                            <span class="badge bg-success-subtle text-success px-2 py-1">PASS</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1">FAIL</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-secondary small">{{ student.join_date }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted small">
+                                        <i class="bi bi-inbox fs-4 d-block mb-1"></i>
+                                        No Students Found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
-
-    <!-- Highest Scorer -->
-    <div class="card shadow mt-4">
-
-        <div class="card-header bg-dark text-white">
-            Highest Scoring Student
-        </div>
-
-        <div class="card-body">
-
-            {% if highest %}
-
-                <h4>{{ highest.name }}</h4>
-
-                <p>
-                    Department :
-                    <strong>{{ highest.department.name }}</strong>
-                </p>
-
-                <p>
-                    Marks :
-                    <span class="badge bg-success">
-                        {{ highest.marks }}
-                    </span>
-                </p>
-
-            {% else %}
-
-                <p>No Student Found.</p>
-
-            {% endif %}
-
-        </div>
-
-    </div>
-
-    <!-- Recent Students -->
-
-    <div class="card shadow mt-4">
-
-        <div class="card-header bg-primary text-white">
-            Recently Joined Students
-        </div>
-
-        <div class="card-body table-responsive">
-
-            <table class="table table-bordered table-hover">
-
-                <thead class="table-dark">
-
-                    <tr>
-
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Department</th>
-                        <th>Marks</th>
-                        <th>Status</th>
-                        <th>Join Date</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for student in recent %}
-
-                    <tr>
-
-                        <td>{{ student.name }}</td>
-
-                        <td>{{ student.email }}</td>
-
-                        <td>{{ student.department.name }}</td>
-
-                        <td>{{ student.marks }}</td>
-
-                        <td>
-
-                            {% if student.active_status == "pass" %}
-
-                                <span class="badge bg-success">
-                                    PASS
-                                </span>
-
-                            {% else %}
-
-                                <span class="badge bg-danger">
-                                    FAIL
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
-                        <td>{{ student.join_date }}</td>
-
-                    </tr>
-
-                    {% empty %}
-
-                    <tr>
-
-                        <td colspan="6" class="text-center">
-
-                            No Students Found
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
 </div>
-
 {% endblock %}

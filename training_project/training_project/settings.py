@@ -120,6 +120,9 @@ STATIC_URL = "static/"
 
 LOGIN_URL='login'
 
+EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FORM_EMAIL="admin@studentportal.com"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

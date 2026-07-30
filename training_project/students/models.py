@@ -82,6 +82,9 @@ class UserProfile(models.Model):
                              [('ADMIN','Admin'),
                               ('TRAINER','Trainer'),
                               ('STUDENT','Student')])
+       failed_attempts=models.IntegerField(default=0)
+       account_locked=models.BooleanField(default=False)
+       locked_until=models.DateTimeField(null=True,blank=True)
 
        def __str__(self):
               return f"{self.user.username}-{self.role}"

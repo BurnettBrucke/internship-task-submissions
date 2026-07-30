@@ -1,14 +1,24 @@
 {% extends "base.html" %}
-{%block content%}
-    <h1>Welcome</h1>
 
-    <a href="{% url 'login' %}">
-            <button>login</button>
-    </a>
+{% block title %}Welcome | Student Training Portal{% endblock %}
 
-    <a href="{% url 'register' %}">
-            <button>register</button>
+{% block content %}
+<div class="container text-center my-5 py-5">
+    
+    <!-- Simple Icon and Header -->
+    <i class="bi bi-mortarboard text-primary mb-3" style="font-size: 3rem;"></i>
+    <h1 class="fw-bold text-dark mb-3">Welcome to the Student Training Portal</h1>
+    <p class="text-secondary mb-4 fs-5">Please log in or register an account to access your dashboard.</p>
+    
+    <!-- Simple Standard Buttons -->
+    <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'login' %}" class="btn btn-primary px-4 py-2">
+            Login
+        </a>
+        <a href="{% url 'register' %}" class="btn btn-outline-secondary px-4 py-2">
+            Register
+        </a>
+    </div>
 
-    </a>
-
-{%endblock%}
+</div>
+{% endblock %}

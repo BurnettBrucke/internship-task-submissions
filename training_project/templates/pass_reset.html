@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Forgot Password | Student Training Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+        
+        <!-- Clean Forgot Password Card -->
+        <div class="card border-0 shadow-sm p-4 bg-white">
+            <h3 class="fw-bold text-dark mb-3 text-center">Forgot Password</h3>
+            
+            <p class="text-secondary small text-center mb-4">
+                Enter your registered email address below, and we'll send you a link to reset your password.
+            </p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Form Wrapper for Django Form Inputs -->
+                <div class="mb-4 d-django-form-fix">
+                    {{ form.as_p }}
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100">
+                    Send Reset Link
+                </button>
+            </form>
+            
+            <hr class="text-muted opacity-25 mt-4">
+            
+            <!-- Footer Link -->
+            <div class="text-center small mt-2">
+                <a href="{% url 'login' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Login
+                </a>
+            </div>
+            
+        </div>
+        
+    </div>
+</div>
+
+<style>
+    /* Handy helper to style raw Django paragraphs into clean Bootstrap controls */
+    .d-django-form-fix p label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    .d-django-form-fix p input {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    .d-django-form-fix p input:focus {
+        color: #212529;
+        background-color: #fff;
+        border-color: #a5b4fc; /* Custom Indigo Focus matching our theme */
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+    }
+</style>
+{% endblock %}

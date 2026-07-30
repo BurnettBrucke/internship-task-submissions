@@ -1,14 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Change Password | Student Training Portal{% endblock %}
+{% block title %}Set New Password | Student Training Portal{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center my-5">
     <div class="col-12 col-sm-8 col-md-6 col-lg-4">
         
-        <!-- Clean Change Password Card -->
+        <!-- Clean Reset Password Card -->
         <div class="card border-0 shadow-sm p-4 bg-white">
-            <h3 class="fw-bold text-dark mb-4 text-center">Change Password</h3>
+            <h3 class="fw-bold text-dark mb-3 text-center">Set New Password</h3>
+            
+            <p class="text-secondary small text-center mb-4">
+                Please enter and confirm your new password below to update your account access.
+            </p>
             
             <form method="POST">
                 {% csrf_token %}
@@ -18,15 +22,10 @@
                     {{ form.as_p }}
                 </div>
                 
-                <!-- Action Buttons Side-by-Side -->
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary flex-grow-1">
-                        Save
-                    </button>
-                    <a href="{% url 'student_list' %}" class="btn btn-outline-secondary flex-grow-1 text-center">
-                        Cancel
-                    </a>
-                </div>
+                <!-- Unified Theme Primary Button -->
+                <button type="submit" class="btn btn-primary w-100">
+                    Change Password
+                </button>
             </form>
             
         </div>
@@ -63,7 +62,7 @@
         outline: 0;
         box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
     }
-    /* Sizing for internal Django validation hint text tags */
+    /* Tiny layout fix for Django password help text tags if present */
     .d-django-form-fix p .helptext {
         display: block;
         font-size: 0.75rem;

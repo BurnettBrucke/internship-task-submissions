@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from students import views
-
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -27,5 +27,25 @@ urlpatterns = [
     path("login/",views.login_user,name='login'),
     path("logout/",views.logout_user,name='logout'),
     path("change_password/",views.change_password,name='change_password'),
+    path('users/',views.user_list,name="user_list"),
+    path('users/<int:user_id>/toggle_status',views.toggle_status,name='toggle_status'),
+    path('users/<int:user_id>/make_trainer',views.make_trainer,name='make_trainer'),
+    path('users/<int:user_id>/remove_trainer',views.remove_trainer,name='remove_trainer'),
+    path("password_reset/",auth_views.PasswordResetView.as_view(
+            template_name='pass_reset.html'),
+            name='password_reset',
+        ),
+    path("password_reset/done/",auth_views.PasswordResetDoneView.as_view(
+                template_name='pass_reset_done.html'),
+                name='password_reset_done',
+            ),
+    path("reset/<uidb64>/<token>/",auth_views.PasswordResetConfirmView.as_view(
+                    template_name='pass_reset_confirm.html'),
+                    name='password_reset_confirm',
+                ),
+    path("reset/done/",auth_views.PasswordResetCompleteView.as_view(
+                    template_name='pass_reset_complete.html'),
+                    name='password_reset_complete',
+                ),
     path("students/",include('students.urls')),
 ]
