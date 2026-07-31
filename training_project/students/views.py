@@ -3,15 +3,18 @@ from django.contrib import messages
 from django.contrib.auth.models import User 
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
-from .models import Student, Department, Course, StudentProfile, UserProfile
+from .models import Student, Department, Course, StudentProfile, UserProfile,AuditLog
 from .form import StudentForm,StudentProfileForm
-from django.db.models import Avg
+from django.db.models import Avg,Q 
 from.decorator import role_required
 from django.http import HttpResponseForbidden
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from .utility import create_audit_log
+from django.core.paginator import Paginator
+
 
 
 # home page
@@ -95,6 +98,12 @@ def login_user(request):
             user.profile.locked_until = None
             user.profile.save()
             login(request,user)
+            create_audit_log(
+                request=request,
+                user=user,
+                action="LOGIN",
+                description=f"{user.username} logged in successfully"
+            )
             messages.success(request, "Login successful.")
 
             if not request.POST.get('remember_me'):
@@ -110,6 +119,12 @@ def login_user(request):
                 return redirect('dashboard')
         else:
             if db_user:
+                create_audit_log(
+                                request=request,
+                                user=user,
+                                action="FAILED_LOGIN",
+                                description=f"loggin attempt fails for {user.username}"
+                            )
                 db_user.profile.failed_attempts+=1
                 print("Failed Attempts:", db_user.profile.failed_attempts)
                 if db_user.profile.failed_attempts>=5:
@@ -126,6 +141,11 @@ def login_user(request):
 
 # logout 
 def logout_user(request):
+    create_audit_log(
+        request=request,
+        user=request.user,
+        action="LOGOUT",
+        description=f"{request.user.username} logged out")
     logout(request)
     messages.success(request,"logout succesfully")
     return redirect('home')
@@ -264,6 +284,13 @@ def add_student(request):
 
             profile.student=student
             profile.save()
+            create_audit_log(
+                    request=request,
+                    user=request.user,
+                    action="CREATED",
+                    object_name=student.name,
+                    description=f"created student:{student.name}"
+                )
             messages.success(request, "Student added successfully.")
             return redirect("student_list")
     else:
@@ -291,6 +318,14 @@ def edit_student(request, id):
 
             form.save()
             profile_form.save()
+
+            create_audit_log(
+                            request=request,
+                            user=request.user,
+                            action="UPDATE",
+                            object_name=student.name,
+                            description=f"updated student:{student.name}"
+                            )
 
             messages.success(request, "Student updated successfully.")
 
@@ -322,6 +357,13 @@ def delete_student(request, id):
         if request.method == "POST":
 
             student.delete()
+            create_audit_log(
+                request=request,
+                user=request.user,
+                action="DELETE",
+                object_name=student.name,
+                description=f"Deleted student {student.name}"
+            )
 
             messages.success(request, "Student deleted successfully.")
 
@@ -380,6 +422,22 @@ def user_list(request):
 def toggle_status(request,user_id):
     user=get_object_or_404(User,id=user_id)
     user.is_active=not user.is_active
+    if user.is_active:
+        create_audit_log(
+                        request=request,
+                        user=request.user,
+                        action="ACTIVATE",
+                        object_name=user.username,
+                        description=f"Deleted student {user.username}"
+                    )
+    else:
+        create_audit_log(
+                    request=request,
+                    user=request.user,
+                    action="DEACTIVATE",
+                    object_name=user.username,
+                    description=f"Deleted student {user.username}"
+                )
     user.save()
     return redirect('user_list')
 
@@ -394,3 +452,40 @@ def remove_trainer(request,user_id):
     user.profile.role="STUDENT"
     user.profile.save()
     return redirect('user_list')
+
+@login_required
+@role_required("ADMIN")
+def audit_list(request):
+    logs=AuditLog.objects.all().order_by('-created_at')
+    search=request.GET.get("search")
+    print("search:",search)
+    if search:
+        logs=logs.filter(
+            Q(user__username__icontains=search)|
+            Q(action__icontains=search)|
+            Q(object_name__icontains=search)
+        )
+
+        action=request.GET.get("action")
+        if action:
+            logs=logs.filter(action=action)
+        print(logs)
+
+    paginator=Paginator(logs,5)
+    page_number=request.GET.get("page")
+    logs=paginator.get_page(page_number)
+    context={
+        "logs":logs,
+        "search":search
+    }
+    return render(request,'audit_list.html',context)
+
+
+
+from django.core.exceptions import PermissionDenied
+# to check custom error pages 
+def forbidden(request):
+    raise PermissionDenied
+
+def server_error(request):
+    x = 10 / 0

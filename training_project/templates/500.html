@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+500 Server Error
+{% endblock %}
+
+{% block content %}
+
+<div class="container text-center mt-5">
+
+    <h1 class="display-1 text-danger">
+        500
+    </h1>
+
+    <h3>
+        Internal Server Error
+    </h3>
+
+    <p>
+        Something went wrong on our server.
+        Please try again later.
+    </p>
+
+    <a href="{% url 'home' %}" class="btn btn-danger">
+        Go Home
+    </a>
+
+</div>
+
+{% endblock %}

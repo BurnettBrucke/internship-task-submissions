@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}System Audit Logs | Student Training Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-12">
+        
+        <!-- Header Section with Icon Alignment (d-flex) -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="bg-primary-subtle text-primary rounded-circle p-2 d-inline-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="bi bi-shield-check fs-4"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold text-dark m-0">System Audit Logs</h2>
+                <p class="text-secondary small m-0">Track administrative changes, security events, and database operations.</p>
+            </div>
+        </div>
+
+        <form method="GET" class="mb-3">
+
+    <div class="input-group">
+
+        <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Search..."
+            value="{{ search }}">
+        <select name="action">
+
+        <option value="">All Actions</option>
+
+        <option value="LOGIN">LOGIN</option>
+
+        <option value="LOGOUT">LOGOUT</option>
+
+        <option value="FAILED_LOGIN">FAILED LOGIN</option>
+
+        <option value="CREATE">CREATE</option>
+
+        <option value="UPDATE">UPDATE</option>
+
+        <option value="DELETE">DELETE</option>
+
+        <option value="ACTIVATE">ACTIVATE</option>
+
+        <option value="DEACTIVATE">DEACTIVATE</option>
+
+    </select>
+
+        <button class="btn btn-primary">
+            Search
+        </button>
+
+    </div>
+
+</form>
+
+        <!-- Master Log Directory Card (card border-0 shadow-sm) -->
+        <div class="card border-0 shadow-sm p-4 bg-white">
+            
+            <!-- Safe Mobile View Wrapper (table-responsive) -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-secondary small">
+                        <tr>
+                            <th scope="col" class="fw-semibold">Operator</th>
+                            <th scope="col" class="fw-semibold">Action</th>
+                            <th scope="col" class="fw-semibold">Target Object</th>
+                            <th scope="col" class="fw-semibold">Description</th>
+                            <th scope="col" class="fw-semibold">IP Address</th>
+                            <th scope="col" class="fw-semibold text-end">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <!-- User Details -->
+                            <td class="fw-medium text-dark">
+                                <i class="bi bi-person text-muted me-1"></i>{{ log.user }}
+                            </td>
+                            
+                            <!-- Actions styled with Subtle Badges based on operation type -->
+                            <td>
+                                {% if log.action == "CREATE" or log.action == "ADD" %}
+                                    <span class="badge bg-success-subtle text-success px-2 py-1 small">CREATE</span>
+                                {% elif log.action == "UPDATE" or log.action == "EDIT" %}
+                                    <span class="badge bg-warning-subtle text-warning px-2 py-1 small">UPDATE</span>
+                                {% elif log.action == "DELETE" or log.action == "REMOVE" %}
+                                    <span class="badge bg-danger-subtle text-danger px-2 py-1 small">DELETE</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border px-2 py-1 small">{{ log.action }}</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Target Object -->
+                            <td class="text-secondary small">
+                                <code class="text-dark bg-light px-1.5 py-0.5 rounded">{{ log.object_name }}</code>
+                            </td>
+                            
+                            <!-- Description -->
+                            <td class="text-muted small">{{ log.description }}</td>
+                            
+                            <!-- Network Metadata -->
+                            <td class="text-secondary small">
+                                <span class="font-monospace">{{ log.ip_address }}</span>
+                            </td>
+                            
+                            <!-- Time Stamp (Right Aligned) -->
+                            <td class="text-secondary small text-end">{{ log.created_at }}</td>
+                        </tr>
+                        {% empty %}
+                        <!-- Fixed Colspan to 6 columns matching the header array -->
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted small">
+                                <i class="bi bi-journal-x d-block mb-2 fs-2 text-secondary"></i>
+                                No system operations or security audit logs recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <nav>
+
+    <ul class="pagination justify-content-center">
+
+        {% if logs.has_previous %}
+
+        <li class="page-item">
+            <a class="page-link"
+               href="?page={{ logs.previous_page_number }}">
+                Previous
+            </a>
+        </li>
+
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">
+                {{ logs.number }}
+            </span>
+        </li>
+
+        {% if logs.has_next %}
+
+        <li class="page-item">
+            <a class="page-link"
+               href="?page={{ logs.next_page_number }}">
+                Next
+            </a>
+        </li>
+
+        {% endif %}
+
+    </ul>
+
+</nav>
+            
+        </div>
+
+    </div>
+</div>
+{% endblock %}

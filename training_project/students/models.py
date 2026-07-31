@@ -102,4 +102,27 @@ class TrainerCourse(models.Model):
 
        def __str__(self):
               return f'{self.trainer.user.username}--{self.course.course_name}'
-    
+
+
+# audit log ke liye model
+class AuditLog(models.Model):
+       ACTION_CHOICES = [
+        ("LOGIN", "Login"),
+        ("LOGOUT", "Logout"),
+        ("FAILED_LOGIN", "Failed Login"),
+        ("CREATE", "Create"),
+        ("UPDATE", "Update"),
+        ("DELETE", "Delete"),
+        ("MARKS_UPDATE", "Marks Update"),
+        ("FEEDBACK", "Feedback"),
+        ("ACTIVATE", "Activate"),
+        ("DEACTIVATE", "Deactivate"),]
+       user=models.ForeignKey(User,on_delete=models.SET_NULL,null=True)
+       action=models.CharField(max_length=30,choices=ACTION_CHOICES)
+       object_name=models.CharField(max_length=200,blank=True)
+       description=models.TextField()
+       ip_address=models.GenericIPAddressField()
+       created_at=models.DateTimeField(auto_now_add=True)
+
+       def __str__(self):
+              return f"{self.user}-{self.action}"

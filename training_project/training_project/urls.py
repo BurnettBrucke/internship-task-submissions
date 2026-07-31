@@ -47,5 +47,8 @@ urlpatterns = [
                     template_name='pass_reset_complete.html'),
                     name='password_reset_complete',
                 ),
+    path("audit_list/",views.audit_list,name='audit_list'),
+    path("forbidden/", views.forbidden, name="forbidden"),
+    path("server-error/", views.server_error),
     path("students/",include('students.urls')),
 ]
