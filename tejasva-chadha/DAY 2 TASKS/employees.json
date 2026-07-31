@@ -1,0 +1,9 @@
+[
+    {
+        "id": "123",
+        "name": "tejas",
+        "email": "tejas@gmail.com",
+        "department": "CS",
+        "salary": 900000.0
+    }
+]
