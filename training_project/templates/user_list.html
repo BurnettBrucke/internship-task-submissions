@@ -46,7 +46,9 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if user.is_active %}
+                                {% if user.id == request.user.id %}
+                                    <span class="badge bg-secondary-subtle text-secondary px-2 py-1">You</span>
+                                {% elif user.is_active %}
                                     <a href="{% url 'toggle_status' user.id %}" class="btn btn-outline-danger btn-sm px-3">
                                         Deactivate
                                     </a>
@@ -57,14 +59,18 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if user.profile.role == "STUDENT" %}
+                                {% if user.id == request.user.id %}
+                                    <span class="text-muted small">&mdash;</span>
+                                {% elif user.profile.role == "STUDENT" %}
                                     <a href="{% url 'make_trainer' user.id %}" class="btn btn-primary btn-sm px-3">
                                         Make Trainer
                                     </a>
-                                {% else %}      
+                                {% elif user.profile.role == "TRAINER" %}
                                     <a href="{% url 'remove_trainer' user.id %}" class="btn btn-outline-warning btn-sm px-3">
                                         Remove Trainer
                                     </a>
+                                {% else %}
+                                    <span class="text-muted small">&mdash;</span>
                                 {% endif %}
                             </td>
                         </tr>

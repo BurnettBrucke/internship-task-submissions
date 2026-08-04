@@ -20,6 +20,7 @@
             
             <!-- Quick Navigation Controls -->
             <div class="d-flex gap-2">
+                {% if can_manage %}
                 <a href="{% url 'edit_student' student.id %}" class="btn btn-primary btn-sm px-3 d-inline-flex align-items-center gap-1">
                     <i class="bi bi-pencil-square"></i> Edit
                 </a>
@@ -29,6 +30,7 @@
                 <a href="{% url 'student_list' %}" class="btn btn-light border btn-sm px-3 text-secondary">
                     Back
                 </a>
+                {% endif %}
             </div>
         </div>
 

@@ -11,20 +11,52 @@
             <h2 class="fw-bold text-dark mb-4 text-center">Student Registration / Edit</h2>
 
             <!-- Form Validation Errors Box -->
-            {% if form.errors or profile_form.errors %}
+            {% if form.errors or profile_form.errors or account_errors %}
                 <div class="alert alert-danger border-0 shadow-sm small mb-4" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     Please correct the errors below before saving.
                     <div class="mt-2 ps-3">
                         {{ form.errors }}
                         {{ profile_form.errors }}
+                        {% if account_errors %}
+                            <ul class="mb-0">
+                                {% for err in account_errors %}
+                                    <li>{{ err }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}
 
             <form method="POST">
                 {% csrf_token %}
-                
+
+                {% if not form.instance.pk %}
+                <!-- Section 0: Login Account (only when creating a NEW student) -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Login Account
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="username" class="form-label small fw-medium text-secondary">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Login username" required>
+                        </div>
+                        <div class="col-12 col-md-6"></div>
+                        <div class="col-12 col-md-6">
+                            <label for="password" class="form-label small fw-medium text-secondary">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Set a password" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="confirm_password" class="form-label small fw-medium text-secondary">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+                        </div>
+                    </div>
+                </div>
+                <hr class="text-muted opacity-25 my-4">
+                {% endif %}
+
                 <!-- Section 1: Core Student Info -->
                 <div class="mb-4">
                     <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">

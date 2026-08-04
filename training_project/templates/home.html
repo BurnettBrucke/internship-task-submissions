@@ -3,22 +3,86 @@
 {% block title %}Welcome | Student Training Portal{% endblock %}
 
 {% block content %}
-<div class="container text-center my-5 py-5">
-    
-    <!-- Simple Icon and Header -->
-    <i class="bi bi-mortarboard text-primary mb-3" style="font-size: 3rem;"></i>
-    <h1 class="fw-bold text-dark mb-3">Welcome to the Student Training Portal</h1>
-    <p class="text-secondary mb-4 fs-5">Please log in or register an account to access your dashboard.</p>
-    
-    <!-- Simple Standard Buttons -->
-    <div class="d-flex justify-content-center gap-3">
-        <a href="{% url 'login' %}" class="btn btn-primary px-4 py-2">
-            Login
-        </a>
-        <a href="{% url 'register' %}" class="btn btn-outline-secondary px-4 py-2">
-            Register
-        </a>
-    </div>
+<div class="container my-5 py-5">
+
+    {% if user.is_authenticated %}
+        <!-- Logged-in view: portal intro, no login/register -->
+        <div class="text-center mb-5">
+            <i class="bi bi-mortarboard-fill text-primary mb-3" style="font-size: 3rem;"></i>
+            <h1 class="fw-bold text-dark mb-2">Welcome back, {{ user.username }}</h1>
+            <p class="text-secondary fs-5 mb-4">
+                Aap currently
+                <span class="badge bg-secondary text-uppercase">{{ user.profile.role }}</span>
+                ke roop me logged in hain.
+            </p>
+
+            {% if user.profile.role == "ADMIN" %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary px-4 py-2">
+                    <i class="bi bi-speedometer2 me-1"></i> Go to Admin Dashboard
+                </a>
+            {% elif user.profile.role == "TRAINER" %}
+                <a href="{% url 'trainer_dashboard' %}" class="btn btn-primary px-4 py-2">
+                    <i class="bi bi-speedometer2 me-1"></i> Go to Trainer Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'dashboard' %}" class="btn btn-primary px-4 py-2">
+                    <i class="bi bi-speedometer2 me-1"></i> Go to My Dashboard
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- About the portal -->
+        <div class="row g-4">
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm p-4 bg-white h-100 text-center">
+                    <i class="bi bi-mortarboard text-primary fs-2 mb-3"></i>
+                    <h5 class="fw-bold text-dark">Students</h5>
+                    <p class="text-secondary small mb-0">
+                        Apne courses, marks aur profile information ek jagah track karein.
+                    </p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm p-4 bg-white h-100 text-center">
+                    <i class="bi bi-person-badge text-success fs-2 mb-3"></i>
+                    <h5 class="fw-bold text-dark">Trainers</h5>
+                    <p class="text-secondary small mb-0">
+                        Assigned courses aur students ka overview aasani se dekhein.
+                    </p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card border-0 shadow-sm p-4 bg-white h-100 text-center">
+                    <i class="bi bi-shield-lock text-warning fs-2 mb-3"></i>
+                    <h5 class="fw-bold text-dark">Admins</h5>
+                    <p class="text-secondary small mb-0">
+                        Users, students, courses aur audit logs ko centrally manage karein.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Logged-out view: intro + login/register CTA -->
+        <div class="text-center">
+            <i class="bi bi-mortarboard text-primary mb-3" style="font-size: 3rem;"></i>
+            <h1 class="fw-bold text-dark mb-3">Welcome to the Student Training Portal</h1>
+            <p class="text-secondary mb-4 fs-5">
+                Ek central platform jaha students apna academic progress track kar sakte hain,
+                trainers apne assigned courses aur students manage kar sakte hain, aur admin
+                pura system role-based access ke saath control karta hai.
+            </p>
+
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'login' %}" class="btn btn-primary px-4 py-2">
+                    Login
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-outline-secondary px-4 py-2">
+                    Register
+                </a>
+            </div>
+        </div>
+    {% endif %}
 
 </div>
 {% endblock %}
