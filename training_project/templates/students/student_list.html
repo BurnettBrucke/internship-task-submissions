@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student List
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h4>Student List</h4>
+    <h4>Total Students</h4>
+    <h4>{{total_students}}</h4>
+    <h4>Active Students</h4>
+    {% for student in active_students %}
+    <h4>{{student.name}}</h4>
+    {% endfor %}
+
+    <a href="{% url 'student_add' %}" class="btn btn-primary">
+        Add Student
+    </a>
+</div>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Course</th>
+            <th>Marks</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for student in students %}
+            <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.email }}</td>
+                <td>{{student.age}}</td>
+                <td>{{ student.course }}</td>
+                <td>{{student.marks}}</td>
+                <td>
+                    {% if student.marks > 40 %}
+                        Pass
+                    {% else %}
+                        Fail
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="{% url 'student_detail' student.id %}" class="btn btn-info btn-sm">View</a>
+
+                    <a href="{% url 'student_edit' student.id %}" class="btn btn-warning btn-sm">Edit</a>
+
+                    <a href="{% url 'student_delete' student.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+
+        {% empty %}
+
+            <tr>
+                <td colspan="4" class="text-center">
+                    No students found.
+                </td>
+            </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+<form method="get">
+    <select name="department">
+        <option value="">All Departments</option>
+
+        {% for department in departments %}
+            <option value="{{ department.id }}">
+                {{ department.name }}
+
+            </option>
+
+        {% endfor %}
+
+        </select>
+
+        <select name="course">
+
+        <option value="">All Courses</option>
+
+        {% for course in courses %}
+
+            <option value="{{ course.id }}">
+
+            {{ course.course_name }}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+    <inputtype="text"name="search"placeholder="Search">
+
+    <button class="btn btn-primary">Search</button>
+
+</form>
+
+{% endblock %}
+
