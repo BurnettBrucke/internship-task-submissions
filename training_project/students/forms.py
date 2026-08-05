@@ -9,11 +9,7 @@ class StudentForm(forms.ModelForm):
     class Meta:
         model = Student  
         fields = "__all__"
-
-        widgets = {
-            "active_status": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}),
-                }
+        widgets = {"active_status": forms.CheckboxInput(attrs={"class": "form-check-input"}),}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -66,3 +62,11 @@ class RegisterForm(UserCreationForm):
             "password1",
             "password2",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "form-control"
+            })

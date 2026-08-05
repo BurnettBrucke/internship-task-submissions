@@ -1,5 +1,4 @@
 # Task 9: Iterator and Generator
-# Create:
 #  A custom iterator that returns numbers from 1 to 10.
 class OneToTenNumbers:
     def __init__(self):
@@ -26,12 +25,13 @@ for num in iterator:
     print(num)
 
 
-#  A generator function that returns even numbers from 1 to 50.
+# A generator function that returns even numbers from 1 to 50.
 def generator_function_for_even():
     for i in range(1, 51):
         if i % 2 == 0:
             yield i
 
+# Consume the generator using a loop
 for even in generator_function_for_even():
     print(even, end=" ")
 

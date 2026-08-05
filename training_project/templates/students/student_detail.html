@@ -16,7 +16,16 @@ Student Details
         <p><strong>Email:</strong> {{ student.email }}</p>
         <p><strong>Age:</strong> {{ student.age }}</p>
         <p><strong>Marks:</strong> {{ student.marks }}</p>
-        <p><strong>Course:</strong> {{ student.course }}</p>
+        <p>
+            <strong>Course:</strong>
+            <td>
+                {% for course in student.course.all %}
+                    {{ course.course_name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    No Course Assigned
+                {% endfor %}
+            </td>
+        </p>
         <p><strong>Joined Date:</strong> {{ student.joined_date }}</p>
         <p><strong>Active Status:</strong> {{ student.active_status }}</p>
 

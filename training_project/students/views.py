@@ -5,9 +5,14 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
+
 from . models import Student, Department, Course, StudentProfile
 from . forms import StudentForm, RegisterForm
 
+
+def is_staff(user):
+    return user.is_staff
 
 def register(request):
     if request.method == "POST":
@@ -50,16 +55,17 @@ def home(request):
 
 
 def about(request):
-    message = 'Welcome to the About Page'
-    context = {'welcome msg': message}
-    return HttpResponse('This is About Page', context)
-
+    # message = 'Welcome to the About Page'
+    # context = {'welcome msg': message}
+    # return HttpResponse('This is About Page', context)
+    students = Student.objects.all()
+    context = {'students':students}
+    return render(request, 'table.html', context)
 
 @login_required
 def student_list(request):
     active_students = Student.objects.filter(active_status=True)
-    students = Student.objects.all()
-    total_students = students.count()    
+    total_students = Student.objects.all().count()    
 
     students = Student.objects.select_related("department").prefetch_related("course").annotate(course_count=Count("course"))
 
@@ -122,7 +128,7 @@ def student_add(request):
     return render(request, "students/student_form.html", {"form": form})
 
 
-# Edit student
+@user_passes_test(is_staff)
 @login_required
 def student_edit(request, id):
     student = get_object_or_404(Student, pk=id)
@@ -139,7 +145,8 @@ def student_edit(request, id):
     return render(request, "students/student_form.html", {"form": form})
 
 
-# Delete student
+@user_passes_test(is_staff)
+@login_required
 def student_delete(request, id):
     student = get_object_or_404(Student, pk=id)
 
