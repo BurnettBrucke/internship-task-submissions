@@ -1,18 +1,14 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Count, Avg, Max, Q
+from . models import Student, Department, Course, StudentProfile
+from . forms import StudentForm, RegisterForm
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 
-from . models import Student, Department, Course, StudentProfile
-from . forms import StudentForm, RegisterForm
-
-
-def is_staff(user):
-    return user.is_staff
 
 def register(request):
     if request.method == "POST":
@@ -53,14 +49,11 @@ def home(request):
     context = {'welcome msg': welcome_msg}
     return render(request, 'students/home.html', context)
 
-
 def about(request):
-    # message = 'Welcome to the About Page'
-    # context = {'welcome msg': message}
-    # return HttpResponse('This is About Page', context)
-    students = Student.objects.all()
-    context = {'students':students}
-    return render(request, 'table.html', context)
+    message = 'Welcome to the About Page'
+    context = {'welcome msg': message}
+    return HttpResponse('This is About Page', context)
+
 
 @login_required
 def student_list(request):
@@ -128,7 +121,6 @@ def student_add(request):
     return render(request, "students/student_form.html", {"form": form})
 
 
-@user_passes_test(is_staff)
 @login_required
 def student_edit(request, id):
     student = get_object_or_404(Student, pk=id)
@@ -143,6 +135,10 @@ def student_edit(request, id):
     else:
         form = StudentForm(instance=student)
     return render(request, "students/student_form.html", {"form": form})
+
+
+def is_staff(user):
+    return user.is_staff
 
 
 @user_passes_test(is_staff)
@@ -176,3 +172,4 @@ def dashboard(request):
     }
 
     return render(request,"students/dashboard.html",context,)
+
