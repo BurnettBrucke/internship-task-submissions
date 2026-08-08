@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Details
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <div class="card-header">
+        <h3>{{ student.name }}</h3>
+    </div>
+
+    <div class="card-body">
+        <p><strong>Email:</strong> {{ student.email }}</p>
+        <p><strong>Age:</strong> {{ student.age }}</p>
+        <p><strong>Marks:</strong> {{ student.marks }}</p>
+        <p>
+            <strong>Course:</strong>
+            <td>
+                {% for course in student.course.all %}
+                    {{ course.course_name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    No Course Assigned
+                {% endfor %}
+            </td>
+        </p>
+        <p><strong>Joined Date:</strong> {{ student.joined_date }}</p>
+        <p><strong>Active Status:</strong> {{ student.active_status }}</p>
+
+        <!-- <a href="{% url 'student_edit' student.id %}" class="btn btn-warning">
+            Edit
+        </a> -->
+
+        <a href="{% url 'student_delete' student.id %}" class="btn btn-danger">
+            Delete
+        </a>
+
+        <a href="{% url 'student_list' %}" class="btn btn-secondary">
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Detail</title>
+</head>
+
+<body>
+
+<h2>Student Details</h2>
+<p><b>Name:</b> {{ student.name }}</p>
+<p><b>Email:</b> {{ student.email }}</p>
+<p><b>Age:</b> {{ student.age }}</p>
+<p><b>Marks:</b> {{ student.marks }}</p>
+<p><b>Course:</b> {{ student.course }}</p>
+<hr>
+
+<a href="{% url 'student_edit' student.id %}">Edit</a>
+<a href="{% url 'student_delete' student.id %}">Delete</a>
+<a href="{% url 'student_list' %}">Back</a>
+
+</body>
+
+</html> -->
