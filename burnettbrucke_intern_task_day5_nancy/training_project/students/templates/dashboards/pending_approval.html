@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Pending Approval{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <i class="bi bi-hourglass-split display-1 text-warning"></i>
+    <h1 class="h3 mt-3">Your trainer account is pending approval</h1>
+    <p class="text-muted col-lg-6 mx-auto">
+        An administrator needs to review and approve your trainer account before you can
+        access the trainer dashboard, view assigned students, update marks, or leave feedback.
+        You'll be able to use those features as soon as you're approved.
+    </p>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">Back to Home</a>
+</div>
+{% endblock %}

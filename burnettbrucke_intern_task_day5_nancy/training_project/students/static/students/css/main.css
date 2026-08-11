@@ -1,0 +1,55 @@
+/* students/static/students/css/main.css
+   Project-specific styling. Bootstrap covers the vast majority of what the
+   templates need; this file only holds the handful of small tweaks that
+   Bootstrap's utility classes don't cover, so it stays intentionally short.
+*/
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f7f8fa;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+footer {
+    background-color: #212529;
+    color: #adb5bd;
+}
+
+.card-stat .display-6 {
+    font-weight: 600;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+/* Empty-state placeholder used across list/table pages */
+.empty-state {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: .5rem;
+}
+
+/* Disabled/loading submit buttons (see students/static/students/js/main.js) */
+button[type="submit"].is-submitting {
+    pointer-events: none;
+    opacity: 0.65;
+}

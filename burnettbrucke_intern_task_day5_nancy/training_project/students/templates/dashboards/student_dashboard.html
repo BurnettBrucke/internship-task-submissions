@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4"><i class="bi bi-person-badge"></i> My Dashboard</h1>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h6 class="card-title">Profile Completion</h6>
+        <div class="progress" style="height: 1.5rem;">
+            <div class="progress-bar bg-info" style="width: {{ profile_completion }}%;">
+                {{ profile_completion }}%
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if student %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">My Marks</div>
+                <div class="display-6">{{ student.marks }}</div>
+                <span class="badge {% if student.result_status == 'Pass' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                    {{ student.result_status }}
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Department</div>
+                <div class="fs-5">{{ student.department|default:"Unassigned" }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Account Status</div>
+                <span class="badge {% if student.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %} fs-6">
+                    {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">My Courses</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead><tr><th>Course</th><th>Code</th><th>Duration</th></tr></thead>
+            <tbody>
+                {% for course in student.courses.all %}
+                <tr>
+                    <td>{{ course.name }}</td>
+                    <td>{{ course.code }}</td>
+                    <td>{{ course.duration_weeks }} weeks</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-3">You are not enrolled in any courses yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">Feedback From Trainers</div>
+    <ul class="list-group list-group-flush">
+        {% for fb in feedbacks %}
+        <li class="list-group-item">
+            <strong>{{ fb.course.code }}</strong> &mdash; {{ fb.comment }}
+            <div class="text-muted small">{{ fb.created_at|date:"Y-m-d" }}</div>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted text-center">No feedback yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+    Your account isn't linked to a student record yet. Please contact an administrator to get set up.
+</div>
+{% endif %}
+{% endblock %}

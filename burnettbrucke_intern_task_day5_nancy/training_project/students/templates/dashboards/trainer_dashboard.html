@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Trainer Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4"><i class="bi bi-easel2"></i> Trainer Dashboard</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">My Courses</div>
+                <div class="display-6">{{ total_courses }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">My Students</div>
+                <div class="display-6">{{ total_students }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Average Marks</div>
+                {% with pct=average_marks|default:0|floatformat:0 %}
+                <div class="progress mt-1" style="height: 1.25rem;">
+                    <div class="progress-bar {% if pct >= 40 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ pct }}%;">
+                        {{ average_marks|default:"0"|floatformat:1 }}%
+                    </div>
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">My Courses</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead><tr><th>Course</th><th>Code</th><th>Duration</th><th>Status</th><th>Students</th></tr></thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>{{ course.name }}</td>
+                    <td>{{ course.code }}</td>
+                    <td>{{ course.duration_weeks }} weeks</td>
+                    <td>
+                        <span class="badge {% if course.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+                            {% if course.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ course.student_count }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-3">No courses assigned to you yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        My Students
+        <a href="{% url 'student_list' %}" class="btn btn-sm btn-outline-secondary">View all</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead><tr><th>Name</th><th>Marks</th><th>Result</th><th></th></tr></thead>
+            <tbody>
+                {% for student in students|slice:":8" %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.marks }}</td>
+                    <td>
+                        <span class="badge {% if student.result_status == 'Pass' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                            {{ student.result_status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="{% url 'update_marks' student.pk %}" class="btn btn-sm btn-outline-secondary">Marks</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No students found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">Recent Feedback You've Given</div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for fb in recent_feedback %}
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="card-title">{{ fb.student.name }} ({{ fb.course.code }})</h6>
+                            <span class="badge text-bg-warning">
+                                {% for i in "12345" %}{% if forloop.counter <= fb.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}
+                            </span>
+                        </div>
+                        <p class="card-text small">{{ fb.comment|truncatewords:20 }}</p>
+                        {% if not fb.is_visible_to_student %}<span class="badge text-bg-secondary">Draft</span>{% endif %}
+                        <a href="{% url 'edit_feedback' fb.pk %}" class="btn btn-sm btn-outline-secondary float-end">Edit</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-muted text-center py-3">No feedback given yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

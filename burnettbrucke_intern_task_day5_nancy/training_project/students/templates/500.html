@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Server Error</title>
+    <!--
+        Django renders 500.html WITHOUT the normal template context (no
+        `user`, no context processors) -- it has to work even when the error
+        is caused by something breaking earlier in the request. So this page
+        deliberately does NOT extend base.html or use {% url %}/{% static %}
+        tags that could themselves fail; it's plain, self-contained HTML.
+    -->
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+               background:#f7f8fa; display:flex; align-items:center; justify-content:center;
+               height:100vh; margin:0; color:#212529; }
+        .box { text-align:center; max-width:420px; padding:2rem; }
+        h1 { font-size:1.5rem; margin-bottom:.5rem; }
+        p { color:#6c757d; }
+        a { color:#0d6efd; text-decoration:none; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>500 &mdash; Something went wrong</h1>
+        <p>An unexpected error occurred on our end. Please try again in a moment.</p>
+        <a href="/">Back to Home</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
+    <h1 class="display-6">Welcome to {{ company }}</h1>
+    <p class="col-lg-8 fs-6 text-muted">
+        This is the training project home page. Administrators, trainers and
+        students each get their own dashboard once logged in.
+    </p>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+        <a href="{% url 'register' %}" class="btn btn-outline-secondary">Register</a>
+    {% endif %}
+</div>
+{% endblock %}

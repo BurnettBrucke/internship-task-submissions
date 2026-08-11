@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header">Register {% if role_label %}as {{ role_label }}{% endif %}</div>
+            <div class="card-body">
+                {% if role_label == "Trainer" %}
+                    <div class="alert alert-info small">
+                        Trainer accounts require Administrator approval before you can access the trainer dashboard, update marks, or leave feedback.
+                    </div>
+                {% else %}
+                    <p class="text-muted small">New accounts are created with the <strong>Student</strong> role. Administrator accounts are set up by an existing administrator.</p>
+                {% endif %}
+
+                <ul class="small text-muted mb-3">
+                    <li>Minimum eight characters.</li>
+                    <li>At least one uppercase letter, one lowercase letter, one digit, and one special character.</li>
+                    <li>Cannot be too similar to your username or email.</li>
+                    <li>Cannot be an entirely numeric or commonly used password.</li>
+                </ul>
+
+                {% include "includes/form_errors.html" %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                </form>
+                <p class="text-center mt-3 mb-0">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

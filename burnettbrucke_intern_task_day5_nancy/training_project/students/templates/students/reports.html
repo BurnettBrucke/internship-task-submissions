@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Reports</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Reports</h1>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Students per Trainer</div>
+            <ul class="list-group list-group-flush">
+                {% for profile in trainer_student_counts %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ profile.user.username }}</span>
+                        <span class="badge text-bg-primary">{{ profile.student_count }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">No trainers found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Average Feedback Rating by Trainer</div>
+            <ul class="list-group list-group-flush">
+                {% for profile in average_rating_by_trainer %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ profile.user.username }}</span>
+                        <span class="badge text-bg-info">{{ profile.average_rating|floatformat:1|default:"—" }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">No trainers found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Students With No Visible Feedback</div>
+            <ul class="list-group list-group-flush">
+                {% for student in students_with_no_visible_feedback %}
+                    <li class="list-group-item">{{ student.name }}</li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">Every student has visible feedback.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Trainers Without Feedback</div>
+            <ul class="list-group list-group-flush">
+                {% for profile in trainers_without_feedback %}
+                    <li class="list-group-item">{{ profile.user.username }}</li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">Every trainer has left feedback.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Courses With Average Marks Below 50</div>
+            <ul class="list-group list-group-flush">
+                {% for course in courses_below_average_marks %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ course.name }}</span>
+                        <span class="badge text-bg-danger">{{ course.avg_marks|floatformat:1 }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">No underperforming courses.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Enrolled Students With No Marks Recorded</div>
+            <ul class="list-group list-group-flush">
+                {% for student in enrolled_students_with_no_marks %}
+                    <li class="list-group-item">{{ student.name }}</li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">Every enrolled student has marks on record.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Marks Updated This Week</div>
+            <ul class="list-group list-group-flush">
+                {% for entry in marks_updated_this_week %}
+                    <li class="list-group-item">
+                        {{ entry.student.name }}: {{ entry.old_marks }} &rarr; {{ entry.new_marks }}
+                        <span class="text-muted small">({{ entry.updated_at|date:"Y-m-d" }})</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">No marks changed this week.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Users With More Than 3 Failed Logins</div>
+            <ul class="list-group list-group-flush">
+                {% for row in users_with_excess_failed_logins %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ row.username }}</span>
+                        <span class="badge text-bg-warning">{{ row.failure_count }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">No accounts over the threshold.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Inactive Users Who Previously Logged In</div>
+            <ul class="list-group list-group-flush">
+                {% for user in inactive_users_who_previously_logged_in %}
+                    <li class="list-group-item">{{ user.username }} <span class="text-muted small">(last: {{ user.last_login|date:"Y-m-d" }})</span></li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">None found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Latest Audit Actions</div>
+            <ul class="list-group list-group-flush">
+                {% for log in latest_audit_actions %}
+                    <li class="list-group-item small">{{ log.timestamp|date:"Y-m-d H:i" }} &mdash; {{ log.description }}</li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">No audit activity yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

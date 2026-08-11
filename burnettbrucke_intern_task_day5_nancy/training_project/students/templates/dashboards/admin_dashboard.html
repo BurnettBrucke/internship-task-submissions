@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Administrator Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-speedometer2"></i> Administrator Dashboard</h1>
+    <div>
+        <a href="{% url 'add_student' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Student</a>
+        <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm">Manage Students</a>
+        <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary btn-sm">Manage Users</a>
+        <a href="{% url 'audit_log' %}" class="btn btn-outline-secondary btn-sm">Audit Log</a>
+        <a href="{% url 'reports' %}" class="btn btn-outline-secondary btn-sm">Reports</a>
+    </div>
+</div>
+
+{% if pending_trainers %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-hourglass-split"></i> {{ pending_trainers|length }} trainer account{{ pending_trainers|length|pluralize }} awaiting approval.</span>
+    <a href="{% url 'manage_users' %}?role=trainer" class="btn btn-sm btn-warning">Review</a>
+</div>
+{% endif %}
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total Students</div>
+                <div class="display-6">{{ total_students }}</div>
+                <span class="badge text-bg-success">{{ active_students }} active</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Departments</div>
+                <div class="display-6">{{ total_departments }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Courses</div>
+                <div class="display-6">{{ total_courses }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Trainers</div>
+                <div class="display-6">{{ total_trainers }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title">Average Marks (cohort)</h6>
+                {% with pct=average_marks|default:0|floatformat:0 %}
+                <div class="progress" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" style="height: 1.5rem;">
+                    <div class="progress-bar {% if pct >= 40 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ pct }}%;">
+                        {{ average_marks|default:"0"|floatformat:1 }}%
+                    </div>
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title">Top Student</h6>
+                {% if top_student %}
+                    <p class="mb-1">{{ top_student.name }} &mdash; {{ top_student.marks }} marks</p>
+                    <span class="badge {% if top_student.result_status == 'Pass' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                        {{ top_student.result_status }}
+                    </span>
+                {% else %}
+                    <p class="text-muted mb-0">No students yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">Recently Joined Students</div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr><th>Name</th><th>Department</th><th>Status</th><th>Result</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for student in recent_students %}
+                        <tr>
+                            <td><a href="{% url 'student_detail' student.pk %}">{{ student.name }}</a></td>
+                            <td>{{ student.department|default:"—" }}</td>
+                            <td>
+                                <span class="badge {% if student.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+                                    {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if student.result_status == 'Pass' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                                    {{ student.result_status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No students found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">Recent Users</div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr><th>Username</th><th>Role</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in recent_users %}
+                        <tr>
+                            <td>{{ profile.user.username }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if profile.role == 'admin' %}text-bg-danger
+                                    {% elif profile.role == 'trainer' %}text-bg-warning
+                                    {% else %}text-bg-info{% endif %}">
+                                    {{ profile.get_role_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted py-3">No users found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+    <div class="card-header">Audit Log <span class="text-muted small">(latest actions)</span></div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead><tr><th>When</th><th>Who</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td class="text-nowrap">{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td>{{ log.user.username|default:"system" }}</td>
+                    <td>{{ log.action }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-3">No audit activity yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

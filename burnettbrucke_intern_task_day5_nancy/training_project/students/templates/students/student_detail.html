@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'student_list' %}">Students</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ student.name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">{{ student.name }}</h1>
+    <div>
+        {% if can_edit %}
+            <a href="{% url 'edit_student' student.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            <a href="{% url 'delete_student' student.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+        {% endif %}
+        {% if can_update_marks %}
+            <a href="{% url 'update_marks' student.pk %}" class="btn btn-sm btn-outline-secondary">Update Marks</a>
+            <a href="{% url 'add_feedback' student.pk %}" class="btn btn-sm btn-primary">Add Feedback</a>
+        {% endif %}
+        <a href="{% url 'student_list' %}" class="btn btn-sm btn-outline-secondary">Back to list</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Details</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Email</span><span>{{ student.email }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Age</span><span>{{ student.age }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Department</span><span>{{ student.department|default:"Unassigned" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Joined</span><span>{{ student.joined_date }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Status</span>
+                    <span class="badge {% if student.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+                        {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Marks / Result</span>
+                    <span>
+                        {{ student.marks }}
+                        <span class="badge {% if student.result_status == 'Pass' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                            {{ student.result_status }}
+                        </span>
+                    </span>
+                </li>
+                {% if latest_marks_update %}
+                <li class="list-group-item">
+                    <span class="text-muted small">
+                        Last updated by {{ latest_marks_update.updated_by.username|default:"—" }}
+                        on {{ latest_marks_update.updated_at|date:"Y-m-d H:i" }}
+                        ({{ latest_marks_update.old_marks }} &rarr; {{ latest_marks_update.new_marks }})
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">Courses</div>
+            <ul class="list-group list-group-flush">
+                {% for course in student.courses.all %}
+                    <li class="list-group-item">{{ course.name }} <span class="text-muted small">({{ course.code }})</span></li>
+                {% empty %}
+                    <li class="list-group-item text-muted text-center">Not enrolled in any courses.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5 mt-4 mb-3">Feedback</h2>
+<div class="row g-3">
+    {% for fb in feedbacks %}
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="card-title mb-1">{{ fb.course.code }}</h6>
+                    <span class="badge text-bg-warning">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= fb.rating %}&#9733;{% else %}&#9734;{% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                <p class="card-text">{{ fb.comment }}</p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        By {{ fb.trainer.username|default:"—" }} on {{ fb.created_at|date:"Y-m-d" }}
+                        {% if not fb.is_visible_to_student %}<span class="badge text-bg-secondary">Draft</span>{% endif %}
+                    </small>
+                </p>
+                {% if role == 'trainer' and fb.trainer_id == request.user.id %}
+                    <a href="{% url 'edit_feedback' fb.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body text-center text-muted">No feedback yet.</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
