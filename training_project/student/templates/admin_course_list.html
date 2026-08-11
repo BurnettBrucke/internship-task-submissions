@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Courses — Admin Portal{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="breadcrumb"><a href="{% url 'landing' %}">Home</a> › <a href="{% url 'admin_dashboard' %}">Admin Portal</a> › Courses</div>
+        <h1>📚 Courses</h1>
+    </div>
+    <a href="{% url 'admin_course_add' %}" class="btn btn-success">+ Add Course</a>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+    {% if courses %}
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Duration</th>
+                <th style="text-align:center;">Status</th>
+                <th style="text-align:center;">Enrolled</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td style="color:#a0aec0;">{{ forloop.counter }}</td>
+                <td><strong>{{ course.name }}</strong></td>
+                <td><code style="background:#f0f4f8;padding:3px 7px;border-radius:4px;font-size:12px;">{{ course.code }}</code></td>
+                <td style="color:#718096;font-size:13px;">{{ course.duration }}</td>
+                <td style="text-align:center;">
+                    {% if course.is_active %}
+                    <span class="badge badge-active">Active</span>
+                    {% else %}
+                    <span class="badge badge-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="text-align:center;">
+                    <span class="badge badge-pass">{{ course.enrolled_students.count }}</span>
+                </td>
+                <td>
+                    <div style="display:flex;gap:6px;">
+                        <a href="{% url 'admin_course_edit' course.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'admin_course_delete' course.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">📚</div>
+        <p>No courses yet. <a href="{% url 'admin_course_add' %}" style="color:#1a237e;">Create the first one →</a></p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Student — Bug Network Training{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width:650px; margin:0 auto;">
+
+    <h1>{{ action }} Student</h1>
+    <p style="color:#888; font-size:14px; margin-bottom:20px;">
+        {% if action == 'Add' %}
+            Fill in the form below to add a new student.
+        {% else %}
+            Update the details for <strong>{{ student.name }}</strong>.
+        {% endif %}
+    </p>
+
+    <!-- ── Form ──────────────────────────────────────────────────────── -->
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- ── Non-field errors (overall form errors) ──────────────── -->
+        {% if form.non_field_errors %}
+        <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:5px; margin-bottom:15px;">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <!-- ── Name ────────────────────────────────────────────────── -->
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">👤 Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- ── Email ────────────────────────────────────────────────── -->
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">📧 Email *</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <ul class="errorlist">
+                    {% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- ── Age & Marks in a row ──────────────────────────────────── -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div class="form-group">
+                <label for="{{ form.age.id_for_label }}">🎂 Age * (16–60)</label>
+                {{ form.age }}
+                {% if form.age.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.age.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.marks.id_for_label }}">📝 Marks * (0–100)</label>
+                {{ form.marks }}
+                {% if form.marks.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.marks.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ── Course ────────────────────────────────────────────────── -->
+        <div class="form-group">
+            <label for="{{ form.course.id_for_label }}">📖 Course * (e.g. Python Django)</label>
+            {{ form.course }}
+            {% if form.course.errors %}
+                <ul class="errorlist">
+                    {% for error in form.course.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- ── Department ────────────────────────────────────────────── -->
+        <div class="form-group">
+            <label for="{{ form.department.id_for_label }}">🏢 Department</label>
+            {{ form.department }}
+            {% if form.department.errors %}
+                <ul class="errorlist">
+                    {% for error in form.department.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- ── Enrolled Courses (checkboxes) ────────────────────────── -->
+        <div class="form-group">
+            <label>🎓 Enrolled Courses</label>
+            <div style="background:#f9f9f9; border:1px solid #ccc; border-radius:5px; padding:10px; max-height:150px; overflow-y:auto;">
+                {{ form.enrolled_courses }}
+            </div>
+            {% if form.enrolled_courses.errors %}
+                <ul class="errorlist">
+                    {% for error in form.enrolled_courses.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- ── Active Status ─────────────────────────────────────────── -->
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" style="margin:0;">
+                ✅ Mark student as Active
+            </label>
+        </div>
+
+        <!-- ── Buttons ───────────────────────────────────────────────── -->
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button type="submit" class="btn btn-success" style="padding:10px 25px;">
+                {% if action == 'Add' %}Add Student{% else %}Save Changes{% endif %}
+            </button>
+            <a href="{% url 'student_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

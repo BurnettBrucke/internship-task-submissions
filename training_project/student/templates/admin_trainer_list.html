@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Trainers — Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <div class="breadcrumb"><a href="{% url 'landing' %}">Home</a> › <a href="{% url 'admin_dashboard' %}">Admin Portal</a> › Trainers</div>
+      <h1 class="h3 fw-bold mb-0">👨‍🏫 Trainer Management</h1>
+    </div>
+    <a href="{% url 'admin_trainer_add' %}" class="btn btn-success">➕ Add New Trainer</a>
+  </div>
+
+  {# ── Filter by Course ───────────────────────────────────────────────────── #}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Filter by Course</label>
+          <select name="course" class="form-select">
+            <option value="">All Courses</option>
+            {% for course in courses %}
+              <option value="{{ course.id }}" {% if selected_course == course.id|stringformat:"s" %}selected{% endif %}>
+                {{ course.name }} ({{ course.code }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary w-100">Filter</button>
+          <a href="{% url 'admin_trainer_list' %}" class="btn btn-outline-secondary w-100">Clear</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# ── Trainers Table ─────────────────────────────────────────────────────── #}
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      {% if trainers %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Assigned Courses</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trainer in trainers %}
+                <tr>
+                  <td><strong>{{ trainer.username }}</strong></td>
+                  <td>{{ trainer.get_full_name|default:trainer.username }}</td>
+                  <td><a href="mailto:{{ trainer.email }}">{{ trainer.email }}</a></td>
+                  <td>
+                    {% if trainer.assigned_courses.all %}
+                      {% for course in trainer.assigned_courses.all %}
+                        <span class="badge bg-primary mb-1 d-inline-block">{{ course.name }}</span>
+                      {% endfor %}
+                    {% else %}
+                      <span class="text-muted small">No courses assigned</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if trainer.userprofile.is_approved %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Pending Approval</span>
+                    {% endif %}
+                    {% if trainer.is_active %}
+                      <span class="badge bg-info text-dark">Active</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a href="{% url 'admin_trainer_edit' trainer.pk %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+                      <a href="{% url 'admin_trainer_delete' trainer.pk %}" class="btn btn-sm btn-danger">🗑️ Remove</a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="p-3">
+          {% include 'includes/pagination.html' with page_obj=page_obj %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <div class="display-1">📭</div>
+          <p class="mt-2">No trainers found matching your filters.</p>
+          <a href="{% url 'admin_trainer_list' %}" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

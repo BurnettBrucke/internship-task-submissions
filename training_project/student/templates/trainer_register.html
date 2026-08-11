@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Trainer Registration — Training Portal{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:520px;">
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white fw-semibold">
+      👨‍🏫 Register as Trainer
+    </div>
+    <div class="card-body">
+      <div class="alert alert-warning small mb-3">
+        ⚠️ Trainer accounts require <strong>administrator approval</strong> before you can log in.
+      </div>
+
+      {% include 'includes/form_errors.html' with form=form %}
+
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+              {{ field.label }}
+            </label>
+            {% if field.field.widget.input_type == 'password' %}
+              <input type="password" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                     class="form-control {% if field.errors %}is-invalid{% endif %}">
+            {% else %}
+              <input type="{{ field.field.widget.input_type|default:'text' }}"
+                     name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                     value="{{ field.value|default:'' }}"
+                     class="form-control {% if field.errors %}is-invalid{% endif %}">
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback">{% for e in field.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-warning w-100 fw-semibold">Submit Application</button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="{% url 'register' %}" class="text-muted small">Register as Student instead</a>
+        &nbsp;|&nbsp;
+        <a href="{% url 'login' %}" class="text-muted small">Already have an account? Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

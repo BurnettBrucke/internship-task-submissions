@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Student — Admin Portal{% endblock %}
+
+{% block content %}
+<div style="max-width:520px; margin:60px auto;">
+
+    <div class="breadcrumb">
+        <a href="{% url 'landing' %}">Home</a> ›
+        <a href="{% url 'admin_dashboard' %}">Admin Portal</a> ›
+        Delete Student
+    </div>
+
+    <div class="card" style="border-left:5px solid #c62828; margin-top:16px;">
+        <div style="text-align:center; padding: 10px 0 20px;">
+            <div style="font-size:56px; margin-bottom:16px;">⚠️</div>
+            <h1 style="font-size:24px; color:#c62828; margin-bottom:8px;">Confirm Deletion</h1>
+            <p style="color:#718096; font-size:15px;">
+                You are about to permanently delete:
+            </p>
+        </div>
+
+        <!-- Student Summary -->
+        <div style="background:#fff5f5; border-radius:10px; padding:16px 20px; margin-bottom:20px; border:1px solid #ffcdd2;">
+            <div style="font-size:20px; font-weight:700; color:#1a237e;">{{ student.name }}</div>
+            <div style="color:#718096; font-size:13px; margin-top:4px;">
+                {{ student.email }} &nbsp;·&nbsp; {{ student.course }} &nbsp;·&nbsp; Marks: <strong>{{ student.marks }}</strong>
+            </div>
+        </div>
+
+        <p style="color:#c62828; font-size:13px; text-align:center; margin-bottom:24px; font-weight:600;">
+            ⚡ This action cannot be undone!
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display:flex; gap:12px; justify-content:center;">
+                <button type="submit" class="btn btn-danger" style="padding:12px 30px; font-size:15px;">
+                    🗑️ Yes, Delete Permanently
+                </button>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary" style="padding:12px 30px; font-size:15px;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

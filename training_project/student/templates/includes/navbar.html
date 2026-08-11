@@ -1,0 +1,103 @@
+{% load static %}
+{# ────────────────────────────────────────────────────────────────────────────
+   includes/navbar.html
+   Role-conditional Bootstrap navbar included from base.html.
+   WHY separated: DRY — one file to update instead of every template.
+   ────────────────────────────────────────────────────────────────────────── #}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
+  <div class="container-fluid">
+
+    {# Brand #}
+    <a class="navbar-brand fw-bold" href="{% url 'landing' %}">
+      🎓 Training Portal
+    </a>
+
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'landing' %}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'about' %}">About</a>
+        </li>
+
+        {% if user.is_authenticated %}
+
+          {# ── ADMIN links ──────────────────────────────────────────────── #}
+          {% if user.userprofile.is_admin or user.is_staff %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="adminMenu"
+                 data-bs-toggle="dropdown" aria-expanded="false">
+                Admin
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="adminMenu">
+                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin_student_add' %}">Add Student</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'admin_department_list' %}">Departments</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin_course_list' %}">Courses</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'admin_audit_log' %}">Audit Logs</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin_user_list' %}">User Management</a></li>
+              </ul>
+            </li>
+
+          {# ── TRAINER links ─────────────────────────────────────────────── #}
+          {% elif user.userprofile.is_trainer %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'trainer_dashboard' %}">My Dashboard</a>
+            </li>
+
+          {# ── STUDENT links ─────────────────────────────────────────────── #}
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'student_portal' %}">Students</a>
+            </li>
+          {% endif %}
+
+        {% endif %}
+      </ul>
+
+      {# ── Right side: user info + auth buttons ─────────────────────────── #}
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-2">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <span class="navbar-text text-light me-2">
+              👤 {{ user.username }}
+              {% try %}
+                {% if user.userprofile.role %}
+                  <span class="badge
+                    {% if user.userprofile.is_admin %}bg-danger
+                    {% elif user.userprofile.is_trainer %}bg-warning text-dark
+                    {% else %}bg-info text-dark{% endif %}
+                    ms-1">{{ user.userprofile.get_role_display }}</span>
+                {% endif %}
+              {% except %}{% endtry %}
+            </span>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm" href="{% url 'password_change' %}">🔑 Change Password</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-danger btn-sm" href="{% url 'logout' %}">Logout</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm me-1" href="{% url 'login' %}">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Register</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </div>
+</nav>

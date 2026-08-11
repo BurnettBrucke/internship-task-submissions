@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Register — Bug Network Training{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width:450px; margin:40px auto; text-align:center;">
+
+    <h1 style="margin-bottom:5px;">📝 Create Account</h1>
+    <p style="color:#888; font-size:14px; margin-bottom:25px;">
+        Register to join the Bug Network Training Portal.
+    </p>
+
+    <form method="POST" style="text-align:left;">
+        {% csrf_token %}
+
+        <!-- Non-field errors -->
+        {% if form.non_field_errors %}
+        <div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:5px; margin-bottom:15px;">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <!-- Username -->
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+            <small style="color:#888; font-size:12px;">{{ form.username.help_text }}</small>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <ul class="errorlist">{% for e in form.password1.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+            <small style="color:#888; font-size:12px;">{{ form.password1.help_text }}</small>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <ul class="errorlist">{% for e in form.password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-success" style="width:100%; padding:11px; font-size:15px; margin-top:10px;">
+            Create Account
+        </button>
+    </form>
+
+    <p style="margin-top:20px; font-size:14px; color:#666;">
+        Already have an account?
+        <a href="{% url 'login' %}" style="color:#1a237e; font-weight:bold;">Login here</a>
+    </p>
+
+</div>
+
+{% endblock %}

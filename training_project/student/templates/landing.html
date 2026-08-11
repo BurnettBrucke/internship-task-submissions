@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome — Bug Network Training Portal{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
+<div class="card" style="text-align:center; background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%); color:#fff; padding:60px 40px; border-radius:20px;">
+    <div style="font-size:64px; margin-bottom:20px;">🎓</div>
+    <h1 style="color:#fff; font-size:38px; font-weight:800; margin-bottom:12px; letter-spacing:-1px;">
+        {{ company }} Training Portal
+    </h1>
+    <p style="font-size:18px; color:#c5cae9; max-width:560px; margin:0 auto 10px; line-height:1.7;">
+        A comprehensive student management system for Python &amp; Django internship training.
+    </p>
+    {% if user.is_authenticated %}
+    <p style="font-size:15px; color:#a5d6a7; margin-top:12px;">
+        ✅ You are logged in as <strong>{{ user.username }}</strong>
+        {% if user.is_staff %}<span style="background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:12px; font-size:13px; margin-left:6px;">Admin</span>{% endif %}
+    </p>
+    {% endif %}
+</div>
+
+<!-- ── Stats Strip (shown always) ─────────────────────────────────────────── -->
+<div class="stats-grid">
+    <div class="stat-card" style="border-color:#1a237e;">
+        <div class="stat-number" style="color:#1a237e;">{{ total_students }}</div>
+        <div class="stat-label">Total Students</div>
+    </div>
+    <div class="stat-card" style="border-color:#2e7d32;">
+        <div class="stat-number" style="color:#2e7d32;">{{ active_students }}</div>
+        <div class="stat-label">Active Students</div>
+    </div>
+    <div class="stat-card" style="border-color:#e65100;">
+        <div class="stat-number" style="color:#e65100;">{{ total_depts }}</div>
+        <div class="stat-label">Departments</div>
+    </div>
+    <div class="stat-card" style="border-color:#6a1b9a;">
+        <div class="stat-number" style="color:#6a1b9a;">{{ total_courses }}</div>
+        <div class="stat-label">Courses</div>
+    </div>
+    <div class="stat-card" style="border-color:#0277bd;">
+        <div class="stat-number" style="color:#0277bd;">{{ avg_marks }}</div>
+        <div class="stat-label">Avg Marks</div>
+    </div>
+</div>
+
+<!-- ── Portal Selection ──────────────────────────────────────────────────────── -->
+<div style="text-align:center; margin-bottom:12px;">
+    <h2 style="font-size:24px; color:#2d3748;">Choose Your Portal</h2>
+    <p style="color:#718096; font-size:15px;">
+        {% if not user.is_authenticated %}
+        Please log in or register to access a portal.
+        {% else %}
+        Welcome back! Select your portal below.
+        {% endif %}
+    </p>
+</div>
+
+<div class="portal-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+
+    <!-- Admin Portal -->
+    <div class="portal-card portal-admin" style="padding: 30px 20px;">
+        <div class="p-icon" style="font-size: 40px; margin-bottom: 8px;">🛡️</div>
+        <h2 style="font-size: 20px;">Admin Portal</h2>
+        <p style="font-size: 13px; min-height: 50px;">Full control over students, departments, courses and marks. Requires <strong>@admin.com</strong> credentials.</p>
+        {% if user.is_authenticated and user.username == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="p-btn" style="padding: 8px 18px; font-size: 13px;">Enter Admin Portal →</a>
+        {% elif user.is_authenticated %}
+            <span class="p-btn" style="opacity:0.6; cursor:not-allowed; padding: 8px 18px; font-size: 13px;">Admin Access Required</span>
+        {% else %}
+            <a href="{% url 'admin_login' %}" class="p-btn" style="padding: 8px 18px; font-size: 13px;">Login as Admin →</a>
+        {% endif %}
+    </div>
+
+    <!-- Trainer Portal -->
+    <div class="portal-card portal-trainer" style="background: linear-gradient(135deg, #e65100, #f57c00); padding: 30px 20px;">
+        <div class="p-icon" style="font-size: 40px; margin-bottom: 8px;">👨‍🏫</div>
+        <h2 style="font-size: 20px;">Trainer Portal</h2>
+        <p style="font-size: 13px; min-height: 50px;">View assigned courses, update marks with change reason history, and add/edit feedback.</p>
+        {% if user.is_authenticated and user.userprofile.role == 'trainer' %}
+            <a href="{% url 'trainer_dashboard' %}" class="p-btn" style="padding: 8px 18px; font-size: 13px;">Enter Trainer Portal →</a>
+        {% elif user.is_authenticated %}
+            <span class="p-btn" style="opacity:0.6; cursor:not-allowed; padding: 8px 18px; font-size: 13px;">Trainer Access Required</span>
+        {% else %}
+            <a href="{% url 'login' %}" class="p-btn" style="padding: 8px 18px; font-size: 13px;">Login as Trainer →</a>
+        {% endif %}
+    </div>
+
+    <!-- Student Portal -->
+    <div class="portal-card portal-student" style="padding: 30px 20px;">
+        <div class="p-icon" style="font-size: 40px; margin-bottom: 8px;">👨‍🎓</div>
+        <h2 style="font-size: 20px;">Student Portal</h2>
+        <p style="font-size: 13px; min-height: 50px;">View the complete student list, search, filter by department and course, and track academic results.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'student_portal' %}" class="p-btn" style="padding: 8px 18px; font-size: 13px;">Enter Student Portal →</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="p-btn" style="padding: 8px 18px; font-size: 13px;">Login to View →</a>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ── Top Student & Recent ──────────────────────────────────────────────────── -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:4px;">
+
+    <div class="card">
+        <h2>🏆 Top Student</h2>
+        {% if top_student %}
+        <div style="display:flex; align-items:center; gap:16px; margin-top:8px;">
+            <div style="width:52px;height:52px;background:linear-gradient(135deg,#ffd700,#ffb300);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;">🥇</div>
+            <div>
+                <div style="font-size:18px;font-weight:700;color:#1a237e;">{{ top_student.name }}</div>
+                <div style="color:#718096;font-size:13px;">{{ top_student.email }}</div>
+                <div style="margin-top:6px;">
+                    <span style="font-size:22px;font-weight:800;color:#2e7d32;">{{ top_student.marks }}</span>
+                    <span style="color:#718096; font-size:13px;">/100 &nbsp;·&nbsp; {{ top_student.course }}</span>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:20px;">
+            <p style="font-size:14px;">No students yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>🆕 Recently Joined</h2>
+        {% if recent_students %}
+        <ul style="list-style:none; margin-top:8px;">
+            {% for s in recent_students %}
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #edf2f7;">
+                <span style="font-weight:600;font-size:14px;">{{ s.name }}</span>
+                <span style="color:#a0aec0;font-size:12px;">{{ s.joined_date }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state" style="padding:20px;">
+            <p style="font-size:14px;">No students yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ── New? Register CTA ───────────────────────────────────────────────────── -->
+{% if not user.is_authenticated %}
+<div class="card" style="text-align:center; background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border:1px dashed #90caf9;">
+    <h2 style="font-size:22px;">New Student? Register Today 🚀</h2>
+    <p style="color:#546e7a; margin:10px 0 20px; font-size:15px;">Create your account and appear in the student directory instantly.</p>
+    <a href="{% url 'register' %}" class="btn btn-primary" style="padding:12px 30px; font-size:15px;">Register as Student →</a>
+</div>
+{% endif %}
+
+{% endblock %}

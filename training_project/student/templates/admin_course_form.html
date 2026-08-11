@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} — Admin Portal{% endblock %}
+
+{% block content %}
+<div style="max-width:560px; margin:0 auto;">
+
+    <div class="breadcrumb">
+        <a href="{% url 'landing' %}">Home</a> ›
+        <a href="{% url 'admin_dashboard' %}">Admin Portal</a> ›
+        <a href="{% url 'admin_course_list' %}">Courses</a> ›
+        {{ action }}
+    </div>
+
+    <div class="page-header">
+        <h1>📚 {{ action }}</h1>
+        <a href="{% url 'admin_course_list' %}" class="btn btn-secondary">← Back</a>
+    </div>
+
+    {% if confirm_delete %}
+    <!-- Delete Confirmation -->
+    <div class="card" style="border-left:4px solid #c62828;">
+        <h2 style="color:#c62828;">⚠️ Confirm Deletion</h2>
+        <p style="margin:12px 0; color:#2d3748; font-size:15px;">
+            Are you sure you want to delete course <strong>"{{ course.name }}"</strong> ({{ course.code }})?<br>
+            <span style="color:#718096; font-size:13px; margin-top:4px; display:block;">
+                This will remove the course from all enrolled students.
+            </span>
+        </p>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display:flex;gap:12px;margin-top:16px;">
+                <button type="submit" class="btn btn-danger" style="padding:12px 28px;">Yes, Delete</button>
+                <a href="{% url 'admin_course_list' %}" class="btn btn-secondary" style="padding:12px 28px;">Cancel</a>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <!-- Add/Edit Form -->
+    <div class="card">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.code.label }}</label>
+                    {{ form.code }}
+                    {{ form.code.errors }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>{{ form.duration.label }}</label>
+                {{ form.duration }}
+                {{ form.duration.errors }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.trainer.label }}</label>
+                {{ form.trainer }}
+                {{ form.trainer.errors }}
+            </div>
+            <div class="form-group">
+                <label>{{ form.is_active.label }}</label>
+                <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+                    {{ form.is_active }}
+                    <span style="font-size:14px; color:#718096;">Mark course as active</span>
+                </div>
+                {{ form.is_active.errors }}
+            </div>
+            <div style="display:flex;gap:12px;margin-top:10px;">
+                <button type="submit" class="btn btn-success" style="padding:12px 28px; font-size:15px;">✅ Save</button>
+                <a href="{% url 'admin_course_list' %}" class="btn btn-secondary" style="padding:12px 28px; font-size:15px;">Cancel</a>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

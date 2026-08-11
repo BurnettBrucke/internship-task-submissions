@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Manage Account — {{ target_user.username }}{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:520px;">
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white fw-semibold">
+      ⚙️ Manage Account: <strong>{{ target_user.username }}</strong>
+    </div>
+    <div class="card-body">
+
+      <div class="mb-3 p-3 bg-light rounded">
+        <p class="mb-1"><strong>Email:</strong> {{ target_user.email }}</p>
+        <p class="mb-1"><strong>Role:</strong>
+          <span class="badge {% if profile.is_trainer %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+            {{ profile.get_role_display }}
+          </span>
+        </p>
+        <p class="mb-1"><strong>Joined:</strong> {{ target_user.date_joined|date:"d M Y" }}</p>
+        <p class="mb-0"><strong>Last Login:</strong> {{ target_user.last_login|date:"d M Y H:i"|default:"Never" }}</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
+                 {% if target_user.is_active %}checked{% endif %}>
+          <label class="form-check-label fw-semibold" for="isActive">
+            Account Active
+            <small class="text-muted">(uncheck to deactivate — user cannot login)</small>
+          </label>
+        </div>
+
+        {% if profile.is_trainer %}
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" name="is_approved" id="isApproved"
+                   {% if profile.is_approved %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="isApproved">
+              Trainer Approved
+              <small class="text-muted">(uncheck to revoke trainer portal access)</small>
+            </label>
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+          <a href="{% url 'admin_user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

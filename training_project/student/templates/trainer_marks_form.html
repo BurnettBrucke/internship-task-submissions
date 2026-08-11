@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Update Marks — {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:650px;">
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white fw-semibold">
+      📝 Update Marks for <strong>{{ student.name }}</strong>
+    </div>
+    <div class="card-body">
+
+      {# Current marks info #}
+      <div class="alert alert-info d-flex align-items-center gap-3 mb-4">
+        <div class="fs-3">📊</div>
+        <div>
+          <strong>Current Marks:</strong> {{ student.marks }} / 100
+          &nbsp;
+          {% if student.is_pass %}
+            <span class="badge bg-success">Pass</span>
+          {% else %}
+            <span class="badge bg-danger">Fail</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% include 'includes/form_errors.html' with form=form %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="{{ form.marks.id_for_label }}" class="form-label fw-semibold">
+            {{ form.marks.label }}
+          </label>
+          <input type="number" name="marks" id="{{ form.marks.id_for_label }}"
+                 value="{{ form.marks.value|default:'' }}"
+                 class="form-control {% if form.marks.errors %}is-invalid{% endif %}"
+                 step="0.5" min="0" max="100" required>
+          {% if form.marks.errors %}
+            <div class="invalid-feedback d-block">
+              {% for err in form.marks.errors %}{{ err }}{% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.reason.id_for_label }}" class="form-label fw-semibold">
+            {{ form.reason.label }}
+          </label>
+          <textarea name="reason" id="{{ form.reason.id_for_label }}"
+                    class="form-control {% if form.reason.errors %}is-invalid{% endif %}"
+                    rows="3" placeholder="Enter reason for marks change..." required>{{ form.reason.value|default:'' }}</textarea>
+          {% if form.reason.errors %}
+            <div class="invalid-feedback d-block">
+              {% for err in form.reason.errors %}{{ err }}{% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-warning fw-semibold">📝 Update Marks</button>
+          <a href="{% url 'trainer_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# ── Marks History ─────────────────────────────────────────────────────── #}
+  {% if marks_history %}
+    <div class="card shadow-sm mt-4">
+      <div class="card-header bg-secondary text-white fw-semibold">
+        🕐 Marks Change History
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Date</th>
+              <th>Updated By</th>
+              <th>Old</th>
+              <th>New</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for h in marks_history %}
+              <tr>
+                <td class="small text-muted">{{ h.updated_at|date:"d M Y H:i" }}</td>
+                <td>{% if h.updated_by %}{{ h.updated_by.username }}{% else %}Unknown{% endif %}</td>
+                <td><span class="text-danger">{{ h.old_marks }}</span></td>
+                <td><span class="text-success">{{ h.new_marks }}</span></td>
+                <td class="small">{{ h.reason|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
