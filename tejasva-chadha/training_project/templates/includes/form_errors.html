@@ -1,0 +1,29 @@
+{% if form.errors %}
+<div class="alert alert-danger shadow-sm mb-4" role="alert" style="border-radius: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">
+    <h5 class="alert-heading d-flex align-items-center fw-bold mb-2">
+        <i class="fa-solid fa-circle-exclamation me-2 fs-5 text-danger"></i>
+        Please correct the errors in the form
+    </h5>
+    
+    {% if form.non_field_errors %}
+        <ul class="mb-0 ps-3">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    
+    {% for field in form %}
+        {% if field.errors %}
+            <div class="mt-2">
+                <strong>{{ field.label }}</strong>:
+                <ul class="mb-0 ps-3">
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}

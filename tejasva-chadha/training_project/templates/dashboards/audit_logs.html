@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Audit Logs - Student Training Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="h3 fw-bold text-white mb-1"><i class="fa-solid fa-list-check text-purple me-2"></i>Audit History</h2>
+        <p class="text-secondary mb-0">System security audit logs and action history tracker</p>
+    </div>
+</div>
+
+<!-- Filters and Search Dashboard -->
+<div class="card card-custom p-4 mb-4">
+    <form method="GET" action="{% url 'audit_logs' %}" class="row g-3">
+        <!-- Search Query -->
+        <div class="col-md-4">
+            <label for="q" class="form-label text-secondary small fw-bold text-uppercase">Search Logs</label>
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" name="q" id="q" class="form-control bg-dark border-secondary text-white" placeholder="Search description, user..." value="{{ q }}">
+            </div>
+        </div>
+        
+        <!-- Action Type Filter -->
+        <div class="col-md-2">
+            <label for="action_type" class="form-label text-secondary small fw-bold text-uppercase">Action</label>
+            <select name="action_type" id="action_type" class="form-select bg-dark border-secondary text-white">
+                <option value="">All Actions</option>
+                {% for code, label in action_choices %}
+                    <option value="{{ code }}" {% if action_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Date range: Start Date -->
+        <div class="col-md-3">
+            <label for="start_date" class="form-label text-secondary small fw-bold text-uppercase">Start Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control bg-dark border-secondary text-white" value="{{ start_date }}">
+        </div>
+        
+        <!-- Date range: End Date -->
+        <div class="col-md-3">
+            <label for="end_date" class="form-label text-secondary small fw-bold text-uppercase">End Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control bg-dark border-secondary text-white" value="{{ end_date }}">
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+            <a href="{% url 'audit_logs' %}" class="btn btn-outline-secondary px-4"><i class="fa-solid fa-filter-circle-xmark me-2"></i>Clear</a>
+            <button type="submit" class="btn btn-grad px-4"><i class="fa-solid fa-filter me-2"></i>Apply Filters</button>
+        </div>
+    </form>
+</div>
+
+<!-- Table / Empty State -->
+{% if page_obj %}
+<div class="card card-custom p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+            <thead>
+                <tr class="border-secondary text-secondary small text-uppercase">
+                    <th scope="col" class="px-4 py-3">Timestamp</th>
+                    <th scope="col" class="py-3">User</th>
+                    <th scope="col" class="py-3">Action</th>
+                    <th scope="col" class="py-3">Affected Object</th>
+                    <th scope="col" class="py-3">Description</th>
+                    <th scope="col" class="px-4 py-3 text-end">IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in page_obj %}
+                <tr class="border-secondary">
+                    <td class="px-4 text-secondary small">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td>
+                        {% if log.user %}
+                            <span class="text-white fw-bold"><i class="fa-regular fa-user text-secondary me-1"></i>{{ log.user.username }}</span>
+                        {% else %}
+                            <span class="text-secondary italic">System / Anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.action == 'create' or log.action == 'login' %}
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i>{{ log.get_action_display|upper }}</span>
+                        {% elif log.action == 'update' or log.action == 'marks_update' or log.action == 'feedback_creation' %}
+                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-2 py-1"><i class="fa-solid fa-pen-to-square me-1"></i>{{ log.get_action_display|upper }}</span>
+                        {% elif log.action == 'delete' or log.action == 'failed_login' %}
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-2 py-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ log.get_action_display|upper }}</span>
+                        {% else %}
+                            <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 px-2 py-1"><i class="fa-solid fa-circle-info me-1"></i>{{ log.get_action_display|upper }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-white">{{ log.affected_object|default:"-" }}</td>
+                    <td class="text-secondary">{{ log.description }}</td>
+                    <td class="px-4 text-end text-secondary small">{{ log.ip_address|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="d-flex justify-content-center mt-4">
+    <ul class="pagination pagination-sm bg-dark border-0">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link bg-dark border-secondary text-white" href="?page=1{% if q %}&q={{ q }}{% endif %}{% if action_filter %}&action_type={{ action_filter }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link bg-dark border-secondary text-white" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if action_filter %}&action_type={{ action_filter }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Previous</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link bg-purple border-purple text-white">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link bg-dark border-secondary text-white" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if action_filter %}&action_type={{ action_filter }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link bg-dark border-secondary text-white" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if action_filter %}&action_type={{ action_filter }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">Last &raquo;</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="card card-custom text-center p-5">
+    <div class="mb-3">
+        <i class="fa-solid fa-folder-open text-secondary display-3"></i>
+    </div>
+    <h4 class="h5 fw-bold text-white mb-2">No Audit Records Found</h4>
+    <p class="text-secondary mb-0">Try adjusting your filters, date range, or search keyword to find matching records.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-purple {
+        background-color: #6366f1 !important;
+    }
+    .border-purple {
+        border-color: #6366f1 !important;
+    }
+    .text-purple {
+        color: #818cf8;
+    }
+    .pagination .page-link {
+        box-shadow: none;
+        transition: background-color 0.2s;
+    }
+    .pagination .page-link:hover {
+        background-color: #1f2937 !important;
+    }
+</style>
+{% endblock %}

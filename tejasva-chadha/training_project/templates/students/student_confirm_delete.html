@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Deletion - Student Training Portal{% endblock %}
+
+{% block content %}
+<div class="row my-5">
+    <div class="col-md-6 col-lg-5 mx-auto">
+        <div class="card card-custom p-4 p-md-5 text-center shadow-lg border-danger">
+            <i class="fa-solid fa-triangle-exclamation text-danger fs-1 mb-3"></i>
+            <h2 class="fw-bold text-white mb-2">Confirm Deletion</h2>
+            <p class="text-secondary small mb-4">
+                Are you sure you want to permanently delete the following student record? This action cannot be undone.
+            </p>
+
+            <div class="bg-dark border border-danger rounded p-3 mb-4 text-start">
+                <h4 class="fw-bold text-danger mb-1">{{ student.name }}</h4>
+                <div class="text-secondary small mb-1"><i class="fa-regular fa-envelope me-1"></i> {{ student.email }}</div>
+                <div class="text-secondary small"><i class="fa-solid fa-building me-1"></i> Department: {{ student.department.name|default:"Unassigned" }}</div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'student_detail' student.id %}" class="btn btn-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-danger px-4">Yes, Delete Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

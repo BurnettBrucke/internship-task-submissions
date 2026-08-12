@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.name }} - Details - Student Training Portal{% endblock %}
+
+{% block content %}
+<div class="row my-4">
+    <div class="col-md-9 mx-auto">
+        <div class="card card-custom p-4 p-md-5 shadow-lg">
+            
+            <div class="d-flex flex-wrap justify-content-between align-items-start border-bottom border-secondary pb-4 mb-4 gap-3">
+                <div>
+                    <h1 class="fw-bold mb-1 text-white">{{ student.name }}</h1>
+                    <p class="text-secondary mb-0"><i class="fa-regular fa-envelope me-1"></i> {{ student.email }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge {% if student.marks >= 50 %}bg-success{% else %}bg-danger{% endif %} fs-6 px-3 py-2 shadow-sm">
+                        Marks: {{ student.marks }}/100
+                    </span>
+                    {% if student.active_status %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-2 shadow-sm">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-6 px-3 py-2 shadow-sm">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Profile completion progress bar (for students viewing themselves) -->
+            {% if user.profile.role == 'student' and profile_completion %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold small text-secondary">PROFILE COMPLETION</span>
+                        <span class="fw-bold text-info small">{{ profile_completion }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ profile_completion }}%;"></div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="bg-dark border border-secondary rounded p-3 text-center">
+                        <span class="text-secondary small fw-semibold text-uppercase d-block mb-1">Department</span>
+                        <span class="text-white fw-bold fs-5">{{ student.department.name|default:"Unassigned" }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="bg-dark border border-secondary rounded p-3 text-center">
+                        <span class="text-secondary small fw-semibold text-uppercase d-block mb-1">Age</span>
+                        <span class="text-white fw-bold fs-5">{{ student.age }} years</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="bg-dark border border-secondary rounded p-3 text-center">
+                        <span class="text-secondary small fw-semibold text-uppercase d-block mb-1">Joined Date</span>
+                        <span class="text-white fw-bold fs-5">{{ student.joined_date|date:"M j, Y" }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="bg-dark border border-secondary rounded p-3 text-center">
+                        <span class="text-secondary small fw-semibold text-uppercase d-block mb-1">Legacy Course</span>
+                        <span class="text-white fw-bold fs-5 text-truncate d-block" title="{{ student.course|default:'N/A' }}">{{ student.course|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enrolled Courses -->
+            <div class="mb-4">
+                <h4 class="fs-6 fw-bold text-secondary text-uppercase mb-3"><i class="fa-solid fa-book-open me-2 text-primary"></i>Enrolled Courses ({{ student.courses.count }})</h4>
+                {% if student.courses.all %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for crs in student.courses.all %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-7 px-3 py-2">
+                                <i class="fa-solid fa-bookmark me-1 text-primary"></i> {{ crs.course_name }} ({{ crs.code }}) &bull; {{ crs.duration }} weeks
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small">No courses assigned to this student.</p>
+                {% endif %}
+            </div>
+
+            <!-- Extra Profile Details -->
+            {% if student.profile %}
+                <div class="bg-dark border border-secondary rounded p-4 mb-4">
+                    <h4 class="fs-6 fw-bold text-white mb-3"><i class="fa-regular fa-id-card me-2 text-warning"></i>Contact & Personal Details</h4>
+                    <div class="row g-2 small">
+                        <div class="col-sm-4 text-secondary">Phone Number:</div>
+                        <div class="col-sm-8 text-white fw-semibold mb-2">{{ student.profile.phone }}</div>
+                        <div class="col-sm-4 text-secondary">Residential Address:</div>
+                        <div class="col-sm-8 text-white fw-semibold mb-2">{{ student.profile.address }}</div>
+                        <div class="col-sm-4 text-secondary">Date of Birth:</div>
+                        <div class="col-sm-8 text-white fw-semibold">{{ student.profile.date_of_birth|date:"F j, Y" }}</div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Feedback Section -->
+            <div class="mb-5 border-top border-secondary pt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fs-6 fw-bold text-secondary text-uppercase mb-0"><i class="fa-regular fa-comments me-2 text-info"></i>Trainer Feedback ({{ feedbacks.count }})</h4>
+                    {% if user.profile.role == 'trainer' and is_assigned_trainer %}
+                        <a href="{% url 'add_feedback' student_id=student.id %}" class="btn btn-sm btn-outline-info"><i class="fa-solid fa-plus me-1"></i> Add Feedback</a>
+                    {% endif %}
+                </div>
+                
+                {% if feedbacks %}
+                    <div class="row g-3">
+                        {% for fb in feedbacks %}
+                            <div class="col-12">
+                                <div class="card bg-dark border-secondary p-3 position-relative shadow-sm card-hover">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-start mb-2 gap-2">
+                                        <div>
+                                            <span class="text-white fw-bold d-block">{{ fb.course.course_name }}</span>
+                                            <span class="text-secondary small">Submitted by: <strong>{{ fb.trainer.username }}</strong> &bull; {{ fb.created_at|date:"M j, Y" }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <!-- Rating stars/badge -->
+                                            <span class="badge bg-warning text-dark fw-bold px-2 py-1">
+                                                <i class="fa-solid fa-star me-1"></i>{{ fb.rating }}/5
+                                            </span>
+                                            <!-- Visibility Indicator (Trainers/Admins) -->
+                                            {% if user.profile.role != 'student' %}
+                                                {% if fb.is_visible %}
+                                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1 text-uppercase small">Visible</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-50 px-2 py-1 text-uppercase small">Hidden</span>
+                                                {% endif %}
+                                            {% endif %}
+                                            
+                                            <!-- Edit button for author trainer -->
+                                            {% if user == fb.trainer %}
+                                                <a href="{% url 'edit_feedback' feedback_id=fb.id %}" class="btn btn-sm btn-link text-info p-0 ms-2" title="Edit Feedback"><i class="fa-regular fa-pen-to-square"></i></a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <p class="text-light mb-0 small" style="white-space: pre-wrap;">{{ fb.comments }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card bg-dark bg-opacity-50 border-secondary text-center p-4">
+                        <p class="text-secondary mb-0 small"><i class="fa-solid fa-comment-slash me-2"></i>No visible feedback remarks are currently published.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Marks History Section -->
+            <div class="mb-5 border-top border-secondary pt-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <h4 class="fs-6 fw-bold text-secondary text-uppercase mb-0"><i class="fa-solid fa-clock-rotate-left me-2 text-warning"></i>Marks History</h4>
+                    {% if latest_update %}
+                        <span class="text-secondary small">
+                            <i class="fa-solid fa-user-pen me-1"></i>Latest update by <strong class="text-white">{{ latest_update.updater.username }}</strong> on {{ latest_update.timestamp|date:"M j, Y H:i" }}
+                        </span>
+                    {% endif %}
+                </div>
+                
+                {% if marks_history %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm table-hover align-middle mb-0" style="background: transparent;">
+                            <thead>
+                                <tr class="border-secondary text-secondary small text-uppercase" style="font-size: 0.8rem;">
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Course</th>
+                                    <th scope="col" class="text-center">Prev</th>
+                                    <th scope="col" class="text-center">New</th>
+                                    <th scope="col">Updater</th>
+                                    <th scope="col">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in marks_history %}
+                                    <tr class="border-secondary small text-light">
+                                        <td class="text-secondary">{{ item.timestamp|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ item.course.course_name|default:"Legacy/Profile Update" }}</td>
+                                        <td class="text-center text-danger">{{ item.previous_marks }}</td>
+                                        <td class="text-center text-success fw-bold">{{ item.new_marks }}</td>
+                                        <td>{{ item.updater.username }}</td>
+                                        <td class="text-secondary">{{ item.reason }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="card bg-dark bg-opacity-50 border-secondary text-center p-4">
+                        <p class="text-secondary mb-0 small"><i class="fa-solid fa-history me-2"></i>No grade update history found.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between border-top border-secondary pt-4 mt-2 gap-2">
+                <div>
+                    {% if user.profile.role != 'student' %}
+                        <a href="{% url 'student_list' %}" class="btn btn-outline-light"><i class="fa-solid fa-arrow-left me-1"></i> Back to Directory</a>
+                    {% else %}
+                        <a href="{% url 'home' %}" class="btn btn-outline-light"><i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard</a>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    {% if user.is_superuser or user.profile.role == 'admin' %}
+                        <a href="{% url 'edit_student' student.id %}" class="btn btn-info px-4"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Student</a>
+                        <a href="{% url 'delete_student' student.id %}" class="btn btn-danger px-4"><i class="fa-solid fa-trash me-1"></i> Delete</a>
+                    {% elif user.profile.role == 'trainer' and is_assigned_trainer %}
+                        <a href="{% url 'add_feedback' student_id=student.id %}" class="btn btn-outline-info px-4"><i class="fa-solid fa-comment-dots me-1"></i> Add Feedback</a>
+                        <a href="{% url 'update_marks' student_id=student.id %}" class="btn btn-primary btn-grad border-0 px-4"><i class="fa-solid fa-graduation-cap me-1"></i> Update Marks</a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
