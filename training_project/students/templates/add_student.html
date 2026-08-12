@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Student
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'dashboard' %}">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'student_list' %}">
+                Students
+            </a>
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">
+            Add Student
+        </li>
+
+    </ol>
+</nav>
+
+<div class="card">
+
+    <div class="card-header bg-success text-white">
+        <h3>Add Student</h3>
+    </div>
+
+    <div class="card-body">
+
+        <form method="POST" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+
+            {% csrf_token %}
+
+            {% include "includes/form_errors.html" %}
+
+            {{ form.as_p }}
+
+            <button type="submit" class="btn btn-success">
+                Save
+            </button>
+
+            <a href="{% url 'student_list' %}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

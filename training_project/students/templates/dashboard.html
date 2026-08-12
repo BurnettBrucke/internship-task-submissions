@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">
+            Dashboard
+        </li>
+    </ol>
+</nav>
+
+<h1>Dashboard</h1>
+
+<h3>Total Students : {{ total_students }}</h3>
+
+<h3>Total Active Students : {{ total_active_students }}</h3>
+
+<h3>Total Departments : {{ total_departments }}</h3>
+
+<h3>Total Courses : {{ total_courses }}</h3>
+
+<h3>Average Marks : {{ average_marks }}</h3>
+
+<h3>Highest Scoring Student :</h3>
+
+{% if highest_student %}
+<p>
+    {{ highest_student.name }} ({{ highest_student.marks }})
+</p>
+{% else %}
+<p>No student found.</p>
+{% endif %}
+
+<h3>Recently Joined Students</h3>
+
+<ul>
+{% for student in recent_students %}
+    <li>
+        {{ student.name }} - {{ student.joined_date }}
+    </li>
+{% empty %}
+    <li>No students found.</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

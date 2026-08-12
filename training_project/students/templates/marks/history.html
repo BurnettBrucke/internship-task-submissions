@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Marks History</h2>
+
+<table class="table table-bordered">
+
+<tr>
+
+<th>Previous</th>
+
+<th>New</th>
+
+<th>Updated By</th>
+
+<th>Reason</th>
+
+<th>Date</th>
+
+</tr>
+
+{% for item in history %}
+
+<tr>
+
+<td>{{ item.previous_marks }}</td>
+
+<td>{{ item.new_marks }}</td>
+
+<td>{{ item.updated_by.username }}</td>
+
+<td>{{ item.reason }}</td>
+
+<td>{{ item.updated_at }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5">
+
+No History Available
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endblock %}

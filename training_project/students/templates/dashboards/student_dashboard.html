@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Student Dashboard</h2>
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            Welcome {{ user.username }}
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th>Username</th>
+                    <td>{{ user.username }}</td>
+                </tr>
+
+                <tr>
+                    <th>Email</th>
+                    <td>{{ user.email }}</td>
+                </tr>
+
+                <tr>
+                    <th>Role</th>
+                    <td>{{ profile.role }}</td>
+                </tr>
+
+                <tr>
+                    <th>Account Created</th>
+                    <td>{{ profile.account_created }}</td>
+                </tr>
+
+                <tr>
+                    <th>Last Login</th>
+                    <td>{{ user.last_login }}</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="row mt-4">
+
+    <div class="col-md-6 mb-4">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <h5>Course Performance</h5>
+
+                <div class="progress" style="height: 25px;">
+
+                    <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ student.marks }}%;"
+                    >
+                        {{ student.marks }}%
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6 mb-4">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <h5>Profile Completion</h5>
+
+                <div class="progress" style="height: 25px;">
+
+                    <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: {{ profile_completion }}%;"
+                    >
+                        {{ profile_completion }}%
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

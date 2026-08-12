@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+403 Forbidden
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="alert alert-danger text-center">
+
+        <h2>403 - Access Denied</h2>
+
+        <p>You are not allowed to access this page.</p>
+
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">
+            Back
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

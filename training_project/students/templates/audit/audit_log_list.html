@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Audit Logs</h2>
+<form method="GET" class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Search User or Description"
+            value="{{ request.GET.search }}">
+    </div>
+
+    <div class="col-md-3">
+        <select name="action" class="form-select">
+
+            <option value="">All Actions</option>
+
+            <option value="LOGIN">LOGIN</option>
+            <option value="LOGOUT">LOGOUT</option>
+            <option value="FAILED_LOGIN">FAILED LOGIN</option>
+            <option value="ADD_STUDENT">ADD STUDENT</option>
+            <option value="EDIT_STUDENT">EDIT STUDENT</option>
+            <option value="DELETE_STUDENT">DELETE STUDENT</option>
+            <option value="FEEDBACK_CREATED">FEEDBACK</option>
+            <option value="MARKS_UPDATED">MARKS</option>
+
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <input
+            type="date"
+            name="start"
+            class="form-control">
+    </div>
+
+    <div class="col-md-2">
+        <input
+            type="date"
+            name="end"
+            class="form-control">
+    </div>
+
+    <div class="col-md-2">
+
+        <button class="btn btn-dark w-100">
+
+            Search
+
+        </button>
+
+    </div>
+    <div class="col-md-2 d-grid">
+
+        <a
+            href="{% url 'audit_log_list' %}"
+            class="btn btn-secondary"
+        >
+            Clear Filters
+        </a>
+
+    </div>
+
+</form>
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-dark">
+
+<tr>
+<th>User</th>
+<th>Action</th>
+<th>Description</th>
+<th>IP</th>
+<th>Time</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for log in logs %}
+
+<tr>
+
+<td>{{ log.user }}</td>
+
+<td>
+
+{% if "LOGIN" in log.action %}
+<span class="badge bg-success">{{ log.action }}</span>
+
+{% elif "FAILED" in log.action %}
+<span class="badge bg-danger">{{ log.action }}</span>
+
+{% elif "DELETE" in log.action %}
+<span class="badge bg-danger">{{ log.action }}</span>
+
+{% elif "UPDATE" in log.action %}
+<span class="badge bg-warning">{{ log.action }}</span>
+
+{% else %}
+<span class="badge bg-primary">{{ log.action }}</span>
+{% endif %}
+
+</td>
+
+<td>{{ log.description }}</td>
+
+<td>{{ log.ip_address }}</td>
+
+<td>{{ log.timestamp }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="5">No Logs Found</td>
+</tr>
+
+{% endfor %}
+<nav>
+
+    <ul class="pagination justify-content-center">
+
+        {% if logs.has_previous %}
+
+        <li class="page-item">
+
+            <a
+               class="page-link"
+               href="?page={{ logs.previous_page_number }}">
+
+                Previous
+
+            </a>
+
+        </li>
+
+        {% endif %}
+
+        <li class="page-item active">
+
+            <span class="page-link">
+
+                {{ logs.number }}
+
+            </span>
+
+        </li>
+
+        {% if logs.has_next %}
+
+        <li class="page-item">
+
+            <a
+               class="page-link"
+               href="?page={{ logs.next_page_number }}">
+
+                Next
+
+            </a>
+
+        </li>
+
+        {% endif %}
+
+    </ul>
+
+</nav>
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

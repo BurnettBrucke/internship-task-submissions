@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}
+Trainer Dashboard
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Trainer Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <h5>Assigned Students</h5>
+                <h2>{{ total_students }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5>Assigned Courses</h5>
+                <h2>{{ total_courses }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row mt-4">
+
+    <div class="col-md-6">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <h5>Student Performance</h5>
+
+                <div class="progress" style="height: 25px;">
+
+                    <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ average_marks }}%;"
+                    >
+                        {{ average_marks|floatformat:1 }}%
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

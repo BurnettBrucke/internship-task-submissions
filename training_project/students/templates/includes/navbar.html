@@ -1,0 +1,153 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+
+        <!-- Brand -->
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            Student Portal
+        </a>
+
+        <!-- Mobile Menu Button -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav ms-auto">
+
+                {% if user.is_authenticated %}
+
+                    <!-- ADMIN -->
+                    {% if user.profile.role == "admin" %}
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'admin_dashboard' %}">
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'student_list' %}">
+                                Students
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'add_student' %}">
+                                Add Student
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'audit_log_list' %}">
+                                Audit Logs
+                            </a>
+                        </li>
+
+
+                    <!-- TRAINER -->
+                    {% elif user.profile.role == "trainer" %}
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'trainer_dashboard' %}">
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'student_list' %}">
+                                Students
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'add_feedback' %}">
+                                Add Feedback
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'feedback_list' %}">
+                                Feedback
+                            </a>
+                        </li>
+
+
+                    <!-- STUDENT -->
+                    {% elif user.profile.role == "student" %}
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'student_dashboard' %}">
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'feedback_list' %}">
+                                Feedback
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+
+                    <!-- COMMON LINKS -->
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'password_change' %}">
+                            Change Password
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'logout' %}">
+                            Logout
+                        </a>
+                    </li>
+
+
+                {% else %}
+
+                    <!-- GUEST -->
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'login' %}">
+                            Login
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'register' %}">
+                            Register
+                        </a>
+                    </li>
+
+                {% endif %}
+
+            </ul>
+
+        </div>
+
+    </div>
+</nav>

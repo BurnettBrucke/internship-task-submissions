@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Dashboard
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Administrator Dashboard</h2>
+
+<div class="row">
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5>Total Students</h5>
+                <h2>{{ total_students }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <h5>Total Courses</h5>
+                <h2>{{ total_courses }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-bg-warning">
+            <div class="card-body">
+                <h5>Total Departments</h5>
+                <h2>{{ total_departments }}</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+<hr class="my-4">
+
+<h3>Recent Students</h3>
+
+<div class="table-responsive">
+
+    <table class="table table-bordered table-striped">
+
+        <thead class="table-dark">
+
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Marks</th>
+                <th>Status</th>
+                <th>Result</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for student in recent_students %}
+
+            <tr>
+
+                <td>{{ student.name }}</td>
+                <td>{{ student.email }}</td>
+                <td>
+                    {% for course in student.courses.all %}
+                        {{ course.course_name }}<br>
+                    {% empty %}
+                        No Course
+                    {% endfor %}
+                </td>
+
+                <td>{{ student.marks }}</td>
+                <td>
+                    {% if student.active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if student.marks >= 40 %}
+                        <span class="badge bg-primary">Pass</span>
+                    {% else %}
+                         <span class="badge bg-warning text-dark">Fail</span>
+                    {% endif %}
+                </td>
+
+            </tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="4" class="text-center">
+                    No Students Found
+                </td>
+
+            </tr>
+            
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+    <hr class="my-4">
+
+<h3>Student Performance</h3>
+
+{% for student in recent_students %}
+
+<div class="mb-3">
+
+    <strong>{{ student.name }}</strong>
+
+    <div class="progress">
+
+        <div class="progress-bar bg-success"
+             role="progressbar"
+             style="width: {{ student.marks }}%;">
+
+            {{ student.marks }}%
+
+        </div>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-warning">
+    No student performance available.
+</div>
+
+{% endfor %}
+
+</div>
+<div class="card shadow-sm mt-4">
+
+    <div class="card-body">
+
+        <h5>Overall Student Performance</h5>
+
+        <div class="progress" style="height: 25px;">
+
+            <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: {{ average_marks }}%;"
+            >
+                {{ average_marks|floatformat:1 }}%
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

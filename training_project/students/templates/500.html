@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5 text-center">
+
+    <h1>500</h1>
+
+    <h2>Something Went Wrong</h2>
+
+    <p>
+        Sorry, something went wrong on our server.
+        Please try again later.
+    </p>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+        Go to Dashboard
+    </a>
+
+</div>
+
+{% endblock %}
