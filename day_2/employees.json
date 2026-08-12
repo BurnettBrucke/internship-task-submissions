@@ -1,0 +1,16 @@
+[
+    {
+        "id": "1234",
+        "name": "Rahul Gurjar",
+        "email": "rahul@gmail.com",
+        "department": "Maths",
+        "salary": 24000.0
+    },
+    {
+        "id": "7637",
+        "name": "Suman",
+        "email": "suman@gmail.com",
+        "department": "Science",
+        "salary": 60000.0
+    }
+]
