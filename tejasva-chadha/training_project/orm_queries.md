@@ -510,3 +510,101 @@ This document lists Django ORM queries, outputs, and explanations for various co
   print(enrolled_no_marks)
   ```
 * **Explanation:** Filters the `Student` model for records where the `marks` field is null (meaning no grades have been entered yet).
+
+---
+
+## Task 2: Query & Performance Review
+
+### 1. Before-and-After Query Optimization (N+1 Query Resolution)
+
+#### Problem Identification (Before Optimization)
+In list views such as the Audit Logs page or Student List page, accessing foreign key fields (e.g. `audit_log.user.username` or `student.department.name`) inside a template loop triggered an **N+1 query problem**. 
+
+- **Unoptimized View Query:**
+  ```python
+  logs = AuditLog.objects.all().order_by('-timestamp')
+  ```
+- **Generated SQL & Performance:**
+  - 1 Query to fetch 20 Audit Log records: `SELECT * FROM students_auditlog ORDER BY timestamp DESC LIMIT 20;`
+  - 20 Individual Queries inside template rendering: `SELECT * FROM auth_user WHERE id = 1;`, `SELECT * FROM auth_user WHERE id = 2;`, ...
+  - **Total Database Queries:** **21 queries** for 20 items.
+
+#### Solution & Optimization (After Optimization)
+Using `select_related('user')` performs a SQL `INNER JOIN` in a single query, fetching related user objects in memory upfront.
+
+- **Optimized View Query:**
+  ```python
+  logs = AuditLog.objects.select_related('user').all().order_by('-timestamp')
+  ```
+- **Generated SQL & Performance:**
+  ```sql
+  SELECT "students_auditlog"."id", "students_auditlog"."user_id", "students_auditlog"."action", 
+         "students_auditlog"."affected_object", "students_auditlog"."description", 
+         "students_auditlog"."ip_address", "students_auditlog"."timestamp", 
+         "auth_user"."id", "auth_user"."username", "auth_user"."email"
+  FROM "students_auditlog"
+  LEFT OUTER JOIN "auth_user" ON ("students_auditlog"."user_id" = "auth_user"."id")
+  ORDER BY "students_auditlog"."timestamp" DESC;
+  ```
+- **Total Database Queries:** **1 query** (reduced from 21 queries — 95% reduction in query count).
+
+---
+
+### 2. Inspection of Five Key QuerySets & Generated SQL
+
+#### QuerySet 1: `select_related()` for ForeignKey Relationships
+- **Python Query:**
+  ```python
+  qs1 = Student.objects.select_related('department').all()
+  print(str(qs1.query))
+  ```
+- **Generated SQL:**
+  ```sql
+  SELECT "students_student"."id", "students_student"."name", "students_student"."email", 
+         "students_student"."age", "students_student"."marks", "students_student"."joined_date", 
+         "students_student"."active_status", "students_student"."department_id", 
+         "students_department"."id", "students_department"."name", "students_department"."description"
+  FROM "students_student"
+  LEFT OUTER JOIN "students_department" ON ("students_student"."department_id" = "students_department"."id");
+  ```
+
+#### QuerySet 2: `prefetch_related()` for ManyToMany Relationships
+- **Python Query:**
+  ```python
+  qs2 = Student.objects.prefetch_related('courses').all()
+  # Executes Query 1 for Students, then Query 2 for ManyToMany relationship table join
+  ```
+- **Generated SQL:**
+  - Query 1: `SELECT * FROM "students_student";`
+  - Query 2: `SELECT ("students_student_courses"."student_id") AS "_prefetch_related_val_student_id", "students_course"."id", "students_course"."course_name", "students_course"."code" FROM "students_course" INNER JOIN "students_student_courses" ON ("students_course"."id" = "students_student_courses"."course_id") WHERE "students_student_courses"."student_id" IN (1, 2, 3, ...);`
+
+#### QuerySet 3: Aggregation with `aggregate()`
+- **Python Query:**
+  ```python
+  qs3 = Student.objects.aggregate(avg_marks=Avg('marks'))
+  ```
+- **Generated SQL:**
+  ```sql
+  SELECT AVG("students_student"."marks") AS "avg_marks" FROM "students_student";
+  ```
+
+#### QuerySet 4: Existence Check with `exists()`
+- **Python Query:**
+  ```python
+  has_failing = Student.objects.filter(marks__lt=50).exists()
+  ```
+- **Generated SQL:**
+  ```sql
+  SELECT (1) AS "a" FROM "students_student" WHERE "students_student"."marks" < 50 LIMIT 1;
+  ```
+
+#### QuerySet 5: Field Projection with `values_list()`
+- **Python Query:**
+  ```python
+  emails = Student.objects.filter(active_status=True).values_list('email', flat=True)
+  ```
+- **Generated SQL:**
+  ```sql
+  SELECT "students_student"."email" FROM "students_student" WHERE "students_student"."active_status" = 1;
+  ```
+

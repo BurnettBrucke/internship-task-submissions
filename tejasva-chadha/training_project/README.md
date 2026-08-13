@@ -1,10 +1,21 @@
 # Student Training Portal
 
-The Student Training Portal is a secure, role-based student training management application built on Django and styled with premium, responsive Bootstrap 5 templates.
+The **Student Training Portal** is a production-ready, role-based student management web application built with **Django 6** and styled with modern **Bootstrap 5** templates, static CSS, custom glassmorphism components, and dynamic micro-interactions.
 
 ---
 
-## Role and Permission Matrix
+## Key Features
+
+- **Role-Based Access Control**: Tailored dashboards for Administrators, Trainers, and Students.
+- **Student Directory & Filtering**: Search by query, department, course, active status, and pass/fail grades with pagination.
+- **Marks Management & Audit Trail**: Role-scoped grade updates, complete historical tracking (`MarksHistory`), and detailed security logs (`AuditLog`).
+- **Feedback System**: Assigned trainers can submit 1–5 star ratings and qualitative feedback visible to students.
+- **Security & Brute-Force Lockout**: Consecutive failure tracking with temporary account lockouts, custom 403, 404, and 500 pages, and double-submission prevention.
+- **Production Ready**: Environment variable support, static file collection, and production settings template (`settings_prod.py`).
+
+---
+
+## Role & Permission Matrix
 
 | Role | Student Directory | Edit Marks | Add Feedback | User Management | Audit Logs |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -14,39 +25,90 @@ The Student Training Portal is a secure, role-based student training management 
 
 ---
 
-## Session and Cookie Security Analysis
+## Demo Credentials
 
-During local development and production deployments, the following Django settings govern cookie and session security:
+The project includes a seed data management command (`seed_data`) that populates initial data with the following pre-configured demo credentials:
 
-* **`SESSION_COOKIE_HTTPONLY`** (Default: `True`):
-  * **Mechanism**: Instructs browsers not to expose session cookies to client-side scripts (e.g. `document.cookie`).
-  * **Security Value**: High. Mitigates Session Hijacking risks associated with Cross-Site Scripting (XSS) injection.
-* **`SESSION_COOKIE_SECURE`** (Default: `False` in Dev, `True` in Prod):
-  * **Mechanism**: Tells the browser to only transmit session cookies over secure HTTPS connections.
-  * **HTTPS Dependency**: **Yes**. Requires HTTPS.
-  * **Dev Warning**: If set to `True` during local HTTP development, the browser will refuse to send session cookies back to Django, causing login requests to fail silently or loop.
-* **`CSRF_COOKIE_SECURE`** (Default: `False` in Dev, `True` in Prod):
-  * **Mechanism**: Instructs the browser to only send the CSRF cookie over secure HTTPS connections.
-  * **HTTPS Dependency**: **Yes**. Requires HTTPS.
-  * **Dev Warning**: If set to `True` during local HTTP development, forms will fail CSRF verification because the CSRF token cookie is dropped.
-* **`SESSION_EXPIRE_AT_BROWSER_CLOSE`** (Default: `False`):
-  * **Mechanism**: If `True`, session cookies are discarded as soon as the user closes the browser session, rather than persisting.
-  * **Security Value**: Prevents unauthorized reuse of sessions on shared or public computers after browser exit.
-* **`SESSION_COOKIE_AGE`** (Default: `1209600` / 2 weeks):
-  * **Mechanism**: Dictates session persistence duration in seconds.
-  * **Security Value**: Shorter cookie ages (e.g. 1800 seconds / 30 mins) minimize the vulnerability window if a device is left unattended.
+| Role | Username | Password | Access / Scope |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin` | `Admin@123` | System Administrator with full access |
+| **Trainer** | `trainer1` | `Trainer@123` | Trainer assigned to Web Dev & Cloud courses |
+| **Trainer** | `trainer2` | `Trainer@123` | Trainer assigned to Data Science & Python courses |
+| **Student** | `student1` | `Student@123` | Enrolled Student with personal profile & grade view |
 
 ---
 
-## Login Protection (Brute Force Lockout)
+## Quickstart & Setup Guide
 
-To safeguard accounts against brute force attacks, a login lockout mechanism has been implemented:
-1. **Attempt Tracking**: Tracks consecutive invalid login attempts per username in Django's cache framework.
-2. **Lockout Trigger**: Upon reaching **5 consecutive failures**, the account is locked in the cache (`login_block_<username>`) for **5 minutes**.
-3. **User Feedback**: A clear Bootstrap alert informs the user that the account is temporarily blocked.
-4. **Audit Logging**: Every failed attempt, block, and successful login is recorded with IP address, timestamp, and details inside the `AuditLog` database model.
+### 1. Environment Setup
 
-### Production Recommendations & Limitations:
-* **IP-based Blocking**: Username-based blocking can lead to Denial of Service (DoS) where an attacker intentionally locks legitimate users. In production, blocking should be based on a combination of username and IP address.
-* **Production Libraries**: Use field-tested packages like `django-axes` or `django-defender` which support Redis/database backend storage, reverse proxy IP detection (e.g. Cloudflare headers), and custom cool-off periods.
-* **Cache Persistence**: In-memory cache resets when the server restarts. In production, persistent cache nodes (e.g. Redis) should be used.
+```bash
+# Navigate to the project directory
+cd training_project
+
+# Activate your virtual environment (if using one)
+# source venv/bin/activate  (Linux/macOS)
+# venv\Scripts\activate     (Windows)
+
+# Install requirements (Django)
+pip install django
+```
+
+### 2. Database & Migrations
+
+```bash
+# Run database migrations
+python manage.py migrate
+```
+
+### 3. Load Sample Seed Data
+
+```bash
+# Seed 20+ students, 5 courses, 5 departments, feedback, marks history, and demo accounts
+python manage.py seed_data
+```
+
+### 4. Run Development Server
+
+```bash
+python manage.py runserver
+```
+
+Open `http://127.0.0.1:8000/` in your browser to access the portal.
+
+---
+
+## Release & Deployment Checklist
+
+### Production Configuration
+
+1. **Environment Variables**: Copy `.env.example` to `.env` and fill in secrets:
+   ```env
+   DJANGO_SECRET_KEY=your-strong-production-secret-key
+   DJANGO_DEBUG=False
+   DJANGO_ALLOWED_HOSTS=yourdomain.com,127.0.0.1
+   ```
+
+2. **Collect Static Files**:
+   ```bash
+   python manage.py collectstatic --noinput
+   ```
+
+3. **Production Settings**:
+   Run with `settings_prod.py`:
+   ```bash
+   python manage.py check --settings=training_project.settings_prod
+   ```
+
+4. **Run Full Test Suite**:
+   ```bash
+   python manage.py test
+   ```
+
+---
+
+## Security & Session Controls
+
+* **`SESSION_COOKIE_HTTPONLY`** (`True`): Protects session cookies from client-side script inspection.
+* **`SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE`**: Set to `True` in production HTTPS environments.
+* **Login Lockout**: Locks account for 5 minutes after 5 consecutive failed attempts.

@@ -1009,3 +1009,95 @@ class TaskThreeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Trainer updated marks')
         self.assertNotContains(response, 'Admin created a resource')
+
+
+class ServiceLayerTest(TestCase):
+    def setUp(self):
+        self.dept = Department.objects.create(name="Computer Science", description="CS Dept")
+        self.admin = User.objects.create_user(username="srv_admin", password="password123")
+        self.admin.profile.role = 'admin'
+        self.admin.profile.save()
+
+        self.trainer = User.objects.create_user(username="srv_trainer", password="password123")
+        self.trainer.profile.role = 'trainer'
+        self.trainer.profile.save()
+
+        self.student_user = User.objects.create_user(username="srv_student", password="password123")
+        self.student_user.profile.role = 'student'
+        self.student_user.profile.save()
+
+        self.course = Course.objects.create(
+            course_name="Data Structures",
+            code="CS201",
+            duration=12,
+            assigned_trainer=self.trainer
+        )
+
+        self.student = Student.objects.create(
+            user=self.student_user,
+            name="Service Student",
+            email="service@test.com",
+            age=22,
+            marks=70,
+            joined_date=timezone.localdate(),
+            department=self.dept
+        )
+        self.student.courses.add(self.course)
+
+    def test_update_student_marks_service(self):
+        updated_student, history = services.update_student_marks(
+            student=self.student,
+            course=self.course,
+            new_marks=95,
+            updater_user=self.trainer,
+            reason="Excellent exam performance",
+            ip_address="127.0.0.1"
+        )
+        self.assertEqual(updated_student.marks, 95)
+        self.assertEqual(history.previous_marks, 70)
+        self.assertEqual(history.new_marks, 95)
+        self.assertEqual(history.updater, self.trainer)
+        self.assertTrue(AuditLog.objects.filter(action='marks_update', user=self.trainer).exists())
+
+    def test_create_feedback_service(self):
+        feedback = services.create_feedback(
+            student=self.student,
+            trainer_user=self.trainer,
+            course=self.course,
+            rating=5,
+            comments="Outstanding progress!",
+            is_visible=True,
+            ip_address="127.0.0.1"
+        )
+        self.assertEqual(feedback.rating, 5)
+        self.assertEqual(feedback.comments, "Outstanding progress!")
+        self.assertEqual(feedback.trainer, self.trainer)
+        self.assertTrue(AuditLog.objects.filter(action='feedback_creation', user=self.trainer).exists())
+
+    def test_get_trainer_dashboard_stats_service(self):
+        data = services.get_trainer_dashboard_stats(self.trainer)
+        self.assertEqual(data['stats']['total_courses'], 1)
+        self.assertEqual(data['stats']['total_students'], 1)
+        self.assertEqual(data['stats']['avg_marks'], 70.0)
+
+    def test_get_student_dashboard_data_service(self):
+        data = services.get_student_dashboard_data(self.student_user)
+        self.assertEqual(data['student'], self.student)
+        self.assertEqual(list(data['courses']), [self.course])
+
+    def test_permission_helpers_service(self):
+        # View permissions
+        self.assertTrue(services.can_user_view_student(self.admin, self.student))
+        self.assertTrue(services.can_user_view_student(self.trainer, self.student))
+        self.assertTrue(services.can_user_view_student(self.student_user, self.student))
+
+        other_student_user = User.objects.create_user(username="other_student", password="password123")
+        other_student_user.profile.role = 'student'
+        other_student_user.profile.save()
+        self.assertFalse(services.can_user_view_student(other_student_user, self.student))
+
+        # Edit permissions
+        self.assertTrue(services.can_user_edit_student(self.admin, self.student))
+        self.assertTrue(services.can_user_edit_student(self.trainer, self.student))
+        self.assertFalse(services.can_user_edit_student(self.student_user, self.student))
+

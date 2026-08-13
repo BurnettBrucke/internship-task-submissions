@@ -64,8 +64,12 @@ def admin_dashboard(request):
     stats['total_trainers'] = User.objects.filter(profile__role='trainer').count()
     stats['total_users'] = User.objects.count()
     
-    recent_students = Student.objects.all().order_by('-joined_date', '-id')[:5]
-    recent_users = User.objects.all().order_by('-date_joined', '-id')[:5]
+    recent_students = (
+        Student.objects.select_related('department')
+        .prefetch_related('courses')
+        .order_by('-joined_date', '-id')[:5]
+    )
+    recent_users = User.objects.select_related('profile').order_by('-date_joined', '-id')[:5]
     
     context = {
         'stats': stats,
@@ -81,26 +85,7 @@ def trainer_dashboard(request):
     """
     Trainer dashboard view.
     """
-    assigned_courses = Course.objects.filter(assigned_trainer=request.user)
-    students = Student.objects.filter(courses__in=assigned_courses).distinct().order_by('name')
-    
-    total_courses = assigned_courses.count()
-    total_students = students.count()
-    
-    avg_result = students.aggregate(avg=Avg('marks'))['avg']
-    avg_marks = round(avg_result, 1) if avg_result is not None else 0.0
-    
-    stats = {
-        'total_courses': total_courses,
-        'total_students': total_students,
-        'avg_marks': avg_marks,
-    }
-    
-    context = {
-        'assigned_courses': assigned_courses,
-        'students': students,
-        'stats': stats,
-    }
+    context = services.get_trainer_dashboard_stats(request.user)
     return render(request, 'dashboards/trainer_dashboard.html', context)
 
 
@@ -110,29 +95,7 @@ def student_dashboard(request):
     """
     Student dashboard view.
     """
-    student = getattr(request.user, 'student', None)
-    context = {'student': student}
-    
-    if student:
-        courses = student.courses.all()
-        # Calculate profile completion percentage (fields: phone, address, date_of_birth)
-        profile_completion = 0
-        profile = getattr(student, 'profile', None)
-        if profile:
-            filled_fields = 0
-            if profile.phone:
-                filled_fields += 1
-            if profile.address:
-                filled_fields += 1
-            if profile.date_of_birth:
-                filled_fields += 1
-            profile_completion = int((filled_fields / 3.0) * 100)
-            
-        context.update({
-            'courses': courses,
-            'profile_completion': profile_completion,
-        })
-        
+    context = services.get_student_dashboard_data(request.user)
     return render(request, 'dashboards/student_dashboard.html', context)
 
 
@@ -306,8 +269,14 @@ def student_list(request):
     departments = Department.objects.all().order_by('name')
     courses = Course.objects.all().order_by('course_name')
     
+    from django.core.paginator import Paginator
+    paginator = Paginator(students_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'students': students_qs,
+        'students': page_obj,
+        'page_obj': page_obj,
         'total_count': total_count,
         'active_count': active_count,
         'departments': departments,
@@ -352,32 +321,11 @@ def student_detail(request, id):
     )
     
     # Authorization checks
-    is_authorized = False
-    if request.user.is_superuser or request.user.profile.role == 'admin':
-        is_authorized = True
-    elif request.user.profile.role == 'trainer':
-        # Trainer must be assigned to at least one of the student's courses
-        is_authorized = student.courses.filter(assigned_trainer=request.user).exists()
-    elif request.user.profile.role == 'student':
-        # Student must be the owner
-        is_authorized = (getattr(request.user, 'student', None) is not None and request.user.student.id == student.id)
-        
-    if not is_authorized:
+    if not services.can_user_view_student(request.user, student):
         raise PermissionDenied
         
     # Calculate profile completion if student is viewing themselves
-    profile_completion = 0
-    if request.user.profile.role == 'student':
-        profile = getattr(student, 'profile', None)
-        if profile:
-            filled_fields = 0
-            if profile.phone:
-                filled_fields += 1
-            if profile.address:
-                filled_fields += 1
-            if profile.date_of_birth:
-                filled_fields += 1
-            profile_completion = int((filled_fields / 3.0) * 100)
+    profile_completion = services.calculate_profile_completion(student) if getattr(getattr(request.user, 'profile', None), 'role', None) == 'student' else 0
             
     # Retrieve and filter feedbacks
     if request.user.profile.role == 'student':
@@ -581,17 +529,13 @@ def add_feedback(request, student_id):
     if request.method == 'POST':
         form = FeedbackForm(request.POST, trainer=request.user, student=student)
         if form.is_valid():
-            feedback = form.save(commit=False)
-            feedback.trainer = request.user
-            feedback.student = student
-            feedback.save()
-            
-            # Log audit
-            AuditLog.objects.create(
-                user=request.user,
-                action='feedback_creation',
-                affected_object=f"Student: {student.name}",
-                description=f"Trainer {request.user.username} created feedback for {student.name} in course {feedback.course.course_name}.",
+            services.create_feedback(
+                student=student,
+                trainer_user=request.user,
+                course=form.cleaned_data['course'],
+                rating=form.cleaned_data['rating'],
+                comments=form.cleaned_data['comments'],
+                is_visible=form.cleaned_data.get('is_visible', True),
                 ip_address=get_client_ip(request)
             )
             messages.success(request, "Feedback added successfully!")
@@ -653,9 +597,8 @@ def update_marks(request, student_id):
         shared_courses = student.courses.filter(assigned_trainer=request.user)
         if not shared_courses.exists():
             raise PermissionDenied("You are not assigned to this student.")
-    else:
-        if user_role != 'trainer':
-            raise PermissionDenied("Only trainers can update marks.")
+    elif user_role != 'admin':
+        raise PermissionDenied("Only trainers and administrators can update marks.")
             
     if request.method == 'POST':
         form = MarksUpdateForm(request.POST, trainer=request.user, student=student)
@@ -664,25 +607,12 @@ def update_marks(request, student_id):
             new_marks = form.cleaned_data['new_marks']
             reason = form.cleaned_data['reason']
             
-            old_marks = student.marks
-            student.marks = new_marks
-            student.save()
-            
-            MarksHistory.objects.create(
+            services.update_student_marks(
                 student=student,
                 course=course,
-                previous_marks=old_marks,
                 new_marks=new_marks,
-                updater=request.user,
-                reason=reason
-            )
-            
-            # Log audit
-            AuditLog.objects.create(
-                user=request.user,
-                action='marks_update',
-                affected_object=f"Student: {student.name}",
-                description=f"Trainer {request.user.username} updated marks for {student.name} in course {course.course_name} from {old_marks} to {new_marks}.",
+                updater_user=request.user,
+                reason=reason,
                 ip_address=get_client_ip(request)
             )
             messages.success(request, f"Marks updated successfully to {new_marks}!")
@@ -700,7 +630,7 @@ def update_marks(request, student_id):
 @login_required
 @role_required('admin')
 def audit_logs(request):
-    logs = AuditLog.objects.all().order_by('-timestamp')
+    logs = AuditLog.objects.select_related('user').all().order_by('-timestamp')
     
     # Search filter
     q = request.GET.get('q', '').strip()
@@ -740,3 +670,15 @@ def audit_logs(request):
         'action_choices': AuditLog.ACTION_CHOICES,
     }
     return render(request, 'dashboards/audit_logs.html', context)
+
+
+def custom_403(request, exception=None):
+    return render(request, '403.html', status=403)
+
+
+def custom_404(request, exception=None):
+    return render(request, '404.html', status=404)
+
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
