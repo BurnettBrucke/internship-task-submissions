@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Feedback
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-primary text-white">
+
+                <h3>
+
+                    Add Feedback
+
+                </h3>
+
+                <small>
+
+                    Student: {{ student.name }}
+
+                </small>
+
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+                    {% include "includes/form_errors.html" %}
+
+                    {% for field in form %}
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                {{ field.label }}
+
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+
+                                <div class="text-danger">
+
+                                    {{ field.errors }}
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between">
+
+                        <a href="{% url 'trainer_dashboard' %}"
+                           class="btn btn-secondary">
+
+                            Back
+
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-success">
+
+                            Save Feedback
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

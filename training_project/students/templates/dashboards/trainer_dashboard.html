@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}
+Trainer Dashboard
+{% endblock %}
+
+{% block content %}
+
+<!-- Dashboard Header -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>
+            Trainer Dashboard
+        </h2>
+
+        <p class="text-muted mb-0">
+
+            Welcome, {{ user.username }}
+
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- Summary Cards -->
+
+<div class="row g-4 mb-4">
+
+    <!-- Assigned Students -->
+
+    <div class="col-md-6">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+
+                    Assigned Students
+
+                </h6>
+
+                <h2 class="text-primary">
+
+                    {{ assigned_students }}
+
+                </h2>
+
+                <p class="text-muted mb-0">
+
+                    Students currently assigned to you
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Assigned Courses -->
+
+    <div class="col-md-6">
+
+        <div class="card shadow border-0 h-100">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+
+                    Assigned Courses
+
+                </h6>
+
+                <h2 class="text-success">
+
+                    {{ assigned_courses }}
+
+                </h2>
+
+                <p class="text-muted mb-0">
+
+                    Courses you are currently handling
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Assigned Students -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-primary text-white">
+
+        <strong>
+
+            Assigned Students
+
+        </strong>
+
+    </div>
+
+    <div class="card-body">
+
+        {% if assignments %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Student</th>
+
+                            <th>Email</th>
+
+                            <th>Course</th>
+
+                            <th>Marks</th>
+
+                            <th>Status</th>
+
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for assignment in assignments %}
+
+                        <tr>
+
+                            <!-- Student -->
+
+                            <td>
+
+                                <strong>
+
+                                    {{ assignment.student.name }}
+
+                                </strong>
+
+                            </td>
+
+
+                            <!-- Email -->
+
+                            <td>
+
+                                {{ assignment.student.email }}
+
+                            </td>
+
+
+                            <!-- Course -->
+
+                            <td>
+
+                                <span class="badge bg-info text-dark">
+
+                                    {{ assignment.course.course_name }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- Marks -->
+
+                            <td>
+
+                                {{ assignment.student.marks }}/100
+
+                            </td>
+
+
+                            <!-- Pass / Fail -->
+
+                            <td>
+
+                                {% if assignment.student.marks >= 50 %}
+
+                                    <span class="badge bg-success">
+
+                                        Pass
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-danger">
+
+                                        Fail
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- Actions -->
+
+                            <td>
+
+                                <div class="d-flex gap-2">
+
+                                    <a
+                                        href="{% url 'update_marks' assignment.student.id assignment.course.id %}"
+                                        class="btn btn-sm btn-primary"
+                                    >
+
+                                        <i class="bi bi-pencil-square"></i>
+
+                                        Marks
+
+                                    </a>
+
+                                    <a
+                                        href="{% url 'marks_history' assignment.student.id assignment.course.id %}"
+                                        class="btn btn-sm btn-outline-secondary"
+                                    >
+                                        <i class="bi bi-clock-history"></i>
+                                        History
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'add_feedback' assignment.student.id %}"
+                                        class="btn btn-sm btn-success"
+                                    >
+
+                                        <i class="bi bi-chat-square-text"></i>
+
+                                        Feedback
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <!-- Empty State -->
+
+            <div class="text-center py-5">
+
+                <i class="bi bi-people fs-1 text-muted"></i>
+
+                <h5 class="mt-3">
+
+                    No Students Assigned
+
+                </h5>
+
+                <p class="text-muted mb-0">
+
+                    No students or courses have been assigned to you yet.
+
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Assigned Courses -->
+
+<div class="card shadow border-0">
+
+    <div class="card-header bg-success text-white">
+
+        <strong>
+
+            Assigned Courses
+
+        </strong>
+
+    </div>
+
+    <div class="card-body">
+
+        {% if assignments %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Course</th>
+
+                            <th>Student</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for assignment in assignments %}
+
+                        <tr>
+
+                            <td>
+
+                                <span class="badge bg-success">
+
+                                    {{ assignment.course.course_name }}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                {{ assignment.student.name }}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+
+                No courses have been assigned to you yet.
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Feedback
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-warning">
+
+                <h3 class="mb-0">
+                    Edit Feedback
+                </h3>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="alert alert-info">
+
+                    <strong>Student:</strong>
+                    {{ feedback.student.name }}
+
+                    <br>
+
+                    <strong>Course:</strong>
+                    {{ feedback.course.course_name }}
+
+                </div>
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+                    {% include "includes/form_errors.html" %}
+
+                    {% for field in form %}
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+
+                                <div class="text-danger">
+
+                                    {{ field.errors }}
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between">
+
+                        <a
+                            href="{% url 'trainer_dashboard' %}"
+                            class="btn btn-secondary"
+                        >
+                            Back
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-warning"
+                        >
+                            Update Feedback
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Feedback
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>My Feedback</h2>
+
+        <p class="text-muted mb-0">
+            Feedback provided by your trainers
+        </p>
+    </div>
+
+    <a
+        href="{% url 'student_dashboard' %}"
+        class="btn btn-secondary"
+    >
+        Back to Dashboard
+    </a>
+</div>
+
+
+{% if feedback_list %}
+
+<div class="row g-4">
+
+    {% for feedback in feedback_list %}
+
+    <div class="col-12 col-md-6">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header d-flex justify-content-between align-items-center">
+
+                <strong>
+                    {{ feedback.course.course_name }}
+                </strong>
+
+                <span class="badge bg-warning text-dark">
+                    {{ feedback.rating }}/5
+                </span>
+
+            </div>
+
+            <div class="card-body">
+
+                <p class="mb-3">
+                    {{ feedback.feedback }}
+                </p>
+
+                <hr>
+
+                <small class="text-muted">
+
+                    <strong>Trainer:</strong>
+                    {{ feedback.trainer.username }}
+
+                    <br>
+
+                    <strong>Date:</strong>
+                    {{ feedback.created_at|date:"d M Y, h:i A" }}
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body text-center py-5">
+
+        <i class="bi bi-chat-square-text fs-1 text-muted"></i>
+
+        <h4 class="mt-3">
+            No Feedback Available
+        </h4>
+
+        <p class="text-muted mb-0">
+            You don't have any visible feedback yet.
+        </p>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

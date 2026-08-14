@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Dashboard
+{% endblock %}
+
+{% block content %}
+
+{% if student %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>Student Dashboard</h2>
+
+        <p class="text-muted">
+            Welcome, {{ student.name }}
+        </p>
+
+    </div>
+
+</div>
+
+
+<div class="row g-4 mb-4">
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    Marks
+                </h6>
+
+                <h2>
+                    {{ student.marks }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    Courses
+                </h6>
+
+                <h2>
+                    {{ student.courses.count }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    Status
+                </h6>
+
+                {% if student.is_active %}
+
+                    <span class="badge bg-success fs-6">
+                        Active
+                    </span>
+
+                {% else %}
+
+                    <span class="badge bg-danger fs-6">
+                        Inactive
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-3">
+
+        <div class="card shadow">
+
+            <div class="card-body text-center">
+
+                <h6 class="text-muted">
+                    Result
+                </h6>
+
+                {% if student.marks >= 40 %}
+
+                    <span class="badge bg-success fs-6">
+                        Pass
+                    </span>
+
+                {% else %}
+
+                    <span class="badge bg-danger fs-6">
+                        Fail
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow mb-4">
+
+    <div class="card-header">
+        Profile Completion
+    </div>
+
+    <div class="card-body">
+
+        <div class="progress profile-completion-progress">
+
+            <div
+                class="progress-bar profile-completion-bar"
+                role="progressbar"
+                style="--profile-completion: {{ profile_completion }}%;"
+                aria-valuenow="{{ profile_completion }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+            >
+
+                {{ profile_completion }}%
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow">
+
+    <div class="card-header">
+        Student Information
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th>Name</th>
+                    <td>{{ student.name }}</td>
+                </tr>
+
+                <tr>
+                    <th>Email</th>
+                    <td>{{ student.email }}</td>
+                </tr>
+
+                <tr>
+                    <th>Department</th>
+                    <td>{{ student.department }}</td>
+                </tr>
+
+                <tr>
+                    <th>Joined Date</th>
+                    <td>{{ student.joined_date }}</td>
+                </tr>
+
+                <tr>
+                    <th>Courses</th>
+
+                    <td>
+
+                        {% for course in student.courses.all %}
+
+                            <span class="badge bg-primary me-1">
+                                {{ course.course_name }}
+                            </span>
+
+                        {% empty %}
+
+                            <span class="text-muted">
+                                No Courses Assigned
+                            </span>
+
+                        {% endfor %}
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% else %}
+
+<!-- Student not enrolled state -->
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8">
+
+        <div class="card shadow text-center">
+
+            <div class="card-body py-5">
+
+                <div class="mb-3">
+
+                    <i class="bi bi-person-plus fs-1 text-muted"></i>
+
+                </div>
+
+                <h3 class="mb-3">
+                    Welcome, {{ request.user.username }}
+                </h3>
+
+                <h5 class="text-muted mb-3">
+                    You don't have any student entries yet.
+                </h5>
+
+                <p class="text-muted mb-4">
+
+                    Your account has been successfully created,
+                    but you have not been enrolled as a student yet.
+
+                    Please contact the administrator to complete
+                    your student enrollment.
+
+                </p>
+
+                <span class="badge bg-warning text-dark fs-6">
+
+                    Enrollment Pending
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

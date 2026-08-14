@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+
+            <h3 class="mb-0">👨‍🎓 Student Details</h3>
+
+            <a href="{% url 'student_list' %}" class="btn btn-light btn-sm">
+                ← Back
+            </a>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <p><strong>Name:</strong> {{ student.name }}</p>
+
+                    <p><strong>Email:</strong> {{ student.email }}</p>
+
+                    <p><strong>Age:</strong> {{ student.age }}</p>
+
+                    <p><strong>Department:</strong> {{ student.department }}</p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <p>
+
+                        <strong>Marks:</strong>
+
+                        <span class="badge bg-primary">
+                            {{ student.marks }}
+                        </span>
+
+                    </p>
+
+                    <p>
+
+                        <strong>Status:</strong>
+
+                        {% if student.is_active %}
+
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </p>
+
+                    <p>
+
+                        <strong>Result:</strong>
+
+                        {% if student.marks >= 40 %}
+
+                            <span class="badge bg-success">
+                                Pass
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger">
+                                Fail
+                            </span>
+
+                        {% endif %}
+
+                    </p>
+
+                    <p>
+
+                        <strong>Joined Date:</strong>
+
+                        {{ student.joined_date }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <h5>📚 Courses</h5>
+
+            {% if student.courses.all %}
+
+                {% for course in student.courses.all %}
+
+                    <span class="badge bg-info text-dark me-1">
+
+                        {{ course.course_name }}
+
+                    </span>
+
+                {% empty %}
+
+                    <p>No Courses Assigned</p>
+
+                {% endfor %}
+
+            {% endif %}
+
+            <hr>
+
+            <div class="mt-3">
+
+                <a
+                    href="{% url 'edit_student' student.id %}"
+                    class="btn btn-warning"
+                >
+                    ✏ Edit
+                </a>
+
+                {% if user.is_staff %}
+
+                <a
+                    href="{% url 'delete_student' student.id %}"
+                    class="btn btn-danger"
+                >
+                    🗑 Delete
+                </a>
+
+                {% endif %}
+
+                <a
+                    href="{% url 'student_list' %}"
+                    class="btn btn-secondary"
+                >
+                    Back to List
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

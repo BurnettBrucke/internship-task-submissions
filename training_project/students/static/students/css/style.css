@@ -1,0 +1,10 @@
+/* Student Training Portal - Project Styles */
+
+/* Profile completion progress bar */
+.profile-completion-progress {
+    height: 25px;
+}
+
+.profile-completion-bar {
+    width: var(--profile-completion);
+}

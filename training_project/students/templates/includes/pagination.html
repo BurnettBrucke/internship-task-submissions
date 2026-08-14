@@ -1,0 +1,96 @@
+{% if students.has_other_pages %}
+
+<nav class="mt-4">
+
+    <ul class="pagination justify-content-center">
+
+        {% if students.has_previous %}
+
+            <li class="page-item">
+
+                <a class="page-link"
+                   href="?page={{ students.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.result %}&result={{ request.GET.result }}{% endif %}">
+
+                    Previous
+
+                </a>
+
+            </li>
+
+        {% else %}
+
+            <li class="page-item disabled">
+
+                <span class="page-link">
+
+                    Previous
+
+                </span>
+
+            </li>
+
+        {% endif %}
+
+        {% for page in students.paginator.page_range %}
+
+            {% if students.number == page %}
+
+                <li class="page-item active">
+
+                    <span class="page-link">
+
+                        {{ page }}
+
+                    </span>
+
+                </li>
+
+            {% else %}
+
+                <li class="page-item">
+
+                    <a class="page-link"
+                       href="?page={{ page }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.result %}&result={{ request.GET.result }}{% endif %}">
+
+                        {{ page }}
+
+                    </a>
+
+                </li>
+
+            {% endif %}
+
+        {% endfor %}
+
+        {% if students.has_next %}
+
+            <li class="page-item">
+
+                <a class="page-link"
+                   href="?page={{ students.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}{% if request.GET.result %}&result={{ request.GET.result }}{% endif %}">
+
+                    Next
+
+                </a>
+
+            </li>
+
+        {% else %}
+
+            <li class="page-item disabled">
+
+                <span class="page-link">
+
+                    Next
+
+                </span>
+
+            </li>
+
+        {% endif %}
+
+    </ul>
+
+</nav>
+
+{% endif %}

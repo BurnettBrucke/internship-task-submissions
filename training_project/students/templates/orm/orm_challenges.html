@@ -1,0 +1,700 @@
+{% extends "base.html" %}
+
+{% block title %}
+ORM Challenges
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2>ORM Challenges</h2>
+
+        <p class="text-muted mb-0">
+            Django ORM queries required for Day 4 Task 3
+        </p>
+    </div>
+
+    <a
+        href="{% url 'admin_dashboard' %}"
+        class="btn btn-secondary"
+    >
+        Back to Dashboard
+    </a>
+
+</div>
+
+
+<!-- Challenge 13 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-primary text-white">
+        <strong>13. Assigned Students Count by Trainer</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if trainer_student_counts %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Trainer</th>
+                            <th>Assigned Students</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in trainer_student_counts %}
+
+                        <tr>
+                            <td>
+                                {{ item.trainer__username }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-primary">
+                                    {{ item.student_count }}
+                                </span>
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                No trainer assignments found.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 14 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-warning text-dark">
+        <strong>14. Students With No Visible Feedback</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if students_without_visible_feedback %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for student in students_without_visible_feedback %}
+
+                        <tr>
+
+                            <td>
+                                {{ student.name }}
+                            </td>
+
+                            <td>
+                                {{ student.email }}
+                            </td>
+
+                            <td>
+                                {{ student.department }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-success mb-0">
+                All students have visible feedback.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 15 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-info text-dark">
+        <strong>15. Trainers Who Have Not Submitted Feedback</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if trainers_without_feedback %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Trainer</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for profile in trainers_without_feedback %}
+
+                        <tr>
+
+                            <td>
+                                {{ profile.user.username }}
+                            </td>
+
+                            <td>
+                                {{ profile.user.email }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-success mb-0">
+                All trainers have submitted feedback.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 16 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-dark text-white">
+        <strong>16. Five Latest Audit Actions</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if latest_audit_actions %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for log in latest_audit_actions %}
+
+                        <tr>
+
+                            <td>
+
+                                <span class="badge bg-primary">
+                                    {{ log.action }}
+                                </span>
+
+                            </td>
+
+                            <td>
+                                {{ log.user.username }}
+                            </td>
+
+                            <td>
+                                {{ log.description }}
+                            </td>
+
+                            <td>
+                                {{ log.timestamp|date:"d M Y, h:i A" }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                No audit actions found.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 17 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-danger text-white">
+        <strong>17. Users With More Than Three Failed Login Attempts</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if users_with_failed_logins %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Failed Attempts</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in users_with_failed_logins %}
+
+                        <tr>
+
+                            <td>
+                                {{ item.user__username }}
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-danger">
+                                    {{ item.failed_attempts }}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-success mb-0">
+                No users have more than three failed login attempts.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 18 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-primary text-white">
+        <strong>18. Marks Updated During Current Week</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if marks_updated_this_week %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Previous</th>
+                            <th>New</th>
+                            <th>Updated By</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for record in marks_updated_this_week %}
+
+                        <tr>
+
+                            <td>
+                                {{ record.student.name }}
+                            </td>
+
+                            <td>
+                                {{ record.course.course_name }}
+                            </td>
+
+                            <td>
+                                {{ record.previous_marks }}
+                            </td>
+
+                            <td>
+                                {{ record.new_marks }}
+                            </td>
+
+                            <td>
+                                {{ record.updated_by.username }}
+                            </td>
+
+                            <td>
+                                {{ record.updated_at|date:"d M Y, h:i A" }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                No marks have been updated this week.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 19 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-success text-white">
+        <strong>19. Average Feedback Rating by Trainer</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if average_feedback_by_trainer %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Trainer</th>
+                            <th>Average Rating</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in average_feedback_by_trainer %}
+
+                        <tr>
+
+                            <td>
+                                {{ item.trainer__username }}
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-success">
+
+                                    {{ item.average_rating|floatformat:2 }}
+
+                                    / 5
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                No feedback ratings available.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 20 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-warning text-dark">
+        <strong>20. Courses With Average Marks Below 50</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if courses_below_average %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Code</th>
+                            <th>Average Marks</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for course in courses_below_average %}
+
+                        <tr>
+
+                            <td>
+                                {{ course.course_name }}
+                            </td>
+
+                            <td>
+                                {{ course.code }}
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-warning text-dark">
+
+                                    {{ course.average_marks|floatformat:2 }}
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-success mb-0">
+                No courses have an average below 50.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 21 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-secondary text-white">
+        <strong>21. Inactive Users Who Previously Logged In</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if inactive_users_previously_logged_in %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for user in inactive_users_previously_logged_in %}
+
+                        <tr>
+
+                            <td>
+                                {{ user.username }}
+                            </td>
+
+                            <td>
+                                {{ user.email }}
+                            </td>
+
+                            <td>
+                                {{ user.last_login|date:"d M Y, h:i A" }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                No inactive users with previous login activity were found.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Challenge 22 -->
+
+<div class="card shadow border-0 mb-4">
+
+    <div class="card-header bg-danger text-white">
+        <strong>22. Enrolled Students With No Marks</strong>
+    </div>
+
+    <div class="card-body">
+
+        {% if enrolled_students_without_marks %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for student in enrolled_students_without_marks %}
+
+                        <tr>
+
+                            <td>
+                                {{ student.name }}
+                            </td>
+
+                            <td>
+                                {{ student.email }}
+                            </td>
+
+                            <td>
+                                {{ student.department }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-success mb-0">
+                No enrolled students without marks were found.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

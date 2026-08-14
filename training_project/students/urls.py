@@ -1,26 +1,137 @@
-
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('home/', views.home),
-    path('about/', views.about),
-    
-    path("", views.dashboard, name="dashboard"),
 
-    path("students/", views.student_list, name="student_list"),
+    # Dashboard
+    path(
+        "dashboard/admin/",
+        views.admin_dashboard,
+        name="admin_dashboard"
+    ),
 
-    path("students/<int:id>/", views.student_detail, name="student_detail"),
+    path(
+        "dashboard/trainer/",
+        views.trainer_dashboard,
+        name="trainer_dashboard"
+    ),
 
-    path("students/add/", views.student_add, name="student_add"),
+    path(
+        "dashboard/student/",
+        views.student_dashboard,
+        name="student_dashboard"
+    ),
 
-    path("students/<int:id>/edit/", views.student_edit, name="student_edit"),
+    # Authentication
+    path(
+        "register/",
+        views.register,
+        name="register"
+    ),
 
-    path("students/<int:id>/delete/", views.student_delete, name="student_delete"),
+    path(
+        "login/",
+        views.user_login,
+        name="login"
+    ),
 
-    path("register/",views.register,name="register"),
+    path(
+        "logout/",
+        views.user_logout,
+        name="logout"
+    ),
 
-    path("login/",views.user_login,name="login"),
+    path(
+        "users/",
+        views.user_management,
+        name="user_management",
+    ),
 
-    path("logout/",views.user_logout,name="logout"),
+    path(
+        "users/<int:user_id>/toggle-status/",
+        views.toggle_user_status,
+        name="toggle_user_status",
+    ),
+
+# Feedback
+path(
+    "feedback/add/<int:student_id>/",
+    views.add_feedback,
+    name="add_feedback",
+),
+
+path(
+    "feedback/<int:feedback_id>/edit/",
+    views.edit_feedback,
+    name="edit_feedback",
+),
+
+path(
+    "feedback/",
+    views.student_feedback,
+    name="student_feedback",
+),
+
+path(
+    "feedback/admin/",
+    views.admin_feedback,
+    name="admin_feedback",
+),
+# Marks
+
+path(
+    "marks/update/<int:student_id>/<int:course_id>/",
+    views.update_marks,
+    name="update_marks",
+),
+
+path(
+    "marks/history/<int:student_id>/<int:course_id>/",
+    views.marks_history,
+    name="marks_history",
+),
+
+# Audit Logs
+
+path(
+    "audit-logs/",
+    views.audit_log_list,
+    name="audit_log_list",
+),
+path(
+    "orm-challenges/",
+    views.orm_challenges,
+    name="orm_challenges",
+),
+
+    # Student CRUD
+    path(
+        "",
+        views.student_list,
+        name="student_list"
+    ),
+
+    path(
+        "add/",
+        views.add_student,
+        name="add_student"
+    ),
+
+    path(
+        "<int:pk>/",
+        views.student_detail,
+        name="student_detail"
+    ),
+
+    path(
+        "<int:pk>/edit/",
+        views.edit_student,
+        name="edit_student"
+    ),
+
+    path(
+        "<int:pk>/delete/",
+        views.delete_student,
+        name="delete_student"
+    ),
 ]

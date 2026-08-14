@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}
+Update Marks
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-7">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-primary text-white">
+
+                <h3 class="mb-1">
+                    Update Marks
+                </h3>
+
+                <small>
+                    {{ student.name }} -
+                    {{ course.course_name }}
+                </small>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="alert alert-info">
+
+                    <strong>Current Marks:</strong>
+
+                    {{ student.marks }}/100
+
+                </div>
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+                    {% include "includes/form_errors.html" %}
+
+                    {% for field in form %}
+
+                        <div class="mb-3">
+
+                            <label
+                                for="{{ field.id_for_label }}"
+                                class="form-label"
+                            >
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.help_text %}
+
+                                <div class="form-text">
+                                    {{ field.help_text }}
+                                </div>
+
+                            {% endif %}
+
+                            {% if field.errors %}
+
+                                <div class="text-danger">
+
+                                    {{ field.errors }}
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between">
+
+                        <a
+                            href="{% url 'trainer_dashboard' %}"
+                            class="btn btn-secondary"
+                        >
+                            Back
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Update Marks
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

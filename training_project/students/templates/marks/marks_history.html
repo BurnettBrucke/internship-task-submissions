@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}
+Marks History
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2>Marks History</h2>
+
+        <p class="text-muted mb-0">
+            {{ student.name }} -
+            {{ course.course_name }}
+        </p>
+
+    </div>
+
+    <a
+        href="{% url 'trainer_dashboard' %}"
+        class="btn btn-secondary"
+    >
+        Back to Dashboard
+    </a>
+
+</div>
+
+
+{% if history %}
+
+<!-- Latest Update -->
+
+{% with latest=history.0 %}
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-header bg-success text-white">
+
+        <strong>
+            Latest Marks Update
+        </strong>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-12 col-md-3">
+
+                <small class="text-muted">
+                    Previous Marks
+                </small>
+
+                <h5>
+                    {{ latest.previous_marks }}/100
+                </h5>
+
+            </div>
+
+            <div class="col-12 col-md-3">
+
+                <small class="text-muted">
+                    New Marks
+                </small>
+
+                <h5>
+
+                    {% if latest.new_marks >= 50 %}
+
+                        <span class="badge bg-success">
+                            {{ latest.new_marks }}/100
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-danger">
+                            {{ latest.new_marks }}/100
+                        </span>
+
+                    {% endif %}
+
+                </h5>
+
+            </div>
+
+            <div class="col-12 col-md-3">
+
+                <small class="text-muted">
+                    Updated By
+                </small>
+
+                <h5>
+                    {{ latest.updated_by.username }}
+                </h5>
+
+            </div>
+
+            <div class="col-12 col-md-3">
+
+                <small class="text-muted">
+                    Updated On
+                </small>
+
+                <h5>
+                    {{ latest.updated_at|date:"d M Y, h:i A" }}
+                </h5>
+
+            </div>
+
+        </div>
+
+        <hr>
+
+        <div>
+
+            <small class="text-muted">
+                Reason
+            </small>
+
+            <p class="mb-0">
+                {{ latest.reason }}
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endwith %}
+
+
+<!-- Complete History -->
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-primary text-white">
+
+        <strong>
+            Complete Marks Update History
+        </strong>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Previous</th>
+                        <th>New Marks</th>
+                        <th>Updated By</th>
+                        <th>Reason</th>
+                        <th>Date</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for record in history %}
+
+                    <tr>
+
+                        <td>
+
+                            <span class="badge bg-secondary">
+                                {{ record.previous_marks }}/100
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            {% if record.new_marks >= 50 %}
+
+                                <span class="badge bg-success">
+                                    {{ record.new_marks }}/100
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    {{ record.new_marks }}/100
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ record.updated_by.username }}
+                        </td>
+
+                        <td>
+                            {{ record.reason }}
+                        </td>
+
+                        <td>
+                            {{ record.updated_at|date:"d M Y, h:i A" }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{% else %}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body text-center py-5">
+
+        <i class="bi bi-clock-history fs-1 text-muted"></i>
+
+        <h4 class="mt-3">
+            No Marks History
+        </h4>
+
+        <p class="text-muted mb-0">
+            No marks have been updated for this student
+            in this course yet.
+        </p>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

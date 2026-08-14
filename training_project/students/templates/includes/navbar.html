@@ -1,0 +1,174 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+            <i class="bi bi-mortarboard-fill"></i>
+            Student Training Portal
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav me-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <i class="bi bi-house-fill"></i>
+                        Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'about' %}">
+                        <i class="bi bi-info-circle-fill"></i>
+                        About
+                    </a>
+                </li>
+
+                {% if user.is_authenticated %}
+
+                    {% if user.profile.role == "ADMIN" %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'student_list' %}">
+                                <i class="bi bi-people-fill"></i>
+                                Students
+                            </a>
+                        </li>
+
+                    {% elif user.profile.role == "TRAINER" %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'trainer_dashboard' %}">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+
+                    {% elif user.profile.role == "STUDENT" %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'student_dashboard' %}">
+                                <i class="bi bi-speedometer2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </ul>
+
+            <ul class="navbar-nav">
+
+                {% if user.is_authenticated %}
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link dropdown-toggle text-white"
+                       href="#"
+                       role="button"
+                       data-bs-toggle="dropdown">
+
+                        <i class="bi bi-person-circle"></i>
+
+                        {{ user.username }}
+
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+
+                        <li>
+
+                            <span class="dropdown-item-text">
+
+                                Logged in as
+
+                                <strong>{{ user.username }}</strong>
+
+                            </span>
+
+                        </li>
+
+                        <li>
+
+                            <span class="dropdown-item-text text-muted">
+
+                                Role:
+                                <strong>{{ user.profile.get_role_display }}</strong>
+
+                            </span>
+
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item"
+                               href="{% url 'logout' %}">
+
+                                <i class="bi bi-box-arrow-right"></i>
+
+                                Logout
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </li>
+
+                {% else %}
+
+                <li class="nav-item me-2">
+
+                    <a class="btn btn-outline-light btn-sm"
+                       href="{% url 'login' %}">
+
+                        Login
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="btn btn-warning btn-sm"
+                       href="{% url 'register' %}">
+
+                        Register
+
+                    </a>
+
+                </li>
+
+                {% endif %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>

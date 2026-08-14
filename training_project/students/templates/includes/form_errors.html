@@ -1,0 +1,13 @@
+{% if field.errors %}
+
+    <div class="text-danger mt-1">
+
+        {% for error in field.errors %}
+
+            <small class="d-block">{{ error }}</small>
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}
