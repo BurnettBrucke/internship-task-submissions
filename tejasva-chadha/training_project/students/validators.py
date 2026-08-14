@@ -45,3 +45,17 @@ class ComplexityValidator:
         return _(
             "Your password must be at least 8 characters and contain at least 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character."
         )
+
+
+def validate_not_future_date(value):
+    from django.utils import timezone
+    if value and value > timezone.localdate():
+        raise ValidationError(_("Date of birth cannot be in the future."), code='future_date')
+
+
+def validate_trainer_role(user):
+    if user:
+        role = getattr(getattr(user, 'profile', None), 'role', None)
+        if role != 'trainer' and not user.is_superuser:
+            raise ValidationError(_("Assigned user must have the trainer role."), code='invalid_trainer_role')
+

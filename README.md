@@ -1,59 +1,60 @@
-## Burnett Brucke Internship
+# BurnettBrucke Internship - Day 5 Student Training Portal Submission
 
-# Project Name
+This repository contains the completed Day 5 Student Training Portal project, featuring a Django web application and a FastAPI REST microservice.
 
-training_project 
+---
 
-# How to run project at local machine
+## Workspace Projects
 
-First of all you should have Python 3 installed on your system
+1. **`tejasva-chadha/training_project/`**: Django 6 Web Application with role-based dashboards, Enrollment-centric course marks, feedback, audit logs, security controls, static styling, and full test suite.
+2. **`tejasva-chadha/fastapi_training/`**: FastAPI REST API microservice with validation, filtering, pagination, and pytest suite.
 
-after that create a virtual environment using command 
+---
 
-->  python virtualenv ("your venv name")
+## Quickstart Instructions
 
-then activate it using command 
+### 1. Django Training Portal
 
-->  my_env/Scripts/activate
+```bash
+cd tejasva-chadha/training_project
 
-then install all packages using command
+# Run migrations
+python manage.py migrate
 
-->  pip install -r requirements.txt
+# Seed safe demo data (20+ students, 5 courses, demo accounts)
+python manage.py seed_demo_data
 
-after installation, 
+# Run Django development server
+python manage.py runserver
+```
+Portal URL: `http://127.0.0.1:8000/`
 
-create database tables using command
+**Demo Credentials**:
+- **Admin**: `admin` / `AdminPass123!`
+- **Trainer**: `trainer1` / `TrainerPass123!`
+- **Student**: `student1` / `StudentPass123!`
 
-->  python manage.py makemigrations
+### 2. FastAPI Microservice
 
-then apply all migrations using command 
+```bash
+cd tejasva-chadha/fastapi_training
 
-->  python manage.py migrate
+# Run FastAPI server
+uvicorn app.main:app --reload --port 8001
+```
+- **Swagger Documentation**: `http://127.0.0.1:8001/docs`
+- **ReDoc Documentation**: `http://127.0.0.1:8001/redoc`
 
-then create super user using command
+---
 
-->  python manage.py createsuperuser
+## Test Suites
 
-just run your server using command
+```bash
+# Run Django test suite (70+ tests)
+cd tejasva-chadha/training_project
+python manage.py test
 
-->  python manage.py runserver
-
-then go to
-
-->  http://127.0.0.1:8000/   for dashboard page
-
-->  http://127.0.0.1:8000/home  for home page
-
-->  http://127.0.0.1:8000/students  for students page
-
-->  http://127.0.0.1:8000/students/1  for specific student page
-
-->  http://127.0.0.1:8000/students/add    for add new student
-
-->  http://127.0.0.1:8000/students/1/edit   for update specific student details 
-
-->  http://127.0.0.1:8000/students/1/delete   for delete specific student
-
-
-
-
+# Run FastAPI pytest suite (15 tests)
+cd tejasva-chadha/fastapi_training
+python -m pytest
+```

@@ -3,6 +3,30 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Environment and Database Files
+.env
+*.env
+db.sqlite3
+staticfiles/
+venv/
+env/
+.venv/
+
+# Pytest and Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs and Temporary Output
+*.log
+test_output.txt
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # OS Files
 .DS_Store
 Thumbs.db

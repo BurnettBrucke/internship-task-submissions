@@ -1,20 +1,24 @@
+from urllib.parse import urlencode
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.db.models import Avg, Q
 from django.core.cache import cache
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import Student, Department, Course, AuditLog, Feedback, MarksHistory
+from .models import Student, Department, Course, AuditLog, Feedback, MarksHistory, Enrollment
 from django.contrib.auth.models import User
 from .forms import StudentForm, RegistrationForm, FeedbackForm, MarksUpdateForm
 from .decorators import role_required
 from . import services
+
 
 def home(request):
     """
@@ -36,7 +40,6 @@ def dashboard_redirect(request):
     """
     Redirects user to their role-based dashboard.
     """
-    # Superuser has admin access
     if request.user.is_superuser:
         return redirect('admin_dashboard')
         
@@ -60,7 +63,6 @@ def admin_dashboard(request):
     Administrator dashboard view.
     """
     stats = services.get_dashboard_stats()
-    # Add admin-specific counts
     stats['total_trainers'] = User.objects.filter(profile__role='trainer').count()
     stats['total_users'] = User.objects.count()
     
@@ -126,11 +128,9 @@ def register_view(request):
                 user.is_active = False
             user.save()
             
-            # Ensure profile has correct role
             user.profile.role = role
             user.profile.save()
             
-            # Create Audit Log for registration
             AuditLog.objects.create(
                 user=None,
                 action='create',
@@ -157,7 +157,6 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         
-        # Check block status in cache
         if username:
             block_key = f"login_block_{username}"
             if cache.get(block_key):
@@ -175,7 +174,6 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             
-            # Check if active
             if not user.is_active:
                 messages.error(request, "Your account is inactive. If you registered as a trainer, your account requires administrator approval.")
                 AuditLog.objects.create(
@@ -186,7 +184,6 @@ def login_view(request):
                 )
                 return render(request, 'registration/login.html', {'form': form})
             
-            # Reset attempts
             if username:
                 cache.delete(f"failed_attempts_{username}")
                 
@@ -199,24 +196,22 @@ def login_view(request):
             )
             messages.success(request, f"Welcome back, {user.username}!")
             next_url = request.GET.get('next') or request.POST.get('next')
-            if next_url:
+            if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect(reverse('home'))
         else:
-            # Failed attempt
             if username:
                 failed_key = f"failed_attempts_{username}"
                 attempts = cache.get(failed_key, 0) + 1
-                cache.set(failed_key, attempts, timeout=300) # 5 minutes tracker
+                cache.set(failed_key, attempts, timeout=300)
                 
-                # Try to get user
                 try:
                     user_obj = User.objects.get(username=username)
                 except User.DoesNotExist:
                     user_obj = None
                 
                 if attempts >= 5:
-                    cache.set(f"login_block_{username}", True, timeout=300) # 5 minutes block
+                    cache.set(f"login_block_{username}", True, timeout=300)
                     messages.error(request, "Account temporarily blocked due to 5 consecutive failed login attempts. Please try again in 5 minutes.")
                 else:
                     messages.error(request, f"Invalid username or password. {5 - attempts} attempts remaining.")
@@ -235,6 +230,7 @@ def login_view(request):
     return render(request, 'registration/login.html', {'form': form})
 
 
+@require_POST
 def logout_view(request):
     if request.user.is_authenticated:
         AuditLog.objects.create(
@@ -252,14 +248,12 @@ def logout_view(request):
 @role_required('admin', 'trainer')
 def student_list(request):
     """
-    Student List view rendering tabular student data with multi-criterion filtering and search.
+    Student List view rendering tabular student data with multi-criterion filtering, search, and pagination.
     Trainers can only view students enrolled in their assigned courses.
     """
     students_qs = services.filter_students(request.GET)
     
-    # Check permissions & filter by ownership/assignment
     if not (request.user.is_superuser or request.user.profile.role == 'admin'):
-        # Trainer: limit query to students in trainer's assigned courses
         assigned_courses = Course.objects.filter(assigned_trainer=request.user)
         students_qs = students_qs.filter(courses__in=assigned_courses).distinct()
         
@@ -274,6 +268,11 @@ def student_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        del query_params['page']
+    encoded_params = query_params.urlencode()
+    
     context = {
         'students': page_obj,
         'page_obj': page_obj,
@@ -286,6 +285,7 @@ def student_list(request):
         'selected_course': request.GET.get('course', ''),
         'selected_active': request.GET.get('active_status', ''),
         'selected_pass_fail': request.GET.get('pass_fail_status', ''),
+        'encoded_params': encoded_params,
     }
     return render(request, 'students/student_list.html', context)
 
@@ -297,7 +297,6 @@ def add_student(request):
         form = StudentForm(request.POST)
         if form.is_valid():
             student = form.save()
-            # Log audit
             AuditLog.objects.create(
                 user=request.user,
                 action='create',
@@ -316,34 +315,31 @@ def add_student(request):
 @login_required
 def student_detail(request, id):
     student = get_object_or_404(
-        Student.objects.select_related('department').prefetch_related('courses'),
+        Student.objects.select_related('department').prefetch_related('courses', 'enrollments'),
         id=id
     )
     
-    # Authorization checks
     if not services.can_user_view_student(request.user, student):
         raise PermissionDenied
         
-    # Calculate profile completion if student is viewing themselves
     profile_completion = services.calculate_profile_completion(student) if getattr(getattr(request.user, 'profile', None), 'role', None) == 'student' else 0
             
-    # Retrieve and filter feedbacks
     if request.user.profile.role == 'student':
         feedbacks = student.feedbacks.filter(is_visible=True).select_related('trainer', 'course').order_by('-created_at')
     else:
         feedbacks = student.feedbacks.all().select_related('trainer', 'course').order_by('-created_at')
         
-    # Retrieve marks history
-    marks_history = student.marks_history.all().select_related('updater', 'course').order_by('-timestamp')
+    marks_history = student.marks_history.all().select_related('updater', 'course', 'enrollment').order_by('-timestamp')
     latest_update = marks_history.first()
+    enrollments = student.enrollments.select_related('course').all()
     
-    # Check if logged-in user is an assigned trainer
     is_assigned_trainer = False
     if request.user.profile.role == 'trainer':
         is_assigned_trainer = student.courses.filter(assigned_trainer=request.user).exists()
         
     context = {
         'student': student,
+        'enrollments': enrollments,
         'profile_completion': profile_completion,
         'feedbacks': feedbacks,
         'marks_history': marks_history,
@@ -358,7 +354,6 @@ def edit_student(request, id):
     student = get_object_or_404(Student, id=id)
     user_role = request.user.profile.role if not request.user.is_superuser else 'admin'
     
-    # Authorization checks
     is_authorized = False
     if user_role == 'admin':
         is_authorized = True
@@ -370,33 +365,23 @@ def edit_student(request, id):
 
     if request.method == 'POST':
         if user_role == 'trainer':
-            # Trainer can ONLY update marks field
+            course_id = request.POST.get('course_id')
             marks = request.POST.get('marks')
             if marks is not None:
                 try:
                     marks_val = int(marks)
                     if 0 <= marks_val <= 100:
-                        old_marks = student.marks
-                        student.marks = marks_val
-                        student.save()
+                        course = get_object_or_404(Course, id=course_id) if course_id else student.courses.filter(assigned_trainer=request.user).first()
+                        if not course:
+                            messages.error(request, "No valid course selected for updating marks.")
+                            return redirect(reverse('student_detail', kwargs={'id': student.id}))
                         
-                        # Save marks history
-                        assigned_course = student.courses.filter(assigned_trainer=request.user).first()
-                        MarksHistory.objects.create(
+                        services.update_student_marks(
                             student=student,
-                            course=assigned_course,
-                            previous_marks=old_marks,
+                            course=course,
                             new_marks=marks_val,
-                            updater=request.user,
-                            reason="Trainer quick marks update"
-                        )
-                        
-                        # Log audit
-                        AuditLog.objects.create(
-                            user=request.user,
-                            action='marks_update',
-                            affected_object=f"Student: {student.name}",
-                            description=f"Trainer {request.user.username} updated marks for {student.name} from {old_marks} to {marks_val} via edit page.",
+                            updater_user=request.user,
+                            reason="Trainer edit student page marks update",
                             ip_address=get_client_ip(request)
                         )
                         messages.success(request, "Student marks updated successfully!")
@@ -408,32 +393,10 @@ def edit_student(request, id):
             else:
                 messages.error(request, "Marks value is required.")
         else:
-            # Admin can update all fields
-            old_marks = student.marks
             form = StudentForm(request.POST, instance=student)
             if form.is_valid():
-                new_student = form.save(commit=False)
-                new_marks = new_student.marks
-                if old_marks != new_marks:
-                    MarksHistory.objects.create(
-                        student=student,
-                        course=None,
-                        previous_marks=old_marks,
-                        new_marks=new_marks,
-                        updater=request.user,
-                        reason="Administrator student profile update"
-                    )
-                    AuditLog.objects.create(
-                        user=request.user,
-                        action='marks_update',
-                        affected_object=f"Student: {student.name}",
-                        description=f"Admin {request.user.username} updated marks for {student.name} from {old_marks} to {new_marks}.",
-                        ip_address=get_client_ip(request)
-                    )
-                new_student.save()
-                form.save_m2m()
+                new_student = form.save()
                 
-                # Log audit
                 AuditLog.objects.create(
                     user=request.user,
                     action='update',
@@ -456,7 +419,6 @@ def delete_student(request, id):
     if request.method == 'POST':
         student_name = student.name
         student.delete()
-        # Log audit
         AuditLog.objects.create(
             user=request.user,
             action='delete',
@@ -491,9 +453,10 @@ def user_management(request):
 
 @login_required
 @role_required('admin')
+@require_POST
 def toggle_user_status(request, user_id):
     """
-    Action for administrators to activate/approve or deactivate user accounts.
+    Action for administrators to activate/approve or deactivate user accounts. Must be POST request.
     """
     user_to_toggle = get_object_or_404(User, id=user_id)
     if user_to_toggle == request.user:
@@ -506,7 +469,6 @@ def toggle_user_status(request, user_id):
     status_str = "activated/approved" if user_to_toggle.is_active else "deactivated"
     messages.success(request, f"Account for {user_to_toggle.username} has been {status_str} successfully.")
     
-    # Log the action in AuditLog
     AuditLog.objects.create(
         user=request.user,
         action='status_change',
@@ -564,7 +526,6 @@ def edit_feedback(request, feedback_id):
         if form.is_valid():
             form.save()
             
-            # Log audit
             AuditLog.objects.create(
                 user=request.user,
                 action='update',
@@ -618,7 +579,7 @@ def update_marks(request, student_id):
             messages.success(request, f"Marks updated successfully to {new_marks}!")
             return redirect(reverse('student_detail', kwargs={'id': student.id}))
     else:
-        form = MarksUpdateForm(trainer=request.user, student=student, initial={'new_marks': student.marks})
+        form = MarksUpdateForm(trainer=request.user, student=student)
         
     context = {
         'form': form,
@@ -632,7 +593,6 @@ def update_marks(request, student_id):
 def audit_logs(request):
     logs = AuditLog.objects.select_related('user').all().order_by('-timestamp')
     
-    # Search filter
     q = request.GET.get('q', '').strip()
     if q:
         logs = logs.filter(
@@ -641,12 +601,10 @@ def audit_logs(request):
             Q(affected_object__icontains=q)
         )
         
-    # Action type filter
     action_filter = request.GET.get('action_type', '').strip()
     if action_filter:
         logs = logs.filter(action=action_filter)
         
-    # Date range filters
     start_date = request.GET.get('start_date', '').strip()
     if start_date:
         logs = logs.filter(timestamp__date__gte=start_date)
@@ -655,11 +613,15 @@ def audit_logs(request):
     if end_date:
         logs = logs.filter(timestamp__date__lte=end_date)
         
-    # Pagination
     from django.core.paginator import Paginator
     paginator = Paginator(logs, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        del query_params['page']
+    encoded_params = query_params.urlencode()
     
     context = {
         'page_obj': page_obj,
@@ -668,6 +630,7 @@ def audit_logs(request):
         'start_date': start_date,
         'end_date': end_date,
         'action_choices': AuditLog.ACTION_CHOICES,
+        'encoded_params': encoded_params,
     }
     return render(request, 'dashboards/audit_logs.html', context)
 

@@ -1,11 +1,12 @@
 from django.db.models import Avg, Q
 from django.db import transaction
-from .models import Student, Department, Course, AuditLog, Feedback, MarksHistory
+from django.contrib.auth.models import User
+from .models import Student, Department, Course, AuditLog, Feedback, MarksHistory, Enrollment, UserProfile, StudentProfile
 
 
 def get_dashboard_stats():
     """
-    Computes dashboard analytics for the Student Training Portal.
+    Computes dashboard analytics for the Student Training Portal using Enrollment-based marks.
     """
     students_qs = Student.objects.all()
     
@@ -14,10 +15,14 @@ def get_dashboard_stats():
     total_departments = Department.objects.count()
     total_courses = Course.objects.count()
     
-    avg_result = students_qs.aggregate(avg=Avg('marks'))['avg']
+    avg_result = Enrollment.objects.aggregate(avg=Avg('current_mark'))['avg']
     avg_marks = round(avg_result, 1) if avg_result is not None else 0.0
     
-    highest_scoring_student = students_qs.order_by('-marks', 'name').first()
+    highest_scoring_student = (
+        students_qs.annotate(avg_score=Avg('enrollments__current_mark'))
+        .order_by('-avg_score', 'name')
+        .first()
+    )
     recently_joined_students = (
         students_qs.select_related('department')
         .prefetch_related('courses')
@@ -45,14 +50,13 @@ def filter_students(params):
       - active_status: 'active' or 'inactive'
       - pass_fail_status: 'pass' (marks >= 50) or 'fail' (marks < 50)
     """
-    qs = Student.objects.select_related('department').prefetch_related('courses').all()
+    qs = Student.objects.select_related('department').prefetch_related('courses', 'enrollments').all()
     
     q_search = params.get('q', '').strip()
     if q_search:
         qs = qs.filter(
             Q(name__icontains=q_search) |
             Q(email__icontains=q_search) |
-            Q(course__icontains=q_search) |
             Q(courses__course_name__icontains=q_search) |
             Q(department__name__icontains=q_search)
         )
@@ -73,9 +77,9 @@ def filter_students(params):
         
     pass_fail_param = params.get('pass_fail_status', '').strip().lower()
     if pass_fail_param == 'pass':
-        qs = qs.filter(marks__gte=50)
+        qs = qs.filter(enrollments__current_mark__gte=50)
     elif pass_fail_param == 'fail':
-        qs = qs.filter(marks__lt=50)
+        qs = qs.filter(enrollments__current_mark__lt=50)
         
     return qs.distinct().order_by('-joined_date', '-id')
 
@@ -90,7 +94,7 @@ def get_trainer_dashboard_stats(trainer_user):
     total_courses = assigned_courses.count()
     total_students = students.count()
     
-    avg_result = students.aggregate(avg=Avg('marks'))['avg']
+    avg_result = Enrollment.objects.filter(course__in=assigned_courses).aggregate(avg=Avg('current_mark'))['avg']
     avg_marks = round(avg_result, 1) if avg_result is not None else 0.0
     
     stats = {
@@ -108,18 +112,20 @@ def get_trainer_dashboard_stats(trainer_user):
 
 def get_student_dashboard_data(user):
     """
-    Retrieves student record, enrolled courses, and profile completion percentage.
+    Retrieves student record, enrolled courses with marks, and profile completion percentage.
     """
     student = getattr(user, 'student', None)
     if not student:
-        return {'student': None, 'courses': [], 'profile_completion': 0}
+        return {'student': None, 'courses': [], 'enrollments': [], 'profile_completion': 0}
         
+    enrollments = student.enrollments.select_related('course').all()
     courses = student.courses.all()
     profile_completion = calculate_profile_completion(student)
     
     return {
         'student': student,
         'courses': courses,
+        'enrollments': enrollments,
         'profile_completion': profile_completion,
     }
 
@@ -144,13 +150,20 @@ def calculate_profile_completion(student):
 @transaction.atomic
 def update_student_marks(student, course, new_marks, updater_user, reason="Marks updated", ip_address=None):
     """
-    Updates student's marks, creates a MarksHistory entry, and logs an AuditLog.
+    Updates or creates an Enrollment's current mark for a student in a course,
+    creates a MarksHistory entry, and logs an AuditLog entry.
     """
-    old_marks = student.marks
-    student.marks = new_marks
-    student.save()
+    enrollment, _ = Enrollment.objects.get_or_create(
+        student=student,
+        course=course,
+        defaults={'current_mark': 0}
+    )
+    old_marks = enrollment.current_mark
+    enrollment.current_mark = new_marks
+    enrollment.save()
 
     marks_history = MarksHistory.objects.create(
+        enrollment=enrollment,
         student=student,
         course=course,
         previous_marks=old_marks,
@@ -170,15 +183,21 @@ def update_student_marks(student, course, new_marks, updater_user, reason="Marks
         ip_address=ip_address
     )
 
-    return student, marks_history
+    return enrollment, marks_history
 
 
 @transaction.atomic
 def create_feedback(student, trainer_user, course, rating, comments, is_visible=True, ip_address=None):
     """
-    Creates a new Feedback record and logs an AuditLog entry.
+    Creates a new Feedback record linked to Enrollment and logs an AuditLog entry.
     """
+    enrollment, _ = Enrollment.objects.get_or_create(
+        student=student,
+        course=course,
+        defaults={'current_mark': 0}
+    )
     feedback = Feedback.objects.create(
+        enrollment=enrollment,
         student=student,
         trainer=trainer_user,
         course=course,
@@ -196,6 +215,28 @@ def create_feedback(student, trainer_user, course, rating, comments, is_visible=
     )
 
     return feedback
+
+
+@transaction.atomic
+def register_student_user(user_data, student_data, profile_data=None, course_ids=None):
+    """
+    Multi-model registration service wrapped in atomic transaction.
+    """
+    user = User.objects.create_user(**user_data)
+    user.profile.role = 'student'
+    user.profile.save()
+
+    student = Student.objects.create(user=user, **student_data)
+    
+    if profile_data:
+        StudentProfile.objects.create(student=student, **profile_data)
+        
+    if course_ids:
+        courses = Course.objects.filter(id__in=course_ids)
+        for c in courses:
+            Enrollment.objects.get_or_create(student=student, course=c)
+            
+    return student
 
 
 def can_user_view_student(user, student):
@@ -226,4 +267,3 @@ def can_user_edit_student(user, student):
     if getattr(getattr(user, 'profile', None), 'role', None) == 'trainer':
         return student.courses.filter(assigned_trainer=user).exists()
     return False
-

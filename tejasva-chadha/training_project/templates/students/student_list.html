@@ -102,9 +102,7 @@
                         <th>Student Name</th>
                         <th>Email</th>
                         <th>Department</th>
-                        <th>Courses Enrolled</th>
-                        <th>Marks</th>
-                        <th>Result</th>
+                        <th>Courses & Marks</th>
                         <th>Active Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -120,19 +118,15 @@
                             <td class="text-secondary">{{ student.email }}</td>
                             <td>{{ student.department.name|default:"Unassigned" }}</td>
                             <td>
-                                <span class="badge bg-secondary">
-                                    {{ student.courses.count }} course{% if student.courses.count != 1 %}s{% endif %}
-                                </span>
-                                {% if student.course %}
-                                    <div class="fs-9 text-muted mt-1">{{ student.course }}</div>
-                                {% endif %}
-                            </td>
-                            <td><strong>{{ student.marks }}</strong> / 100</td>
-                            <td>
-                                {% if student.marks >= 50 %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Pass</span>
+                                {% if student.enrollments.all %}
+                                    {% for e in student.enrollments.all %}
+                                        <div class="small">
+                                            <span class="text-light">{{ e.course.code }}:</span> 
+                                            <strong class="{% if e.current_mark >= 50 %}text-success{% else %}text-danger{% endif %}">{{ e.current_mark }}</strong>/100
+                                        </div>
+                                    {% endfor %}
                                 {% else %}
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Fail</span>
+                                    <span class="text-muted small">No Enrollments</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -149,7 +143,7 @@
                                         <a href="{% url 'edit_student' student.id %}" class="btn btn-sm btn-outline-info"><i class="fa-solid fa-pen"></i> Edit</a>
                                         <a href="{% url 'delete_student' student.id %}" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Delete</a>
                                     {% elif user.profile.role == 'trainer' %}
-                                        <a href="{% url 'edit_student' student.id %}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-graduation-cap"></i> Grade</a>
+                                        <a href="{% url 'update_marks' student.id %}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-graduation-cap"></i> Grade</a>
                                     {% endif %}
                                 </div>
                             </td>
@@ -165,10 +159,10 @@
                 <ul class="pagination pagination-dark justify-content-center mb-0">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link bg-dark text-white border-secondary" href="?page=1{% if selected_q %}&q={{ selected_q }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}{% if selected_active %}&active_status={{ selected_active }}{% endif %}{% if selected_pass_fail %}&pass_fail_status={{ selected_pass_fail }}{% endif %}">&laquo; First</a>
+                            <a class="page-link bg-dark text-white border-secondary" href="?page=1{% if encoded_params %}&{{ encoded_params }}{% endif %}">&laquo; First</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link bg-dark text-white border-secondary" href="?page={{ page_obj.previous_page_number }}{% if selected_q %}&q={{ selected_q }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}{% if selected_active %}&active_status={{ selected_active }}{% endif %}{% if selected_pass_fail %}&pass_fail_status={{ selected_pass_fail }}{% endif %}">Previous</a>
+                            <a class="page-link bg-dark text-white border-secondary" href="?page={{ page_obj.previous_page_number }}{% if encoded_params %}&{{ encoded_params }}{% endif %}">Previous</a>
                         </li>
                     {% endif %}
 
@@ -180,10 +174,10 @@
 
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link bg-dark text-white border-secondary" href="?page={{ page_obj.next_page_number }}{% if selected_q %}&q={{ selected_q }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}{% if selected_active %}&active_status={{ selected_active }}{% endif %}{% if selected_pass_fail %}&pass_fail_status={{ selected_pass_fail }}{% endif %}">Next</a>
+                            <a class="page-link bg-dark text-white border-secondary" href="?page={{ page_obj.next_page_number }}{% if encoded_params %}&{{ encoded_params }}{% endif %}">Next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link bg-dark text-white border-secondary" href="?page={{ page_obj.paginator.num_pages }}{% if selected_q %}&q={{ selected_q }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}{% if selected_active %}&active_status={{ selected_active }}{% endif %}{% if selected_pass_fail %}&pass_fail_status={{ selected_pass_fail }}{% endif %}">Last &raquo;</a>
+                            <a class="page-link bg-dark text-white border-secondary" href="?page={{ page_obj.paginator.num_pages }}{% if encoded_params %}&{{ encoded_params }}{% endif %}">Last &raquo;</a>
                         </li>
                     {% endif %}
                 </ul>

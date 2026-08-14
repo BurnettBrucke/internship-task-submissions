@@ -89,13 +89,16 @@
                             </td>
                             <td class="text-end">
                                 {% if u != user %}
-                                    <a href="{% url 'toggle_user_status' u.id %}" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
-                                        {% if u.is_active %}
-                                            <i class="fa-solid fa-user-slash me-1"></i> Suspend
-                                        {% else %}
-                                            <i class="fa-solid fa-user-check me-1"></i> Approve / Activate
-                                        {% endif %}
-                                    </a>
+                                    <form action="{% url 'toggle_user_status' u.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                                            {% if u.is_active %}
+                                                <i class="fa-solid fa-user-slash me-1"></i> Suspend
+                                            {% else %}
+                                                <i class="fa-solid fa-user-check me-1"></i> Approve / Activate
+                                            {% endif %}
+                                        </button>
+                                    </form>
                                 {% else %}
                                     <span class="text-muted small">Current User</span>
                                 {% endif %}

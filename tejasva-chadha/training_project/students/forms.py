@@ -2,12 +2,13 @@ from django import forms
 from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Student, Feedback, Course
+from .models import Student, Feedback, Course, Enrollment
+
 
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ['user', 'name', 'email', 'age', 'department', 'courses', 'course', 'marks', 'joined_date', 'active_status']
+        fields = ['user', 'name', 'email', 'age', 'department', 'courses', 'joined_date', 'active_status']
         widgets = {
             'user': forms.Select(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. John Doe'}),
@@ -15,17 +16,12 @@ class StudentForm(forms.ModelForm):
             'age': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 20 (between 16 & 60)'}),
             'department': forms.Select(attrs={'class': 'form-control'}),
             'courses': forms.CheckboxSelectMultiple(attrs={'class': 'form-checkbox-group'}),
-            'course': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Python Programming'}),
-            'marks': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 85 (between 0 & 100)'}),
             'joined_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'active_status': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }
         error_messages = {
             'name': {
                 'required': 'Name cannot be empty.',
-            },
-            'course': {
-                'required': 'Course cannot be empty.',
             },
             'email': {
                 'required': 'Email cannot be empty.',
@@ -44,25 +40,12 @@ class StudentForm(forms.ModelForm):
             raise forms.ValidationError("Name cannot be empty.")
         return name
 
-    def clean_course(self):
-        course = self.cleaned_data.get('course')
-        if not course or not course.strip():
-            raise forms.ValidationError("Course cannot be empty.")
-        return course
-
     def clean_age(self):
         age = self.cleaned_data.get('age')
         if age is not None:
             if age < 16 or age > 60:
                 raise forms.ValidationError("Age must be between 16 and 60.")
         return age
-
-    def clean_marks(self):
-        marks = self.cleaned_data.get('marks')
-        if marks is not None:
-            if marks < 0 or marks > 100:
-                raise forms.ValidationError("Marks must be between 0 and 100.")
-        return marks
 
 
 class RegistrationForm(UserCreationForm):
@@ -143,6 +126,8 @@ class MarksUpdateForm(forms.Form):
         trainer = kwargs.pop('trainer', None)
         student = kwargs.pop('student', None)
         super().__init__(*args, **kwargs)
-        if trainer and student:
-            self.fields['course'].queryset = student.courses.filter(assigned_trainer=trainer)
-
+        if student:
+            if trainer and getattr(getattr(trainer, 'profile', None), 'role', None) == 'trainer':
+                self.fields['course'].queryset = student.courses.filter(assigned_trainer=trainer)
+            else:
+                self.fields['course'].queryset = student.courses.all()

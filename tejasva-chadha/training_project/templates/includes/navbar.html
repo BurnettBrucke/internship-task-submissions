@@ -57,9 +57,12 @@
                     <span class="text-light opacity-75">
                         Logged in as <strong class="text-white">{{ user.username }}</strong>
                     </span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
-                        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-                    </a>
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
+                            <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                        </button>
+                    </form>
                 {% else %}
                     <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm px-3 rounded-pill">
                         Login

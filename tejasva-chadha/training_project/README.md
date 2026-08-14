@@ -1,17 +1,17 @@
-# Student Training Portal
+# Student Training Portal (Django & FastAPI)
 
-The **Student Training Portal** is a production-ready, role-based student management web application built with **Django 6** and styled with modern **Bootstrap 5** templates, static CSS, custom glassmorphism components, and dynamic micro-interactions.
+The **Student Training Portal** is a production-ready, role-based student management web application built with **Django 6** and a companion **FastAPI** microservice. Styled with modern **Bootstrap 5** templates, static CSS, custom glassmorphism components, and dynamic micro-interactions.
 
 ---
 
 ## Key Features
 
 - **Role-Based Access Control**: Tailored dashboards for Administrators, Trainers, and Students.
-- **Student Directory & Filtering**: Search by query, department, course, active status, and pass/fail grades with pagination.
-- **Marks Management & Audit Trail**: Role-scoped grade updates, complete historical tracking (`MarksHistory`), and detailed security logs (`AuditLog`).
-- **Feedback System**: Assigned trainers can submit 1–5 star ratings and qualitative feedback visible to students.
-- **Security & Brute-Force Lockout**: Consecutive failure tracking with temporary account lockouts, custom 403, 404, and 500 pages, and double-submission prevention.
-- **Production Ready**: Environment variable support, static file collection, and production settings template (`settings_prod.py`).
+- **Enrollment-Based Course Marks**: Relational `Enrollment` model (`Student --< Enrollment >-- Course`) providing course-specific grades, historical score tracking (`MarksHistory`), and feedback (`Feedback`).
+- **Student Directory & Pagination**: Multi-criterion search and filtering with preserved pagination parameters.
+- **Security & Lockout**: Cache-backed brute-force lockout, safe `next` parameter validation, POST-only account status toggling & logout, custom 403, 404, and 500 pages.
+- **FastAPI Microservice**: Separate RESTful API with validation, filtering, pagination, and Swagger UI (`/docs`).
+- **Production Ready**: Environment variable configuration, static file collection, and production deployment settings (`settings_prod.py`).
 
 ---
 
@@ -19,96 +19,101 @@ The **Student Training Portal** is a production-ready, role-based student manage
 
 | Role | Student Directory | Edit Marks | Add Feedback | User Management | Audit Logs |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Administrator** | Full Access (Read/Write) | Yes | Read Only | Full Access (Approve/Toggle) | Full Access (Read) |
-| **Trainer** | Assigned Students Only | Assigned Only | Assigned Students Only | Access Denied | Access Denied |
+| **Administrator** | Full Access (Read/Write) | Full Access | Read Only | Full Access (Approve/Toggle) | Full Access (Read) |
+| **Trainer** | Assigned Students Only | Assigned Courses Only | Assigned Students Only | Access Denied | Access Denied |
 | **Student** | Own Profile Only | Read Only (Own) | Own Visible Feedback Only | Access Denied | Access Denied |
 
 ---
 
-## Demo Credentials
+## Non-Production Demo Credentials
 
-The project includes a seed data management command (`seed_data`) that populates initial data with the following pre-configured demo credentials:
+The project includes an idempotent demo seed command (`seed_demo_data`) that populates initial data with the following pre-configured credentials:
 
-| Role | Username | Password | Access / Scope |
+| Role | Username | Password | Scope |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `Admin@123` | System Administrator with full access |
-| **Trainer** | `trainer1` | `Trainer@123` | Trainer assigned to Web Dev & Cloud courses |
-| **Trainer** | `trainer2` | `Trainer@123` | Trainer assigned to Data Science & Python courses |
-| **Student** | `student1` | `Student@123` | Enrolled Student with personal profile & grade view |
+| **Administrator** | `admin` | `AdminPass123!` | System Administrator with full access |
+| **Trainer** | `trainer1` | `TrainerPass123!` | Trainer assigned to Full-Stack Web & Cloud courses |
+| **Trainer** | `trainer2` | `TrainerPass123!` | Trainer assigned to Data Science & Python courses |
+| **Student** | `student1` | `StudentPass123!` | Enrolled Student with personal profile & grade view |
 
 ---
 
-## Quickstart & Setup Guide
+## Quickstart & Commands Guide
 
-### 1. Environment Setup
+### 1. Requirements Installation
 
 ```bash
-# Navigate to the project directory
+# Navigate to training_project
 cd training_project
 
-# Activate your virtual environment (if using one)
-# source venv/bin/activate  (Linux/macOS)
-# venv\Scripts\activate     (Windows)
-
-# Install requirements (Django)
-pip install django
+# Install requirements
+pip install -r requirements.txt
 ```
 
 ### 2. Database & Migrations
 
 ```bash
+# Migration cleanliness check
+python manage.py makemigrations --check --dry-run
+
 # Run database migrations
 python manage.py migrate
 ```
 
-### 3. Load Sample Seed Data
+### 3. Load Idempotent Sample Seed Data
 
 ```bash
-# Seed 20+ students, 5 courses, 5 departments, feedback, marks history, and demo accounts
-python manage.py seed_data
+# Seed 20+ students, 5 courses, 5 departments, enrollments, marks, feedback, and demo accounts
+python manage.py seed_demo_data
 ```
 
-### 4. Run Development Server
+### 4. Collect Static Files
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+### 5. Run Django Server
 
 ```bash
 python manage.py runserver
 ```
-
-Open `http://127.0.0.1:8000/` in your browser to access the portal.
-
----
-
-## Release & Deployment Checklist
-
-### Production Configuration
-
-1. **Environment Variables**: Copy `.env.example` to `.env` and fill in secrets:
-   ```env
-   DJANGO_SECRET_KEY=your-strong-production-secret-key
-   DJANGO_DEBUG=False
-   DJANGO_ALLOWED_HOSTS=yourdomain.com,127.0.0.1
-   ```
-
-2. **Collect Static Files**:
-   ```bash
-   python manage.py collectstatic --noinput
-   ```
-
-3. **Production Settings**:
-   Run with `settings_prod.py`:
-   ```bash
-   python manage.py check --settings=training_project.settings_prod
-   ```
-
-4. **Run Full Test Suite**:
-   ```bash
-   python manage.py test
-   ```
+Access Django Portal at `http://127.0.0.1:8000/`.
 
 ---
 
-## Security & Session Controls
+## Running FastAPI Project
 
-* **`SESSION_COOKIE_HTTPONLY`** (`True`): Protects session cookies from client-side script inspection.
-* **`SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE`**: Set to `True` in production HTTPS environments.
-* **Login Lockout**: Locks account for 5 minutes after 5 consecutive failed attempts.
+```bash
+# Navigate to fastapi_training directory
+cd fastapi_training
+
+# Run FastAPI dev server with uvicorn
+uvicorn app.main:app --reload --port 8001
+```
+
+- **Interactive API Docs (Swagger UI)**: `http://127.0.0.1:8001/docs`
+- **ReDoc API Documentation**: `http://127.0.0.1:8001/redoc`
+
+---
+
+## Running Test Suites
+
+### Django Tests
+```bash
+python manage.py test
+```
+
+### FastAPI Pytest
+```bash
+cd fastapi_training
+python -m pytest
+```
+
+---
+
+## Deployment Security Checks
+
+```bash
+python manage.py check --deploy --settings=training_project.settings_prod
+```

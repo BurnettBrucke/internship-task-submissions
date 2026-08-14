@@ -3,66 +3,57 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from students.models import (
     Department, Course, Student, StudentProfile, UserProfile,
-    AuditLog, Feedback, MarksHistory
+    AuditLog, Feedback, MarksHistory, Enrollment
 )
-import random
 from datetime import date, timedelta
 
+
 class Command(BaseCommand):
-    help = 'Seeds sample data for Departments, Courses, Users, Students, Feedback, Marks History, and Audit Logs'
+    help = 'Idempotent demo seed data command creating departments, courses, users, enrollments, marks, feedback, and audit logs without deleting existing records.'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.WARNING("Clearing existing data..."))
-        Feedback.objects.all().delete()
-        MarksHistory.objects.all().delete()
-        AuditLog.objects.all().delete()
-        StudentProfile.objects.all().delete()
-        Student.objects.all().delete()
-        Course.objects.all().delete()
-        Department.objects.all().delete()
-        
-        # Keep non-demo superusers if any, or clear demo users
-        User.objects.filter(username__in=[
-            'admin', 'trainer1', 'trainer2', 'trainer3'
-        ] + [f'student{i}' for i in range(1, 21)]).delete()
-
-        self.stdout.write(self.style.SUCCESS("Existing data cleared."))
+        self.stdout.write(self.style.SUCCESS("Starting idempotent demo data seeding..."))
 
         # 1. Create Demo Users & Roles
-        self.stdout.write("Creating demo user accounts...")
+        self.stdout.write("Ensuring demo user accounts exist...")
         
         # Admin User
-        admin_user, _ = User.objects.get_or_create(
+        admin_user, admin_created = User.objects.get_or_create(
             username='admin',
             defaults={'email': 'admin@example.com', 'is_staff': True, 'is_superuser': True}
         )
-        admin_user.set_password('Admin@123')
+        admin_user.set_password('AdminPass123!')
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.is_active = True
         admin_user.save()
         admin_user.profile.role = 'admin'
         admin_user.profile.save()
-        self.stdout.write("  Created Admin: admin / Admin@123")
+        self.stdout.write("  Admin: admin / AdminPass123!")
 
         # Trainer Users
         trainers = []
         trainer_data = [
-            ("trainer1", "Dr. Alan Turing", "turing@example.com"),
-            ("trainer2", "Prof. Grace Hopper", "hopper@example.com"),
-            ("trainer3", "Dr. Margaret Hamilton", "hamilton@example.com"),
+            ("trainer1", "Alan Turing", "turing@example.com"),
+            ("trainer2", "Grace Hopper", "hopper@example.com"),
+            ("trainer3", "Margaret Hamilton", "hamilton@example.com"),
         ]
         for uname, name, email in trainer_data:
+            first_name, last_name = name.split()[0], name.split()[-1]
             t_user, _ = User.objects.get_or_create(
                 username=uname,
-                defaults={'email': email, 'first_name': name.split()[0], 'last_name': name.split()[-1], 'is_active': True}
+                defaults={'email': email, 'first_name': first_name, 'last_name': last_name, 'is_active': True}
             )
-            t_user.set_password('Trainer@123')
+            t_user.set_password('TrainerPass123!')
+            t_user.is_active = True
             t_user.save()
             t_user.profile.role = 'trainer'
             t_user.profile.save()
             trainers.append(t_user)
-            self.stdout.write(f"  Created Trainer: {uname} / Trainer@123 ({name})")
+            self.stdout.write(f"  Trainer: {uname} / TrainerPass123! ({name})")
 
         # 2. Create 5 Departments
-        self.stdout.write("Creating 5 departments...")
+        self.stdout.write("Ensuring 5 departments exist...")
         depts_data = [
             {"name": "Computer Science", "description": "Study of software, algorithms, data structures, and computer architecture."},
             {"name": "Data Science & AI", "description": "Study of machine learning, statistical modeling, big data, and neural networks."},
@@ -72,12 +63,14 @@ class Command(BaseCommand):
         ]
         departments = []
         for dept_info in depts_data:
-            dept = Department.objects.create(**dept_info)
+            dept, _ = Department.objects.get_or_create(
+                name=dept_info["name"],
+                defaults={"description": dept_info["description"]}
+            )
             departments.append(dept)
-            self.stdout.write(f"  Created Department: {dept.name}")
 
         # 3. Create 5 Courses
-        self.stdout.write("Creating 5 courses...")
+        self.stdout.write("Ensuring 5 courses exist...")
         courses_data = [
             {"course_name": "Full-Stack Web Development", "code": "CS101", "duration": 12, "active_status": True, "trainer": trainers[0]},
             {"course_name": "Applied Data Science & ML", "code": "DS201", "duration": 16, "active_status": True, "trainer": trainers[1]},
@@ -88,12 +81,22 @@ class Command(BaseCommand):
         courses = []
         for c_info in courses_data:
             trainer_u = c_info.pop("trainer")
-            course = Course.objects.create(assigned_trainer=trainer_u, **c_info)
+            course, _ = Course.objects.get_or_create(
+                code=c_info["code"],
+                defaults={
+                    "course_name": c_info["course_name"],
+                    "duration": c_info["duration"],
+                    "active_status": c_info["active_status"],
+                    "assigned_trainer": trainer_u,
+                }
+            )
+            if course.assigned_trainer != trainer_u:
+                course.assigned_trainer = trainer_u
+                course.save()
             courses.append(course)
-            self.stdout.write(f"  Created Course: {course.course_name} ({course.code}) assigned to {trainer_u.username}")
 
-        # 4. Create 20 Student Accounts and Profiles
-        self.stdout.write("Creating 20 student accounts & records...")
+        # 4. Create 20 Student Accounts, Profiles, and Enrollments
+        self.stdout.write("Ensuring 20 student accounts, profiles, and enrollments exist...")
         student_names = [
             "Rahul Sharma", "Priya Patel", "Amit Kumar", "Sneha Gupta", "Karan Verma",
             "Riya Singh", "Neha Joshi", "Rohit Mehta", "Ankit Das", "Pooja Reddy",
@@ -101,60 +104,74 @@ class Command(BaseCommand):
             "Ishita Sen", "Kabir Bhatia", "Meera Saxena", "Tarun Choudhury", "Kavya Iyer"
         ]
 
-        today = timezone.localdate()
+        base_date = date(2025, 1, 15)
         created_students = []
 
         for i, name in enumerate(student_names, start=1):
             username = f"student{i}"
             email = f"student{i}@example.com"
             
-            # User account
             s_user, _ = User.objects.get_or_create(
                 username=username,
                 defaults={'email': email, 'first_name': name.split()[0], 'last_name': name.split()[-1], 'is_active': True}
             )
-            s_user.set_password('Student@123')
+            s_user.set_password('StudentPass123!')
+            s_user.is_active = True
             s_user.save()
             s_user.profile.role = 'student'
             s_user.profile.save()
 
-            # Student model record
-            dept = random.choice(departments)
-            marks = random.randint(35, 98)
-            active_status = True if i % 6 != 0 else False
-            joined_date = today - timedelta(days=random.randint(10, 150))
+            dept = departments[(i - 1) % len(departments)]
+            active_status = True if i % 7 != 0 else False
+            joined_date = base_date + timedelta(days=i * 5)
+            age = 19 + (i % 8)
             
-            student = Student.objects.create(
+            student, _ = Student.objects.get_or_create(
                 user=s_user,
-                name=name,
-                email=email,
-                age=random.randint(19, 26),
-                course="Python Web Engineering",
-                marks=marks,
-                joined_date=joined_date,
-                active_status=active_status,
-                department=dept
+                defaults={
+                    "name": name,
+                    "email": email,
+                    "age": age,
+                    "joined_date": joined_date,
+                    "active_status": active_status,
+                    "department": dept
+                }
+            )
+
+            # Ensure profile exists
+            dob = date(2000, 1 + (i % 12), 1 + (i % 28))
+            StudentProfile.objects.get_or_create(
+                student=student,
+                defaults={
+                    "phone": f"+1-555-01{i:02d}",
+                    "address": f"{100 + i} Innovation Way, Tech City",
+                    "date_of_birth": dob
+                }
             )
             
-            # Enroll in 2-3 courses
-            assigned_courses = random.sample(courses, k=random.randint(2, 3))
-            student.courses.set(assigned_courses)
+            # Enroll in 2 courses deterministically
+            c1 = courses[(i - 1) % len(courses)]
+            c2 = courses[i % len(courses)]
+            mark1 = 60 + (i * 2) % 39
+            mark2 = 55 + (i * 3) % 43
             
-            # Create profile
-            dob = date(1998 + random.randint(0, 5), random.randint(1, 12), random.randint(1, 28))
-            StudentProfile.objects.create(
+            e1, _ = Enrollment.objects.get_or_create(
                 student=student,
-                phone=f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
-                address=f"{random.randint(100, 999)} Tech Boulevard, Suite {random.randint(10, 99)}, Cityville",
-                date_of_birth=dob
+                course=c1,
+                defaults={"current_mark": mark1, "status": "active"}
+            )
+            e2, _ = Enrollment.objects.get_or_create(
+                student=student,
+                course=c2,
+                defaults={"current_mark": mark2, "status": "active"}
             )
             
             created_students.append(student)
 
-        self.stdout.write(f"  Successfully created {len(created_students)} student records.")
+        self.stdout.write(f"  Successfully processed {len(created_students)} student records.")
 
         # 5. Create Feedback Records
-        self.stdout.write("Creating feedback records...")
+        self.stdout.write("Ensuring feedback records exist...")
         feedback_comments = [
             "Demonstrates excellent problem-solving skills and code organization.",
             "Consistently completes assignments on time. Great team player.",
@@ -164,65 +181,64 @@ class Command(BaseCommand):
         ]
 
         feedback_count = 0
-        for student in created_students:
-            for course in student.courses.all():
-                if course.assigned_trainer:
-                    Feedback.objects.create(
+        for idx, student in enumerate(created_students[:10]):
+            for enrollment in student.enrollments.all():
+                if enrollment.course.assigned_trainer:
+                    comment = feedback_comments[(idx + enrollment.id) % len(feedback_comments)]
+                    rating = 3 + (idx % 3)
+                    fb, created = Feedback.objects.get_or_create(
+                        enrollment=enrollment,
                         student=student,
-                        trainer=course.assigned_trainer,
-                        course=course,
-                        rating=random.randint(3, 5),
-                        comments=random.choice(feedback_comments),
-                        is_visible=True
+                        trainer=enrollment.course.assigned_trainer,
+                        course=enrollment.course,
+                        defaults={
+                            "rating": rating,
+                            "comments": comment,
+                            "is_visible": True
+                        }
                     )
-                    feedback_count += 1
+                    if created:
+                        feedback_count += 1
 
-        self.stdout.write(f"  Created {feedback_count} feedback entries.")
+        self.stdout.write(f"  Processed feedback entries ({feedback_count} new).")
 
         # 6. Create Marks History Records
-        self.stdout.write("Creating marks history entries...")
+        self.stdout.write("Ensuring marks history entries exist...")
         history_count = 0
-        for student in created_students[:10]: # Create historical updates for first 10 students
-            old_marks = max(0, student.marks - random.randint(5, 15))
-            course = student.courses.first()
-            updater = course.assigned_trainer if course and course.assigned_trainer else admin_user
-            MarksHistory.objects.create(
-                student=student,
-                course=course,
-                previous_marks=old_marks,
-                new_marks=student.marks,
-                updater=updater,
-                reason="Mid-term assessment score update"
-            )
-            history_count += 1
+        for idx, student in enumerate(created_students[:5]):
+            enrollment = student.enrollments.first()
+            if enrollment:
+                prev = max(0, enrollment.current_mark - 10)
+                mh, created = MarksHistory.objects.get_or_create(
+                    enrollment=enrollment,
+                    student=student,
+                    course=enrollment.course,
+                    previous_marks=prev,
+                    new_marks=enrollment.current_mark,
+                    defaults={
+                        "updater": enrollment.course.assigned_trainer or admin_user,
+                        "reason": "Initial assessment adjustment"
+                    }
+                )
+                if created:
+                    history_count += 1
             
-        self.stdout.write(f"  Created {history_count} marks history entries.")
+        self.stdout.write(f"  Processed marks history entries ({history_count} new).")
 
         # 7. Create Audit Logs
-        self.stdout.write("Creating sample audit logs...")
-        AuditLog.objects.create(
+        self.stdout.write("Ensuring seed audit logs exist...")
+        AuditLog.objects.get_or_create(
             user=admin_user,
             action='create',
             affected_object="System Data Seed",
-            description="Admin executed sample data seeding command.",
-            ip_address="127.0.0.1"
-        )
-        AuditLog.objects.create(
-            user=trainers[0],
-            action='login',
-            description=f"Trainer {trainers[0].username} logged into portal.",
-            ip_address="192.168.1.50"
-        )
-        AuditLog.objects.create(
-            user=trainers[1],
-            action='marks_update',
-            affected_object=f"Student: {created_students[0].name}",
-            description=f"Trainer {trainers[1].username} updated marks for {created_students[0].name}.",
-            ip_address="192.168.1.51"
+            defaults={
+                "description": "Admin executed safe demo data seeding command.",
+                "ip_address": "127.0.0.1"
+            }
         )
 
-        self.stdout.write(self.style.SUCCESS("Successfully seeded all sample data!"))
-        self.stdout.write(self.style.SUCCESS("Demo Credentials:"))
-        self.stdout.write("  Admin: admin / Admin@123")
-        self.stdout.write("  Trainer: trainer1 / Trainer@123")
-        self.stdout.write("  Student: student1 / Student@123")
+        self.stdout.write(self.style.SUCCESS("Successfully completed safe demo data seeding!"))
+        self.stdout.write(self.style.SUCCESS("Non-Production Demo Credentials:"))
+        self.stdout.write("  Admin: admin / AdminPass123!")
+        self.stdout.write("  Trainer: trainer1 / TrainerPass123!")
+        self.stdout.write("  Student: student1 / StudentPass123!")
