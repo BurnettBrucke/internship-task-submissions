@@ -8,8 +8,12 @@ Student Dashboard
 
 <div class="container mt-4">
 
-    <h2 class="mb-4">Student Dashboard</h2>
+    <h2 class="mb-4">
+        Student Dashboard
+    </h2>
 
+
+    <!-- Student Account Information -->
     <div class="card shadow">
 
         <div class="card-header bg-primary text-white">
@@ -42,7 +46,9 @@ Student Dashboard
 
                 <tr>
                     <th>Last Login</th>
-                    <td>{{ user.last_login }}</td>
+                    <td>
+                        {{ user.last_login|default:"Not available" }}
+                    </td>
                 </tr>
 
             </table>
@@ -51,53 +57,149 @@ Student Dashboard
 
     </div>
 
-</div>
-<div class="row mt-4">
 
-    <div class="col-md-6 mb-4">
+    <!-- Course Performance -->
+    <div class="card shadow-sm mt-4">
 
-        <div class="card shadow-sm">
+        <div class="card-body">
 
-            <div class="card-body">
+            <h5 class="mb-3">
+                Course Performance
+            </h5>
 
-                <h5>Course Performance</h5>
 
-                <div class="progress" style="height: 25px;">
+            {% for enrollment in enrollments %}
 
-                    <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: {{ student.marks }}%;"
-                    >
-                        {{ student.marks }}%
+                <div class="mb-4">
+
+                    <div class="d-flex justify-content-between">
+
+                        <strong>
+                            {{ enrollment.course.course_name }}
+                        </strong>
+
+                        {% if enrollment.marks is not None %}
+
+                            <span>
+                                {{ enrollment.marks }}%
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-muted">
+                                Marks not available
+                            </span>
+
+                        {% endif %}
+
                     </div>
+
+
+                    {% if enrollment.marks is not None %}
+
+                        <div
+                            class="progress mt-2"
+                            style="height: 25px;"
+                        >
+
+                            <div
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: {{ enrollment.marks }}%;"
+                                aria-valuenow="{{ enrollment.marks }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                            >
+                                {{ enrollment.marks }}%
+                            </div>
+
+                        </div>
+
+                    {% else %}
+
+                        <div
+                            class="progress mt-2"
+                            style="height: 25px;"
+                        >
+
+                            <div
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: 0%;"
+                            >
+                                Pending
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- Result -->
+
+                    {% if enrollment.marks is not None %}
+
+                        {% if enrollment.marks >= 40 %}
+
+                            <span class="badge bg-success mt-2">
+                                Pass
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger mt-2">
+                                Fail
+                            </span>
+
+                        {% endif %}
+
+                    {% else %}
+
+                        <span class="badge bg-secondary mt-2">
+                            Pending
+                        </span>
+
+                    {% endif %}
 
                 </div>
 
-            </div>
+
+            {% empty %}
+
+                <div class="alert alert-warning mb-0">
+                    No course enrollment found.
+                </div>
+
+            {% endfor %}
 
         </div>
 
     </div>
 
-    <div class="col-md-6 mb-4">
 
-        <div class="card shadow-sm">
+    <!-- Profile Completion -->
+    <div class="card shadow-sm mt-4 mb-4">
 
-            <div class="card-body">
+        <div class="card-body">
 
-                <h5>Profile Completion</h5>
+            <h5>
+                Profile Completion
+            </h5>
 
-                <div class="progress" style="height: 25px;">
+            <div
+                class="progress"
+                style="height: 25px;"
+            >
 
-                    <div
-                        class="progress-bar bg-success"
-                        role="progressbar"
-                        style="width: {{ profile_completion }}%;"
-                    >
-                        {{ profile_completion }}%
-                    </div>
-
+                <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    style="width: {{ profile_completion }}%;"
+                    aria-valuenow="{{ profile_completion }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                >
+                    {{ profile_completion }}%
                 </div>
 
             </div>

@@ -6,133 +6,258 @@ Student Training Portal ek Django based web application hai.
 
 Is project ka use students, trainers aur admin ko manage karne ke liye kiya gaya hai.
 
+The application provides role-based access, student management, enrollment,
+feedback, marks management, audit logging and authentication features.
+
+---
+
 ## Technologies Used
 
 - Python
-- Django
+- Django 5.1.4
 - SQLite
 - HTML
 - Bootstrap
 - Django Templates
 
+---
+
+## User Roles
+
+The application supports three roles:
+
+### Admin
+
+Admin can:
+
+- Manage students
+- Add students
+- Edit students
+- Delete students
+- View audit logs
+- Access admin dashboard
+
+### Trainer
+
+Trainer can:
+
+- View assigned students
+- Give feedback
+- View feedback
+- Update student marks
+- View marks history
+- Access trainer dashboard
+
+### Student
+
+Student can:
+
+- Access student dashboard
+- View permitted information
+- View feedback
+- Access their own student information
+
+---
+
 ## Main Features
 
-### 1. Login and Logout
+### 1. Authentication
 
-Users apne username aur password se login kar sakte hain.
+Users can:
 
-Different users ke different roles hain:
+- Register
+- Login
+- Logout
+- Change password
+- Reset password
 
-- Admin
-- Trainer
-- Student
+Authentication is handled using Django authentication.
+
+---
 
 ### 2. Student Management
 
-Admin aur Trainer students ko:
+Authorized users can:
 
-- View
-- Add
-- Edit
-- Delete
+- View students
+- Add students
+- Edit students
+- Delete students
+- View student details
 
-kar sakte hain.
-
-### 3. Student Details
-
-Student ke basic details store kiye jaate hain:
+Student information includes:
 
 - Name
 - Email
 - Age
-- Course
-- Marks
+- Department
+- Assigned Trainer
 - Joined Date
 - Active Status
 
-### 4. Search and Filter
+---
 
-Students ko search aur filter kar sakte hain.
+### 3. Enrollment
 
-Search ke through:
+Students can be associated with courses through enrollments.
 
-- Name
-- Email
+Enrollment contains:
+
+- Student
 - Course
+- Enrollment Date
+- Status
+- Marks
 
-se student find kar sakte hain.
+Enrollment status supports:
 
-Different filters bhi available hain.
+- Enrolled
+- Completed
+- Dropped
+
+A student cannot have duplicate enrollment for the same course.
+
+---
+
+### 4. Search and Filtering
+
+Student records support searching and filtering.
+
+Search can be performed using available student information.
+
+Filters are preserved while navigating through pagination.
+
+---
 
 ### 5. Pagination
 
-Agar students bahut zyada hain, to unhe multiple pages mein display kiya jaata hai.
+Student records are displayed using pagination.
+
+Search and filter parameters are preserved when moving between pages.
+
+---
 
 ### 6. Feedback
 
-Trainer students ko feedback de sakta hai.
+Trainers can provide feedback for their assigned students.
 
-Students feedback dekh sakte hain.
+Feedback includes:
 
-### 7. Marks
+- Enrollment
+- Rating
+- Comments
+- Visibility to student
+- Created date
+- Updated date
 
-Student ke marks update kiye ja sakte hain.
+Rating validation allows values from 1 to 5.
 
-Marks History ke through previous marks records dekhe ja sakte hain.
+---
+
+### 7. Marks Management
+
+Student marks can be updated by authorized users.
+
+Marks support values between:
+
+- 0
+- 100
+
+The application also maintains marks history containing:
+
+- Previous marks
+- New marks
+- Updated by
+- Reason
+- Updated date
+
+---
 
 ### 8. Audit Logs
 
-Important user activities ko audit logs mein record kiya jaata hai.
+Important application activities are recorded using audit logs.
 
-### 9. Role Based Access
+Supported actions include:
 
-Har user ko uske role ke according access milta hai.
+- LOGIN
+- LOGOUT
+- FAILED_LOGIN
+- CREATE
+- UPDATE
+- DELETE
+- MARKS_UPDATE
+- FEEDBACK
 
-Admin:
+Audit logs store:
 
-- Students manage kar sakta hai
-- Audit Logs dekh sakta hai
+- User
+- Action
+- Description
+- IP address
+- Timestamp
 
-Trainer:
+---
 
-- Students dekh sakta hai
-- Feedback manage kar sakta hai
-- Marks update kar sakta hai
+### 9. Role Based Access Control
 
-Student:
+Access is restricted according to the user's role.
 
-- Apna dashboard dekh sakta hai
-- Allowed information access kar sakta hai
+The application prevents users from accessing functionality that is not
+allowed for their role.
 
-### 10. Security
+Ownership restrictions are also applied where required.
 
-Project mein:
-
-- Login authentication
-- Role based access
-- Ownership restriction
-- CSRF protection
-- Custom 403 page
-- Custom 404 page
-- Custom 500 page
-
-use kiya gaya hai.
+---
 
 ## Form Validation
 
-Forms mein invalid data enter karne par clear error messages show hote hain.
+Forms contain server-side validation.
 
-Example:
+Examples include:
 
-- Empty required field
-- Invalid age
-- Invalid marks
+- Empty name validation
+- Age validation
+- Email validation
+- Password strength validation
+- Duplicate email validation
+- Marks validation
+- Rating validation
+- Empty feedback validation
 
-## Demo Data
+Password validation includes:
 
-Project mein demo data create karne ke liye management command available hai.
+- Minimum 8 characters
+- Uppercase character
+- Lowercase character
+- Digit
+- Special character
+- Username restriction
+- Email restriction
 
-Command:
+---
 
-```bash
-python manage.py seed_demo_data
+## Security
+
+The project includes:
+
+- Django authentication
+- CSRF protection
+- Role-based authorization
+- Ownership restrictions
+- Password validation
+- Custom 403 page
+- Custom 404 page
+- Custom 500 page
+- Secure session cookies in production
+- Secure CSRF cookies in production
+- HSTS configuration in production
+- X-Frame-Options protection
+- Content type protection
+- Environment-based secret key
+- Environment-based DEBUG setting
+- Environment-based allowed hosts
+
+Production security settings are enabled when:
+
+```text
+DJANGO_DEBUG=False

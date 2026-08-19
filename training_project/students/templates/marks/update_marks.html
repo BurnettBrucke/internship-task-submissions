@@ -1,40 +1,124 @@
 {% extends "base.html" %}
 
+{% block title %}
+Update Marks
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
 
-<div class="card shadow">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
 
-<div class="card-header bg-success text-white">
+        <ol class="breadcrumb">
 
-<h3>Update Marks</h3>
+            <li class="breadcrumb-item">
+                <a href="{% url 'dashboard' %}">
+                    Dashboard
+                </a>
+            </li>
 
-</div>
+            <li class="breadcrumb-item">
+                <a href="{% url 'student_list' %}">
+                    Students
+                </a>
+            </li>
 
-<div class="card-body">
+            <li class="breadcrumb-item active"
+                aria-current="page">
+                Update Marks
+            </li>
 
-<h5>{{ student.name }}</h5>
+        </ol>
 
-<p>Current Marks : {{ student.marks }}</p>
+    </nav>
 
-<form method="POST">
 
-{% csrf_token %}
+    <div class="card shadow">
 
-{{ form.as_p }}
+        <div class="card-header bg-success text-white">
 
-<button class="btn btn-success">
+            <h3 class="mb-0">
+                Update Marks
+            </h3>
 
-Update Marks
+        </div>
 
-</button>
 
-</form>
+        <div class="card-body">
 
-</div>
+            <h5>
+                Student:
+                {{ student.name }}
+            </h5>
 
-</div>
+
+            {% if enrollment %}
+
+                <p class="mb-2">
+
+                    <strong>Course:</strong>
+
+                    {{ enrollment.course.course_name }}
+
+                </p>
+
+
+                <p>
+
+                    <strong>Current Marks:</strong>
+
+                    {% if enrollment.marks is not None %}
+
+                        {{ enrollment.marks }}
+
+                    {% else %}
+
+                        <span class="text-muted">
+                            Not available
+                        </span>
+
+                    {% endif %}
+
+                </p>
+
+            {% endif %}
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {% include "includes/form_errors.html" %}
+
+                {{ form.as_p }}
+
+
+                <div class="mt-3">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+                        Update Marks
+                    </button>
+
+
+                    <a
+                        href="{% url 'student_detail' student.id %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </div>
 

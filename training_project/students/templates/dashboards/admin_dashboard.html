@@ -6,162 +6,394 @@ Admin Dashboard
 
 {% block content %}
 
-<h2 class="mb-4">Administrator Dashboard</h2>
+<div class="container mt-4">
 
-<div class="row">
+    <h2 class="mb-4">
+        Administrator Dashboard
+    </h2>
 
-    <div class="col-md-4 mb-3">
-        <div class="card text-bg-primary">
-            <div class="card-body">
-                <h5>Total Students</h5>
-                <h2>{{ total_students }}</h2>
+
+    <!-- Statistics -->
+    <div class="row">
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card text-bg-primary shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Total Students</h5>
+
+                    <h2>
+                        {{ total_students }}
+                    </h2>
+
+                </div>
+
             </div>
+
         </div>
+
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card text-bg-success shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Active Students</h5>
+
+                    <h2>
+                        {{ total_active_students }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card text-bg-warning shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Total Courses</h5>
+
+                    <h2>
+                        {{ total_courses }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3 mb-3">
+
+            <div class="card text-bg-info shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Total Departments</h5>
+
+                    <h2>
+                        {{ total_departments }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="col-md-4 mb-3">
-        <div class="card text-bg-success">
-            <div class="card-body">
-                <h5>Total Courses</h5>
-                <h2>{{ total_courses }}</h2>
-            </div>
+
+    <!-- Overall Performance -->
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-body">
+
+            <h5>
+                Overall Student Performance
+            </h5>
+
+            {% if average_marks %}
+
+                <div
+                    class="progress"
+                    style="height: 25px;"
+                >
+
+                    <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ average_marks }}%;"
+                    >
+                        {{ average_marks|floatformat:1 }}%
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <div class="alert alert-secondary mb-0">
+                    No marks available.
+                </div>
+
+            {% endif %}
+
         </div>
+
     </div>
 
-    <div class="col-md-4 mb-3">
-        <div class="card text-bg-warning">
-            <div class="card-body">
-                <h5>Total Departments</h5>
-                <h2>{{ total_departments }}</h2>
-            </div>
-        </div>
-    </div>
 
-</div>
-<hr class="my-4">
-
-<h3>Recent Students</h3>
-
-<div class="table-responsive">
-
-    <table class="table table-bordered table-striped">
-
-        <thead class="table-dark">
-
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Course</th>
-                <th>Marks</th>
-                <th>Status</th>
-                <th>Result</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-        {% for student in recent_students %}
-
-            <tr>
-
-                <td>{{ student.name }}</td>
-                <td>{{ student.email }}</td>
-                <td>
-                    {% for course in student.courses.all %}
-                        {{ course.course_name }}<br>
-                    {% empty %}
-                        No Course
-                    {% endfor %}
-                </td>
-
-                <td>{{ student.marks }}</td>
-                <td>
-                    {% if student.active %}
-                        <span class="badge bg-success">Active</span>
-                    {% else %}
-                        <span class="badge bg-danger">Inactive</span>
-                    {% endif %}
-                </td>
-
-                <td>
-                    {% if student.marks >= 40 %}
-                        <span class="badge bg-primary">Pass</span>
-                    {% else %}
-                         <span class="badge bg-warning text-dark">Fail</span>
-                    {% endif %}
-                </td>
-
-            </tr>
-
-        {% empty %}
-
-            <tr>
-
-                <td colspan="4" class="text-center">
-                    No Students Found
-                </td>
-
-            </tr>
-            
-
-        {% endfor %}
-
-        </tbody>
-
-    </table>
     <hr class="my-4">
 
-<h3>Student Performance</h3>
 
-{% for student in recent_students %}
+    <!-- Recent Students -->
+    <h3>
+        Recent Students
+    </h3>
 
-<div class="mb-3">
 
-    <strong>{{ student.name }}</strong>
+    <div class="table-responsive">
 
-    <div class="progress">
+        <table
+            class="table table-bordered table-striped align-middle"
+        >
 
-        <div class="progress-bar bg-success"
-             role="progressbar"
-             style="width: {{ student.marks }}%;">
+            <thead class="table-dark">
 
-            {{ student.marks }}%
+                <tr>
 
-        </div>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Courses</th>
+                    <th>Marks</th>
+                    <th>Status</th>
+                    <th>Result</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for student in recent_students %}
+
+                <tr>
+
+                    <td>
+                        {{ student.name }}
+                    </td>
+
+
+                    <td>
+                        {{ student.email }}
+                    </td>
+
+
+                    <!-- Enrollment based courses -->
+                    <td>
+
+                        {% for enrollment in student.enrollments.all %}
+
+                            <div class="mb-1">
+
+                                <span class="badge bg-info text-dark">
+
+                                    {{ enrollment.course.course_name }}
+
+                                </span>
+
+                            </div>
+
+                        {% empty %}
+
+                            <span class="text-muted">
+                                No Course
+                            </span>
+
+                        {% endfor %}
+
+                    </td>
+
+
+                    <!-- Enrollment based marks -->
+                    <td>
+
+                        {% for enrollment in student.enrollments.all %}
+
+                            <div class="mb-1">
+
+                                {% if enrollment.marks is not None %}
+
+                                    {{ enrollment.marks }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        Not available
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% empty %}
+
+                            <span class="text-muted">
+                                N/A
+                            </span>
+
+                        {% endfor %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if student.active %}
+
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Result -->
+                    <td>
+
+                        {% for enrollment in student.enrollments.all %}
+
+                            {% if enrollment.marks is not None %}
+
+                                {% if enrollment.marks >= 40 %}
+
+                                    <span class="badge bg-primary">
+                                        Pass
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-danger">
+                                        Fail
+                                    </span>
+
+                                {% endif %}
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Pending
+                                </span>
+
+                            {% endif %}
+
+                        {% empty %}
+
+                            <span class="badge bg-secondary">
+                                Pending
+                            </span>
+
+                        {% endfor %}
+
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        class="text-center"
+                    >
+
+                        <div class="alert alert-warning mb-0">
+                            No Students Found
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
 
     </div>
 
-</div>
 
-{% empty %}
+    <!-- Individual Performance -->
+    <h3 class="mt-4">
+        Student Performance
+    </h3>
 
-<div class="alert alert-warning">
-    No student performance available.
-</div>
 
-{% endfor %}
+    {% for student in recent_students %}
 
-</div>
-<div class="card shadow-sm mt-4">
+        <div class="mb-3">
 
-    <div class="card-body">
+            <strong>
+                {{ student.name }}
+            </strong>
 
-        <h5>Overall Student Performance</h5>
 
-        <div class="progress" style="height: 25px;">
+            {% for enrollment in student.enrollments.all %}
 
-            <div
-                class="progress-bar"
-                role="progressbar"
-                style="width: {{ average_marks }}%;"
-            >
-                {{ average_marks|floatformat:1 }}%
-            </div>
+                <div class="small text-muted mt-1">
+
+                    {{ enrollment.course.course_name }}
+
+                </div>
+
+
+                {% if enrollment.marks is not None %}
+
+                    <div
+                        class="progress"
+                        role="progressbar"
+                        aria-label="Student marks"
+                    >
+
+                        <div
+                            class="progress-bar"
+                            style="width: {{ enrollment.marks }}%;"
+                        >
+
+                            {{ enrollment.marks }}%
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <span class="text-muted">
+                        Marks not available
+                    </span>
+
+                {% endif %}
+
+            {% empty %}
+
+                <div class="text-muted">
+                    No enrollment available.
+                </div>
+
+            {% endfor %}
 
         </div>
 
-    </div>
+
+    {% empty %}
+
+        <div class="alert alert-warning">
+            No student performance available.
+        </div>
+
+    {% endfor %}
 
 </div>
 

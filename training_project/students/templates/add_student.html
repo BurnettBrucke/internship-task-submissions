@@ -6,55 +6,84 @@ Add Student
 
 {% block content %}
 
-<!-- Breadcrumb -->
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
+<div class="container mt-4">
 
-        <li class="breadcrumb-item">
-            <a href="{% url 'dashboard' %}">
-                Dashboard
-            </a>
-        </li>
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
 
-        <li class="breadcrumb-item">
-            <a href="{% url 'student_list' %}">
-                Students
-            </a>
-        </li>
+        <ol class="breadcrumb">
 
-        <li class="breadcrumb-item active" aria-current="page">
-            Add Student
-        </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'dashboard' %}">
+                    Dashboard
+                </a>
+            </li>
 
-    </ol>
-</nav>
+            <li class="breadcrumb-item">
+                <a href="{% url 'student_list' %}">
+                    Students
+                </a>
+            </li>
 
-<div class="card">
+            <li class="breadcrumb-item active"
+                aria-current="page">
 
-    <div class="card-header bg-success text-white">
-        <h3>Add Student</h3>
-    </div>
+                Add Student
 
-    <div class="card-body">
+            </li>
 
-        <form method="POST" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+        </ol>
 
-            {% csrf_token %}
+    </nav>
 
-            {% include "includes/form_errors.html" %}
 
-            {{ form.as_p }}
+    <div class="card shadow">
 
-            <button type="submit" class="btn btn-success">
-                Save
-            </button>
+        <div class="card-header bg-success text-white">
 
-            <a href="{% url 'student_list' %}"
-               class="btn btn-secondary">
-                Cancel
-            </a>
+            <h3 class="mb-0">
+                Add Student
+            </h3>
 
-        </form>
+        </div>
+
+
+        <div class="card-body">
+
+            <form
+                method="POST"
+                onsubmit="this.querySelector('button[type=submit]').disabled = true;"
+            >
+
+                {% csrf_token %}
+
+                {% include "includes/form_errors.html" %}
+
+                {{ form.as_p }}
+
+
+                <div class="mt-3">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+                        Save
+                    </button>
+
+
+                    <a
+                        href="{% url 'student_list' %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
 
     </div>
 

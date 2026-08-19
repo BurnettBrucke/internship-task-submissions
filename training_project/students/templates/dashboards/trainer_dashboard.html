@@ -6,52 +6,101 @@ Trainer Dashboard
 
 {% block content %}
 
-<h2 class="mb-4">Trainer Dashboard</h2>
+<div class="container mt-4">
 
-<div class="row">
+    <h2 class="mb-4">
+        Trainer Dashboard
+    </h2>
 
-    <div class="col-md-6 mb-3">
-        <div class="card text-bg-success">
-            <div class="card-body">
-                <h5>Assigned Students</h5>
-                <h2>{{ total_students }}</h2>
+    <!-- Dashboard Statistics -->
+    <div class="row">
+
+        <!-- Assigned Students -->
+        <div class="col-md-6 mb-3">
+
+            <div class="card text-bg-success shadow-sm">
+
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        Assigned Students
+                    </h5>
+
+                    <h2 class="card-text">
+                        {{ total_students }}
+                    </h2>
+
+                </div>
+
             </div>
+
         </div>
+
+
+        <!-- Available Courses -->
+        <div class="col-md-6 mb-3">
+
+            <div class="card text-bg-primary shadow-sm">
+
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        Available Courses
+                    </h5>
+
+                    <h2 class="card-text">
+                        {{ total_courses }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="col-md-6 mb-3">
-        <div class="card text-bg-primary">
-            <div class="card-body">
-                <h5>Assigned Courses</h5>
-                <h2>{{ total_courses }}</h2>
-            </div>
-        </div>
-    </div>
 
-</div>
-<div class="row mt-4">
+    <!-- Performance -->
+    <div class="card shadow-sm mt-4">
 
-    <div class="col-md-6">
+        <div class="card-body">
 
-        <div class="card shadow-sm">
+            <h5 class="card-title">
+                Assigned Students Performance
+            </h5>
 
-            <div class="card-body">
+            {% if average_marks %}
 
-                <h5>Student Performance</h5>
-
-                <div class="progress" style="height: 25px;">
+                <div
+                    class="progress mt-3"
+                    style="height: 25px;"
+                >
 
                     <div
                         class="progress-bar"
                         role="progressbar"
                         style="width: {{ average_marks }}%;"
+                        aria-valuenow="{{ average_marks }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
                     >
+
                         {{ average_marks|floatformat:1 }}%
+
                     </div>
 
                 </div>
 
-            </div>
+            {% else %}
+
+                <div class="alert alert-secondary mt-3 mb-0">
+
+                    No marks available for assigned students.
+
+                </div>
+
+            {% endif %}
 
         </div>
 

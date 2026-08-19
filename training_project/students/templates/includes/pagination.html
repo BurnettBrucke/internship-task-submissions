@@ -1,51 +1,58 @@
 {% if students.has_other_pages %}
 
-<nav>
+<nav aria-label="Student pagination">
 
     <ul class="pagination justify-content-center">
 
         {% if students.has_previous %}
 
-        <li class="page-item">
+            <li class="page-item">
 
-            <a class="page-link"
-               href="?page={{ students.previous_page_number }}">
+                <a
+                    class="page-link"
+                    href="?page={{ students.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department|urlencode }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active|urlencode }}{% endif %}{% if request.GET.result %}&result={{ request.GET.result|urlencode }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course|urlencode }}{% endif %}"
+                >
+                    Previous
+                </a>
 
-                Previous
-
-            </a>
-
-        </li>
+            </li>
 
         {% endif %}
 
-        {% for i in students.paginator.page_range %}
 
-        <li class="page-item {% if students.number == i %}active{% endif %}">
+        {% for page_number in students.paginator.page_range %}
 
-            <a class="page-link"
-               href="?page={{ i }}">
+            <li
+                class="page-item
+                {% if students.number == page_number %}
+                    active
+                {% endif %}"
+            >
 
-                {{ i }}
+                <a
+                    class="page-link"
+                    href="?page={{ page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department|urlencode }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active|urlencode }}{% endif %}{% if request.GET.result %}&result={{ request.GET.result|urlencode }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course|urlencode }}{% endif %}"
+                >
+                    {{ page_number }}
+                </a>
 
-            </a>
-
-        </li>
+            </li>
 
         {% endfor %}
 
+
         {% if students.has_next %}
 
-        <li class="page-item">
+            <li class="page-item">
 
-            <a class="page-link"
-               href="?page={{ students.next_page_number }}">
+                <a
+                    class="page-link"
+                    href="?page={{ students.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department|urlencode }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active|urlencode }}{% endif %}{% if request.GET.result %}&result={{ request.GET.result|urlencode }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course|urlencode }}{% endif %}"
+                >
+                    Next
+                </a>
 
-                Next
-
-            </a>
-
-        </li>
+            </li>
 
         {% endif %}
 

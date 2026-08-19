@@ -1,108 +1,140 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
+
     <div class="container">
 
         <!-- Brand -->
-        <a class="navbar-brand" href="{% url 'dashboard' %}">
+        <a
+            class="navbar-brand"
+            href="{% url 'dashboard' %}"
+        >
             Student Portal
         </a>
 
         <!-- Mobile Menu Button -->
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav"
-                aria-controls="navbarNav"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
 
             <span class="navbar-toggler-icon"></span>
 
         </button>
 
-        <!-- Navigation Links -->
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Navigation -->
+        <div
+            class="collapse navbar-collapse"
+            id="navbarNav"
+        >
 
             <ul class="navbar-nav ms-auto">
 
                 {% if user.is_authenticated %}
 
-                    <!-- ADMIN -->
+                    <!-- ================= ADMIN ================= -->
+
                     {% if user.profile.role == "admin" %}
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'admin_dashboard' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'admin_dashboard' %}"
+                            >
                                 Dashboard
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'student_list' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'student_list' %}"
+                            >
                                 Students
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'add_student' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'add_student' %}"
+                            >
                                 Add Student
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'audit_log_list' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'audit_log_list' %}"
+                            >
                                 Audit Logs
                             </a>
                         </li>
 
 
-                    <!-- TRAINER -->
+                    <!-- ================= TRAINER ================= -->
+
                     {% elif user.profile.role == "trainer" %}
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'trainer_dashboard' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'trainer_dashboard' %}"
+                            >
                                 Dashboard
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'student_list' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'student_list' %}"
+                            >
                                 Students
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'add_feedback' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'add_feedback' %}"
+                            >
                                 Add Feedback
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'feedback_list' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'feedback_list' %}"
+                            >
                                 Feedback
                             </a>
                         </li>
 
 
-                    <!-- STUDENT -->
+                    <!-- ================= STUDENT ================= -->
+
                     {% elif user.profile.role == "student" %}
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'student_dashboard' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'student_dashboard' %}"
+                            >
                                 Dashboard
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link"
-                               href="{% url 'feedback_list' %}">
+                            <a
+                                class="nav-link"
+                                href="{% url 'feedback_list' %}"
+                            >
                                 Feedback
                             </a>
                         </li>
@@ -110,37 +142,68 @@
                     {% endif %}
 
 
-                    <!-- COMMON LINKS -->
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="{% url 'password_change' %}">
-                            Change Password
-                        </a>
-                    </li>
+                    <!-- ================= COMMON ================= -->
 
                     <li class="nav-item">
-                        <a class="nav-link"
-                           href="{% url 'logout' %}">
-                            Logout
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'password_change' %}"
+                        >
+                            Change Password
                         </a>
+
+                    </li>
+
+
+                    <!-- ================= POST LOGOUT ================= -->
+
+                    <li class="nav-item">
+
+                        <form
+                            method="POST"
+                            action="{% url 'logout' %}"
+                            class="d-inline"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="nav-link btn btn-link border-0"
+                            >
+                                Logout
+                            </button>
+
+                        </form>
+
                     </li>
 
 
                 {% else %}
 
-                    <!-- GUEST -->
+                    <!-- ================= GUEST ================= -->
+
                     <li class="nav-item">
-                        <a class="nav-link"
-                           href="{% url 'login' %}">
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'login' %}"
+                        >
                             Login
                         </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link"
-                           href="{% url 'register' %}">
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'register' %}"
+                        >
                             Register
                         </a>
+
                     </li>
 
                 {% endif %}
@@ -150,4 +213,5 @@
         </div>
 
     </div>
+
 </nav>

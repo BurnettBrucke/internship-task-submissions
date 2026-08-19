@@ -1,32 +1,88 @@
 {% extends "base.html" %}
 
+{% block title %}
+Add Feedback
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
 
-<div class="card shadow">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
 
-<div class="card-header bg-primary text-white">
-<h3>Add Feedback</h3>
-</div>
+        <ol class="breadcrumb">
 
-<div class="card-body">
+            <li class="breadcrumb-item">
+                <a href="{% url 'dashboard' %}">
+                    Dashboard
+                </a>
+            </li>
 
-<form method="POST">
+            <li class="breadcrumb-item">
+                <a href="{% url 'feedback_list' %}">
+                    Feedback
+                </a>
+            </li>
 
-{% csrf_token %}
+            <li class="breadcrumb-item active"
+                aria-current="page">
 
-{{ form.as_p }}
+                Add Feedback
 
-<button class="btn btn-success">
-Save Feedback
-</button>
+            </li>
 
-</form>
+        </ol>
 
-</div>
+    </nav>
 
-</div>
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h3 class="mb-0">
+                Add Feedback
+            </h3>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {% include "includes/form_errors.html" %}
+
+                {{ form.as_p }}
+
+
+                <div class="mt-3">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success"
+                    >
+                        Save Feedback
+                    </button>
+
+
+                    <a
+                        href="{% url 'feedback_list' %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </div>
 

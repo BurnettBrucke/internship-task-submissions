@@ -6,77 +6,290 @@ Student Details
 
 {% block content %}
 
-<div class="card shadow mt-4">
+<div class="container mt-4">
 
-    <div class="card-header bg-info text-white">
-        <h3>Student Details</h3>
-    </div>
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
 
-    <div class="card-body">
+            <li class="breadcrumb-item">
+                <a href="{% url 'dashboard' %}">
+                    Dashboard
+                </a>
+            </li>
 
-        <table class="table table-bordered">
+            <li class="breadcrumb-item">
+                <a href="{% url 'student_list' %}">
+                    Students
+                </a>
+            </li>
 
-            <tr>
-                <th>Name</th>
-                <td>{{ student.name }}</td>
-            </tr>
+            <li class="breadcrumb-item active">
+                {{ student.name }}
+            </li>
 
-            <tr>
-                <th>Email</th>
-                <td>{{ student.email }}</td>
-            </tr>
+        </ol>
+    </nav>
 
-            <tr>
-                <th>Age</th>
-                <td>{{ student.age }}</td>
-            </tr>
 
-            <tr>
-                <th>Department</th>
-                <td>{{ student.department.name }}</td>
-            </tr>
+    <div class="card shadow">
 
-            <tr>
-                <th>Course</th>
-                <td>
-                    {% for course in student.courses.all %}
-                        {{ course.course_name }}<br>
-                    {% empty %}
-                        No Course Assigned
-                    {% endfor %}
-                </td>
-            </tr>
+        <div class="card-header bg-info text-white">
 
-            <tr>
-                <th>Marks</th>
-                <td>{{ student.marks }}</td>
-            </tr>
+            <h3 class="mb-0">
+                Student Details
+            </h3>
 
-            <tr>
-                <th>Joined Date</th>
-                <td>{{ student.joined_date }}</td>
-            </tr>
+        </div>
 
-            <tr>
-                <th>Status</th>
-                <td>
-                    {% if student.active %}
-                        <span class="badge bg-success">Active</span>
-                    {% else %}
-                        <span class="badge bg-danger">Inactive</span>
+
+        <div class="card-body">
+
+            <!-- Basic Student Information -->
+            <table class="table table-bordered">
+
+                <tr>
+                    <th width="30%">Name</th>
+                    <td>{{ student.name }}</td>
+                </tr>
+
+                <tr>
+                    <th>Email</th>
+                    <td>{{ student.email }}</td>
+                </tr>
+
+                <tr>
+                    <th>Age</th>
+                    <td>{{ student.age }}</td>
+                </tr>
+
+                <tr>
+                    <th>Department</th>
+                    <td>
+                        {{ student.department.name }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Joined Date</th>
+                    <td>
+                        {{ student.joined_date }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Status</th>
+
+                    <td>
+
+                        {% if student.active %}
+
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+
+            <!-- Enrollment Information -->
+            <h4 class="mt-4 mb-3">
+                Course & Enrollment Details
+            </h4>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover">
+
+                    <thead class="table-dark">
+
+                        <tr>
+                            <th>Course</th>
+                            <th>Course Code</th>
+                            <th>Enrollment Date</th>
+                            <th>Status</th>
+                            <th>Marks</th>
+                            <th>Result</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for enrollment in enrollments %}
+
+                        <tr>
+
+                            <td>
+                                {{ enrollment.course.course_name }}
+                            </td>
+
+                            <td>
+                                {{ enrollment.course.code }}
+                            </td>
+
+                            <td>
+                                {{ enrollment.enrollment_date }}
+                            </td>
+
+                            <td>
+
+                                {% if enrollment.status == "enrolled" %}
+
+                                    <span class="badge bg-primary">
+                                        Enrolled
+                                    </span>
+
+                                {% elif enrollment.status == "completed" %}
+
+                                    <span class="badge bg-success">
+                                        Completed
+                                    </span>
+
+                                {% elif enrollment.status == "dropped" %}
+
+                                    <span class="badge bg-danger">
+                                        Dropped
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        {{ enrollment.status }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                {% if enrollment.marks is not None %}
+
+                                    {{ enrollment.marks }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        Not available
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                {% if enrollment.marks is not None %}
+
+                                    {% if enrollment.marks >= 40 %}
+
+                                        <span class="badge bg-success">
+                                            Pass
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-danger">
+                                            Fail
+                                        </span>
+
+                                    {% endif %}
+
+                                {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        Pending
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+
+                        {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="text-center"
+                            >
+
+                                <div class="alert alert-warning mb-0">
+
+                                    No course enrollment found.
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Actions -->
+            <div class="mt-4">
+
+                <a
+                    href="{% url 'student_list' %}"
+                    class="btn btn-secondary"
+                >
+                    Back
+                </a>
+
+
+                {% if user.profile.role == "admin" %}
+
+                <a
+                    href="{% url 'edit_student' student.id %}"
+                    class="btn btn-warning"
+                >
+                    Edit
+                </a>
+
+                {% elif user.profile.role == "trainer" %}
+
+                    {% if student.assigned_trainer == user %}
+
+                    <a
+                        href="{% url 'edit_student' student.id %}"
+                        class="btn btn-warning"
+                    >
+                        Edit
+                    </a>
+
                     {% endif %}
-                </td>
-            </tr>
 
-        </table>
+                {% endif %}
 
-        <a href="{% url 'student_list' %}" class="btn btn-secondary">
-            Back
-        </a>
+            </div>
 
-        <a href="{% url 'edit_student' student.id %}" class="btn btn-warning">
-            Edit
-        </a>
+        </div>
 
     </div>
 

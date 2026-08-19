@@ -1,72 +1,183 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
-# Create your models here.
+
 class Department(models.Model):
-    name = models.CharField(max_length=100)
+
+    name = models.CharField(
+        max_length=100,
+        unique=True
+    )
+
     description = models.TextField()
 
     def __str__(self):
         return self.name
+
+
 class Course(models.Model):
-    course_name = models.CharField(max_length=100)
-    code = models.CharField(max_length=20)
-    duration = models.CharField(max_length=50)
-    active = models.BooleanField(default=True)
+
+    course_name = models.CharField(
+        max_length=100
+    )
+
+    code = models.CharField(
+        max_length=20,
+        unique=True
+    )
+
+    duration = models.CharField(
+        max_length=50
+    )
+
+    active = models.BooleanField(
+        default=True
+    )
 
     def __str__(self):
         return self.course_name
 
 
 class Student(models.Model):
+
     user = models.OneToOneField(
-    User,
-    on_delete=models.CASCADE,
-    related_name="student",
-    null=True,
-    blank=True
-)
-    
+        User,
+        on_delete=models.CASCADE,
+        related_name="student",
+        null=True,
+        blank=True
+    )
+
     department = models.ForeignKey(
-    Department,
-    on_delete=models.CASCADE,
-    related_name="students"
-)
-    courses = models.ManyToManyField(
-    Course,
-    related_name="students"
-)
+        Department,
+        on_delete=models.PROTECT,
+        related_name="students"
+    )
+
     assigned_trainer = models.ForeignKey(
-    User,
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True,
-    related_name="assigned_students"
-)
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    age = models.IntegerField()
-    course = models.CharField(max_length=100)
-    marks = models.FloatField()
-    joined_date = models.DateField(auto_now_add=True)
-    active = models.BooleanField(default=True)
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_students"
+    )
+
+    name = models.CharField(
+        max_length=100
+    )
+
+    email = models.EmailField(
+        unique=True
+    )
+
+    age = models.IntegerField(
+        validators=[
+            MinValueValidator(16),
+            MaxValueValidator(60)
+        ]
+    )
+
+    joined_date = models.DateField(
+        auto_now_add=True
+    )
+
+    active = models.BooleanField(
+        default=True
+    )
 
     def __str__(self):
         return self.name
+
+
+class Enrollment(models.Model):
+
+    STATUS_CHOICES = [
+        ("enrolled", "Enrolled"),
+        ("completed", "Completed"),
+        ("dropped", "Dropped"),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name="enrollments"
+    )
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        related_name="enrollments"
+    )
+
+    enrollment_date = models.DateField(
+        default=timezone.now
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="enrolled"
+    )
+
+    marks = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ]
+    )
+
+    class Meta:
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "course"],
+                name="unique_student_course_enrollment"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.student.name} - "
+            f"{self.course.course_name}"
+        )
+
+
+def validate_date_of_birth(value):
+
+    if value > timezone.localdate():
+
+        raise ValidationError(
+            "Date of birth cannot be in the future."
+        )
+
+
 class StudentProfile(models.Model):
+
     student = models.OneToOneField(
         Student,
         on_delete=models.CASCADE,
         related_name="profile"
     )
-    phone = models.CharField(max_length=15)
+
+    phone = models.CharField(
+        max_length=15
+    )
+
     address = models.TextField()
-    date_of_birth = models.DateField()
+
+    date_of_birth = models.DateField(
+        validators=[
+            validate_date_of_birth
+        ]
+    )
 
     def __str__(self):
         return self.student.name
-
-
 
 
 class UserProfile(models.Model):
@@ -88,11 +199,21 @@ class UserProfile(models.Model):
         choices=ROLE_CHOICES,
         default="student"
     )
-    is_approved = models.BooleanField(default=False)
-    
-    account_created = models.DateTimeField(auto_now_add=True)
+
+    is_approved = models.BooleanField(
+        default=False
+    )
+
+    account_created = models.DateTimeField(
+        auto_now_add=True
+    )
+
     def __str__(self):
-        return f"{self.user.username} - {self.role}"
+        return (
+            f"{self.user.username} - "
+            f"{self.role}"
+        )
+
 
 class AuditLog(models.Model):
 
@@ -133,6 +254,7 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.user} - {self.action}"
 
+
 class Feedback(models.Model):
 
     trainer = models.ForeignKey(
@@ -147,7 +269,20 @@ class Feedback(models.Model):
         related_name="feedbacks"
     )
 
-    rating = models.IntegerField()
+    enrollment = models.ForeignKey(
+        Enrollment,
+        on_delete=models.PROTECT,
+        related_name="feedbacks",
+        null=True,
+        blank=True
+    )
+
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
 
     comments = models.TextField()
 
@@ -164,7 +299,11 @@ class Feedback(models.Model):
     )
 
     def __str__(self):
-        return f"{self.student.name} - {self.rating}"
+        return (
+            f"{self.student.name} - "
+            f"{self.rating}"
+        )
+
 
 class MarksHistory(models.Model):
 
@@ -174,9 +313,27 @@ class MarksHistory(models.Model):
         related_name="marks_history"
     )
 
-    previous_marks = models.FloatField()
+    enrollment = models.ForeignKey(
+        Enrollment,
+        on_delete=models.PROTECT,
+        related_name="marks_history",
+        null=True,
+        blank=True
+    )
 
-    new_marks = models.FloatField()
+    previous_marks = models.FloatField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ]
+    )
+
+    new_marks = models.FloatField(
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ]
+    )
 
     updated_by = models.ForeignKey(
         User,
@@ -190,4 +347,7 @@ class MarksHistory(models.Model):
     )
 
     def __str__(self):
-        return f"{self.student.name} - {self.new_marks}"
+        return (
+            f"{self.student.name} - "
+            f"{self.new_marks}"
+        )

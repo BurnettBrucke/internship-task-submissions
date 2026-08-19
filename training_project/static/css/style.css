@@ -1,0 +1,24 @@
+body {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+.card {
+    border-radius: 8px;
+}
+
+table {
+    vertical-align: middle;
+}
+
+.breadcrumb a {
+    text-decoration: none;
+}
+
+.progress {
+    border-radius: 6px;
+}

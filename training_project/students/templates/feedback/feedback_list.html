@@ -1,87 +1,198 @@
 {% extends "base.html" %}
 
+{% block title %}
+Feedback List
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
 
-<h2>Feedback List</h2>
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
 
-<table class="table table-bordered">
+        <ol class="breadcrumb">
 
-<tr>
+            <li class="breadcrumb-item">
+                <a href="{% url 'dashboard' %}">
+                    Dashboard
+                </a>
+            </li>
 
-<th>Student</th>
+            <li class="breadcrumb-item active"
+                aria-current="page">
+                Feedback
+            </li>
 
-<th>Trainer</th>
+        </ol>
 
-<th>Rating</th>
+    </nav>
 
-<th>Comments</th>
 
-<th>Visible</th>
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-<th>Action</th>
+        <h2>
+            Feedback List
+        </h2>
 
-</tr>
+        {% if user.profile.role == "trainer" %}
 
-{% for feedback in feedbacks %}
+            <a
+                href="{% url 'add_feedback' %}"
+                class="btn btn-primary"
+            >
+                Add Feedback
+            </a>
 
-<tr>
+        {% endif %}
 
-<td>{{ feedback.student.name }}</td>
+    </div>
 
-<td>{{ feedback.trainer.username }}</td>
 
-<td>{{ feedback.rating }}</td>
+    <div class="table-responsive">
 
-<td>{{ feedback.comments }}</td>
+        <table class="table table-bordered table-hover align-middle">
 
-<td>
+            <thead class="table-dark">
 
-{% if feedback.visible_to_student %}
+                <tr>
 
-Yes
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Trainer</th>
+                    <th>Rating</th>
+                    <th>Comments</th>
+                    <th>Visible</th>
+                    <th>Created</th>
+                    <th>Action</th>
 
-{% else %}
+                </tr>
 
-No
+            </thead>
 
-{% endif %}
 
-</td>
+            <tbody>
 
-<td>
+            {% for feedback in feedbacks %}
 
-{% if user.profile.role == "trainer" %}
+                <tr>
 
-<a href="{% url 'edit_feedback' feedback.id %}" class="btn btn-warning btn-sm">
+                    <td>
+                        {{ feedback.student.name }}
+                    </td>
 
-Edit
 
-</a>
+                    <td>
 
-{% endif %}
+                        {% if feedback.enrollment %}
 
-</td>
+                            {{ feedback.enrollment.course.course_name }}
 
-</tr>
+                        {% else %}
 
-{% empty %}
+                            <span class="text-muted">
+                                N/A
+                            </span>
 
-<tr>
+                        {% endif %}
 
-<td colspan="6">
+                    </td>
 
-No Feedback Available
 
-</td>
+                    <td>
+                        {{ feedback.trainer.username }}
+                    </td>
 
-</tr>
 
-{% endfor %}
+                    <td>
 
-</table>
-python manage.py runserver
+                        <span class="badge bg-primary">
+                            {{ feedback.rating }}/5
+                        </span>
+
+                    </td>
+
+
+                    <td>
+                        {{ feedback.comments }}
+                    </td>
+
+
+                    <td>
+
+                        {% if feedback.visible_to_student %}
+
+                            <span class="badge bg-success">
+                                Yes
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-secondary">
+                                No
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+                        {{ feedback.created_at|date:"d M Y" }}
+                    </td>
+
+
+                    <td>
+
+                        {% if user.profile.role == "trainer" %}
+
+                            <a
+                                href="{% url 'edit_feedback' feedback.id %}"
+                                class="btn btn-warning btn-sm"
+                            >
+                                Edit
+                            </a>
+
+                        {% else %}
+
+                            <span class="text-muted">
+                                —
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="8"
+                        class="text-center"
+                    >
+
+                        <div class="alert alert-warning mb-0">
+
+                            No Feedback Available
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
 
 {% endblock %}

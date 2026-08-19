@@ -1,184 +1,450 @@
 {% extends "base.html" %}
 
+{% block title %}
+Audit Logs
+{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
 
-<h2>Audit Logs</h2>
-<form method="GET" class="row g-3 mb-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
 
-    <div class="col-md-3">
-        <input
-            type="text"
-            name="search"
-            class="form-control"
-            placeholder="Search User or Description"
-            value="{{ request.GET.search }}">
+        <ol class="breadcrumb">
+
+            <li class="breadcrumb-item">
+
+                <a href="{% url 'dashboard' %}">
+                    Dashboard
+                </a>
+
+            </li>
+
+            <li class="breadcrumb-item active"
+                aria-current="page">
+
+                Audit Logs
+
+            </li>
+
+        </ol>
+
+    </nav>
+
+
+    <h2 class="mb-4">
+        Audit Logs
+    </h2>
+
+
+    <!-- Filters -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                class="row g-3"
+            >
+
+                <!-- Search -->
+
+                <div class="col-md-3">
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Search User or Description"
+                        value="{{ request.GET.search }}"
+                    >
+
+                </div>
+
+
+                <!-- Action -->
+
+                <div class="col-md-3">
+
+                    <select
+                        name="action"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Actions
+                        </option>
+
+                        <option
+                            value="LOGIN"
+                            {% if request.GET.action == "LOGIN" %}
+                                selected
+                            {% endif %}
+                        >
+                            Login
+                        </option>
+
+                        <option
+                            value="LOGOUT"
+                            {% if request.GET.action == "LOGOUT" %}
+                                selected
+                            {% endif %}
+                        >
+                            Logout
+                        </option>
+
+                        <option
+                            value="FAILED_LOGIN"
+                            {% if request.GET.action == "FAILED_LOGIN" %}
+                                selected
+                            {% endif %}
+                        >
+                            Failed Login
+                        </option>
+
+                        <option
+                            value="CREATE"
+                            {% if request.GET.action == "CREATE" %}
+                                selected
+                            {% endif %}
+                        >
+                            Create
+                        </option>
+
+                        <option
+                            value="UPDATE"
+                            {% if request.GET.action == "UPDATE" %}
+                                selected
+                            {% endif %}
+                        >
+                            Update
+                        </option>
+
+                        <option
+                            value="DELETE"
+                            {% if request.GET.action == "DELETE" %}
+                                selected
+                            {% endif %}
+                        >
+                            Delete
+                        </option>
+
+                        <option
+                            value="MARKS_UPDATE"
+                            {% if request.GET.action == "MARKS_UPDATE" %}
+                                selected
+                            {% endif %}
+                        >
+                            Marks Update
+                        </option>
+
+                        <option
+                            value="FEEDBACK"
+                            {% if request.GET.action == "FEEDBACK" %}
+                                selected
+                            {% endif %}
+                        >
+                            Feedback
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Start Date -->
+
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        name="start"
+                        class="form-control"
+                        value="{{ request.GET.start }}"
+                    >
+
+                </div>
+
+
+                <!-- End Date -->
+
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        name="end"
+                        class="form-control"
+                        value="{{ request.GET.end }}"
+                    >
+
+                </div>
+
+
+                <!-- Search -->
+
+                <div class="col-md-1 d-grid">
+
+                    <button
+                        type="submit"
+                        class="btn btn-dark"
+                    >
+                        Search
+                    </button>
+
+                </div>
+
+
+                <!-- Clear -->
+
+                <div class="col-md-1 d-grid">
+
+                    <a
+                        href="{% url 'audit_log_list' %}"
+                        class="btn btn-secondary"
+                    >
+                        Clear
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
 
-    <div class="col-md-3">
-        <select name="action" class="form-select">
 
-            <option value="">All Actions</option>
+    <!-- Audit Log Table -->
 
-            <option value="LOGIN">LOGIN</option>
-            <option value="LOGOUT">LOGOUT</option>
-            <option value="FAILED_LOGIN">FAILED LOGIN</option>
-            <option value="ADD_STUDENT">ADD STUDENT</option>
-            <option value="EDIT_STUDENT">EDIT STUDENT</option>
-            <option value="DELETE_STUDENT">DELETE STUDENT</option>
-            <option value="FEEDBACK_CREATED">FEEDBACK</option>
-            <option value="MARKS_UPDATED">MARKS</option>
+    <div class="table-responsive">
 
-        </select>
-    </div>
-
-    <div class="col-md-2">
-        <input
-            type="date"
-            name="start"
-            class="form-control">
-    </div>
-
-    <div class="col-md-2">
-        <input
-            type="date"
-            name="end"
-            class="form-control">
-    </div>
-
-    <div class="col-md-2">
-
-        <button class="btn btn-dark w-100">
-
-            Search
-
-        </button>
-
-    </div>
-    <div class="col-md-2 d-grid">
-
-        <a
-            href="{% url 'audit_log_list' %}"
-            class="btn btn-secondary"
+        <table
+            class="table table-bordered table-striped table-hover align-middle"
         >
-            Clear Filters
-        </a>
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Description</th>
+                    <th>IP Address</th>
+                    <th>Time</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for log in logs %}
+
+                <tr>
+
+                    <!-- User -->
+
+                    <td>
+
+                        {% if log.user %}
+
+                            {{ log.user.username }}
+
+                        {% else %}
+
+                            <span class="text-muted">
+                                Anonymous
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Action -->
+
+                    <td>
+
+                        {% if log.action == "LOGIN" %}
+
+                            <span class="badge bg-success">
+                                Login
+                            </span>
+
+                        {% elif log.action == "LOGOUT" %}
+
+                            <span class="badge bg-primary">
+                                Logout
+                            </span>
+
+                        {% elif log.action == "FAILED_LOGIN" %}
+
+                            <span class="badge bg-danger">
+                                Failed Login
+                            </span>
+
+                        {% elif log.action == "DELETE" %}
+
+                            <span class="badge bg-danger">
+                                Delete
+                            </span>
+
+                        {% elif log.action == "UPDATE" %}
+
+                            <span class="badge bg-warning text-dark">
+                                Update
+                            </span>
+
+                        {% elif log.action == "MARKS_UPDATE" %}
+
+                            <span class="badge bg-warning text-dark">
+                                Marks Update
+                            </span>
+
+                        {% elif log.action == "FEEDBACK" %}
+
+                            <span class="badge bg-info text-dark">
+                                Feedback
+                            </span>
+
+                        {% elif log.action == "CREATE" %}
+
+                            <span class="badge bg-success">
+                                Create
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-secondary">
+                                {{ log.action }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- Description -->
+
+                    <td>
+                        {{ log.description }}
+                    </td>
+
+
+                    <!-- IP -->
+
+                    <td>
+                        {{ log.ip_address|default:"N/A" }}
+                    </td>
+
+
+                    <!-- Timestamp -->
+
+                    <td>
+                        {{ log.timestamp|date:"d M Y, h:i A" }}
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="5"
+                        class="text-center"
+                    >
+
+                        <div class="alert alert-warning mb-0">
+                            No Logs Found
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
 
     </div>
 
-</form>
 
-<table class="table table-bordered table-striped">
+    <!-- Pagination -->
 
-<thead class="table-dark">
+    {% if logs.has_other_pages %}
 
-<tr>
-<th>User</th>
-<th>Action</th>
-<th>Description</th>
-<th>IP</th>
-<th>Time</th>
-</tr>
+        <nav
+            aria-label="Audit log pagination"
+            class="mt-4"
+        >
 
-</thead>
+            <ul class="pagination justify-content-center">
 
-<tbody>
 
-{% for log in logs %}
+                {% if logs.has_previous %}
 
-<tr>
+                    <li class="page-item">
 
-<td>{{ log.user }}</td>
+                        <a
+                            class="page-link"
+                            href="?page={{ logs.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.action %}&action={{ request.GET.action|urlencode }}{% endif %}{% if request.GET.start %}&start={{ request.GET.start|urlencode }}{% endif %}{% if request.GET.end %}&end={{ request.GET.end|urlencode }}{% endif %}"
+                        >
+                            Previous
+                        </a>
 
-<td>
+                    </li>
 
-{% if "LOGIN" in log.action %}
-<span class="badge bg-success">{{ log.action }}</span>
+                {% endif %}
 
-{% elif "FAILED" in log.action %}
-<span class="badge bg-danger">{{ log.action }}</span>
 
-{% elif "DELETE" in log.action %}
-<span class="badge bg-danger">{{ log.action }}</span>
+                {% for page_number in logs.paginator.page_range %}
 
-{% elif "UPDATE" in log.action %}
-<span class="badge bg-warning">{{ log.action }}</span>
+                    <li
+                        class="page-item
+                        {% if logs.number == page_number %}
+                            active
+                        {% endif %}"
+                    >
 
-{% else %}
-<span class="badge bg-primary">{{ log.action }}</span>
-{% endif %}
+                        <a
+                            class="page-link"
+                            href="?page={{ page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.action %}&action={{ request.GET.action|urlencode }}{% endif %}{% if request.GET.start %}&start={{ request.GET.start|urlencode }}{% endif %}{% if request.GET.end %}&end={{ request.GET.end|urlencode }}{% endif %}"
+                        >
+                            {{ page_number }}
+                        </a>
 
-</td>
+                    </li>
 
-<td>{{ log.description }}</td>
+                {% endfor %}
 
-<td>{{ log.ip_address }}</td>
 
-<td>{{ log.timestamp }}</td>
+                {% if logs.has_next %}
 
-</tr>
+                    <li class="page-item">
 
-{% empty %}
+                        <a
+                            class="page-link"
+                            href="?page={{ logs.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}{% if request.GET.action %}&action={{ request.GET.action|urlencode }}{% endif %}{% if request.GET.start %}&start={{ request.GET.start|urlencode }}{% endif %}{% if request.GET.end %}&end={{ request.GET.end|urlencode }}{% endif %}"
+                        >
+                            Next
+                        </a>
 
-<tr>
-<td colspan="5">No Logs Found</td>
-</tr>
+                    </li>
 
-{% endfor %}
-<nav>
+                {% endif %}
 
-    <ul class="pagination justify-content-center">
+            </ul>
 
-        {% if logs.has_previous %}
+        </nav>
 
-        <li class="page-item">
-
-            <a
-               class="page-link"
-               href="?page={{ logs.previous_page_number }}">
-
-                Previous
-
-            </a>
-
-        </li>
-
-        {% endif %}
-
-        <li class="page-item active">
-
-            <span class="page-link">
-
-                {{ logs.number }}
-
-            </span>
-
-        </li>
-
-        {% if logs.has_next %}
-
-        <li class="page-item">
-
-            <a
-               class="page-link"
-               href="?page={{ logs.next_page_number }}">
-
-                Next
-
-            </a>
-
-        </li>
-
-        {% endif %}
-
-    </ul>
-
-</nav>
-
-</tbody>
-
-</table>
+    {% endif %}
 
 </div>
 

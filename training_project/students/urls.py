@@ -8,17 +8,20 @@ from .views import CustomPasswordChangeView
 urlpatterns = [
 
     # =========================
-    # Dashboard
+    # Main Dashboard
     # =========================
+
     path(
         "dashboard/",
         views.dashboard,
         name="dashboard"
     ),
 
+
     # =========================
-    # Students
+    # Student Management
     # =========================
+
     path(
         "students/",
         views.student_list,
@@ -32,26 +35,86 @@ urlpatterns = [
     ),
 
     path(
-        "students/<int:id>/",
+        "students/<int:student_id>/",
         views.student_detail,
         name="student_detail"
     ),
 
     path(
-        "students/<int:id>/edit/",
+        "students/<int:student_id>/edit/",
         views.edit_student,
         name="edit_student"
     ),
 
     path(
-        "students/<int:id>/delete/",
+        "students/<int:student_id>/delete/",
         views.delete_student,
         name="delete_student"
     ),
 
+
+    # =========================
+    # Department Management
+    # =========================
+
+    path(
+        "departments/",
+        views.department_list,
+        name="department_list"
+    ),
+
+    path(
+        "departments/add/",
+        views.add_department,
+        name="add_department"
+    ),
+
+    path(
+        "departments/<int:department_id>/edit/",
+        views.edit_department,
+        name="edit_department"
+    ),
+
+    path(
+        "departments/<int:department_id>/delete/",
+        views.delete_department,
+        name="delete_department"
+    ),
+
+
+    # =========================
+    # Course Management
+    # =========================
+
+    path(
+        "courses/",
+        views.course_list,
+        name="course_list"
+    ),
+
+    path(
+        "courses/add/",
+        views.add_course,
+        name="add_course"
+    ),
+
+    path(
+        "courses/<int:course_id>/edit/",
+        views.edit_course,
+        name="edit_course"
+    ),
+
+    path(
+        "courses/<int:course_id>/delete/",
+        views.delete_course,
+        name="delete_course"
+    ),
+
+
     # =========================
     # Authentication
     # =========================
+
     path(
         "register/",
         views.register_user,
@@ -70,9 +133,11 @@ urlpatterns = [
         name="logout"
     ),
 
+
     # =========================
-    # Role Dashboards
+    # Role Based Dashboards
     # =========================
+
     path(
         "admin-dashboard/",
         views.admin_dashboard,
@@ -91,9 +156,11 @@ urlpatterns = [
         name="student_dashboard"
     ),
 
+
     # =========================
     # Password Change
     # =========================
+
     path(
         "password-change/",
         CustomPasswordChangeView.as_view(),
@@ -103,18 +170,26 @@ urlpatterns = [
     path(
         "password-change/done/",
         auth_views.PasswordChangeDoneView.as_view(
-            template_name="registration/password_change_done.html"
+            template_name=(
+                "registration/"
+                "password_change_done.html"
+            )
         ),
         name="password_change_done"
     ),
 
+
     # =========================
     # Password Reset
     # =========================
+
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
-            template_name="registration/password_reset.html"
+            template_name=(
+                "registration/"
+                "password_reset.html"
+            )
         ),
         name="password_reset"
     ),
@@ -122,7 +197,10 @@ urlpatterns = [
     path(
         "password-reset/done/",
         auth_views.PasswordResetDoneView.as_view(
-            template_name="registration/password_reset_done.html"
+            template_name=(
+                "registration/"
+                "password_reset_done.html"
+            )
         ),
         name="password_reset_done"
     ),
@@ -130,7 +208,10 @@ urlpatterns = [
     path(
         "reset/<uidb64>/<token>/",
         auth_views.PasswordResetConfirmView.as_view(
-            template_name="registration/password_reset_confirm.html"
+            template_name=(
+                "registration/"
+                "password_reset_confirm.html"
+            )
         ),
         name="password_reset_confirm"
     ),
@@ -138,14 +219,19 @@ urlpatterns = [
     path(
         "reset/done/",
         auth_views.PasswordResetCompleteView.as_view(
-            template_name="registration/password_reset_complete.html"
+            template_name=(
+                "registration/"
+                "password_reset_complete.html"
+            )
         ),
         name="password_reset_complete"
     ),
 
+
     # =========================
     # Feedback
     # =========================
+
     path(
         "feedback/add/",
         views.add_feedback,
@@ -159,31 +245,35 @@ urlpatterns = [
     ),
 
     path(
-        "feedback/<int:id>/edit/",
+        "feedback/<int:feedback_id>/edit/",
         views.edit_feedback,
         name="edit_feedback"
     ),
 
+
     # =========================
-    # Marks
+    # Marks Management
     # =========================
+
     path(
-        "students/<int:id>/update-marks/",
+        "students/<int:enrollment_id>/update-marks/",
         views.update_marks,
         name="update_marks"
     ),
 
     path(
-        "students/<int:id>/marks-history/",
+        "students/<int:student_id>/marks-history/",
         views.marks_history,
         name="marks_history"
     ),
 
+
     # =========================
     # Audit Logs
     # =========================
+
     path(
-        "audit_log_list/",
+        "audit-logs/",
         views.audit_log_list,
         name="audit_log_list"
     ),
