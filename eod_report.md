@@ -1,10 +1,10 @@
 
 # End-of-Day (EOD) Report - Day 1
 
-**Intern Name:** Gajendra Singh  
+**Intern Name:** Ruchita prajapat 
 **Date:** September 1, 2026  
 **Training Module:** Python Basics, Control Flow, Strings, Collections, and Functions  
-**Repository Branch:** `burnettbrucke-intern-task-gajendra`  
+**Repository Branch:** `burnettbrucke-intern-task-ruchita`  
 
 ---
 
