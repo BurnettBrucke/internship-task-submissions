@@ -1,0 +1,47 @@
+{
+    "Arvi": {
+        "math": 85,
+        "python": 90,
+        "english": 78
+    },
+    "Rahul": {
+        "math": 70,
+        "python": 88,
+        "english": 65
+    },
+    "Priya": {
+        "math": 40,
+        "python": 40,
+        "english": 40
+    },
+    "Neha": {
+        "math": 35,
+        "python": 90,
+        "english": 85
+    },
+    "aditya": {
+        "math": 100,
+        "python": 100,
+        "english": 100
+    },
+    "Rohit": {
+        "math": 50,
+        "python": 60,
+        "english": 70
+    },
+    "Sakshi": {
+        "math": 80,
+        "python": 75,
+        "english": 90
+    },
+    "Anjali": {
+        "math": 90,
+        "python": 85,
+        "english": 95
+    },
+    "Karan": {
+        "math": 60,
+        "python": 70,
+        "english": 80
+    }
+}
