@@ -33,3 +33,28 @@ Task_day_1/
 │
 ├── README.md           # Setup and Execution Instructions
 └── eod_report.md       # End-of-Day Progress Report
+
+Here are some extra task that is task 7 for object oriented programming.
+
+// run task :python task_7_opps.py
+
+//for task 9 : python task_9_iterator_generator.py
+
+Task 9: Iterator and Generator
+
+ Observation
+
+A list stores all one million numbers in memory at the same time, so it requires significantly more memory.
+
+A generator does not store all the numbers at once. It generates each value only when required, so it uses very little memory.
+
+For example, a list containing one million numbers may require several megabytes of memory, while the generator object itself requires only a few hundred bytes.
+
+Therefore, generators are much more memory-efficient than lists when working with large amounts of data.
+
+### Conclusion
+
+- Lists store all values in memory.
+- Generators produce values one at a time.
+- Generators are more memory-efficient for large datasets.
+- Generators are useful when all values do not need to be stored simultaneously.
