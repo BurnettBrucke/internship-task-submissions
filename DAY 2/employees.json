@@ -1,0 +1,23 @@
+[
+    {
+        "id": "101",
+        "name": "Deepika Vishwakarma",
+        "email": "deepika06@gmail.com",
+        "department": "Python",
+        "salary": 28000.0
+    },
+    {
+        "id": "102",
+        "name": "Sanjana Dhakar",
+        "email": "sanjana23@gmail.com",
+        "department": "Java",
+        "salary": 13000.0
+    },
+    {
+        "id": "103",
+        "name": "Jayanti Purohit",
+        "email": "jayanti04@gmail.com",
+        "department": "Maths",
+        "salary": 8000.0
+    }
+]
