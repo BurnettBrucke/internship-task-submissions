@@ -380,6 +380,36 @@ The main modules used are:
 import json
 ```
 
+# Iterator and Generator
+
+## 1. Custom Iterator
+
+A custom iterator named `NumberIterator` was created to return numbers from 1 to 10.
+
+The class implements the `__iter__()` and `__next__()` methods. The `__next__()` method returns one number at a time and raises `StopIteration` after reaching 10.
+
+## 2. Generator
+
+A generator function named `even_numbers()` was created using the `yield` keyword.
+
+It generates even numbers from 1 to 50 one at a time.
+
+Generators use lazy evaluation, which means values are produced only when they are requested instead of storing all the values in memory at once.
+
+## 3. Memory Comparison
+
+A list containing one million numbers and a generator capable of producing one million numbers were created and their sizes were compared using `sys.getsizeof()`.
+
+The list requires significantly more memory because it stores references to all one million elements.
+
+The generator requires much less memory because it does not store all one million numbers. Instead, it stores the information required to generate the values when requested.
+
+### Observation
+
+The main difference is that a list is generally suitable when we need all values available in memory, while a generator is useful when processing large amounts of data one value at a time.
+
+Generators are therefore more memory-efficient for large sequences, especially when we do not need all values in memory simultaneously.
+
 ---
 
 # 📌 Day 1 Summary

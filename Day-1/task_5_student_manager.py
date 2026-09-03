@@ -17,7 +17,7 @@ def get_valid_mark():
         except ValueError:
             print("Please enter a valid number.")
 def fatching_data(students):
-    name = input("Enter the student name : ")
+    name = input("Enter the student name : ").capitalize().strip()
     for name in students:
         if name in students:
             print("Student already exists.")
@@ -25,8 +25,11 @@ def fatching_data(students):
     if not name:
         print("please enter student name.")
         return
+    print("Enter maths marks")
     sub1_marks = get_valid_mark()
+    print("Enter python marks")
     sub2_marks = get_valid_mark()
+    print("Enter english marks")
     sub3_marks = get_valid_mark()
     new_data = {name:{"math" : sub1_marks , "python" : sub2_marks , "english": sub3_marks}}
     return new_data
@@ -53,8 +56,18 @@ def display_students(students):
         print(f"English: {marks['english']}")
 
 
+def delete_Student(students):
+    name_search = input("Enter the name of the student:").capitalize().strip()
+
+    if not name_search:
+        print("Please enter student name.")
+        return
+    if name_search in students:
+        del students[name_search]
+        print(f"{name_search} data is deleted sucessfully.")
+
 def search_student(students):
-    name_search = input("Enter the name of the student: ").strip()
+    name_search = (input("Enter the name of the student: ")).capitalize().strip()
 
     if not name_search:
         print("Please enter student name.")
@@ -138,10 +151,11 @@ def main():
         print("| Press 2 for searching a student              |")
         print("| Press 3 for updating marks                   |")
         print("| Press 4 for adding a new student             |")
-        print("| Press 5 for result                           |")
-        print("| Press 6 for student rank                     |")
-        print("| Press 7 for save data to JSON file           |")
-        print("| Press 8 for load data from JSON file         |")
+        print("| Press 5 for delete a student                 |")
+        print("| Press 6 for result                           |")
+        print("| Press 7 for student rank                     |")
+        print("| Press 8 for save data to JSON file           |")
+        print("| Press 9 for load data from JSON file         |")
         print("| Press 0 for exit                             |")
         print("|==============================================|")
         print("| Please enter your choice:                    |")
@@ -160,9 +174,13 @@ def main():
                 new_data = fatching_data(students)
                 if new_data:
                     add_students(students , new_data)
+
             case "5":
-                result_check(students)
+                delete_Student(students)
             case "6":
+                result_check(students)
+            
+            case "7":
                 try:
                     rank = int(input("Enter the rank you want to check: "))
                     student_rank(students , rank)
@@ -173,9 +191,9 @@ def main():
                 print("Exiting the program...")
 
                 return
-            case "7":
-                save_json(students)
             case "8":
+                save_json(students)
+            case "9":
                 file_path = input("Enter the path to the JSON file: ")
                 loaded_students = load_json(file_path)
                 if loaded_students:
