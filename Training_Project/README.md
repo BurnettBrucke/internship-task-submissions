@@ -42,6 +42,7 @@ Training_Project/
 ├── db.sqlite3
 ├── manage.py
 └── README.md
+
 ---
 
 # Tasks Completed
