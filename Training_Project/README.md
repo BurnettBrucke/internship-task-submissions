@@ -200,6 +200,8 @@ During this project, I learned and practiced:
 
 - I also learned how to store student data in a database, display it dynamically using templates, validate form data, and create a simple student management system.
 
+---
+
 ### Project Status
 
 - All three assigned Django training tasks have been completed successfully.
