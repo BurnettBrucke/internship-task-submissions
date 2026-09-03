@@ -1,0 +1,20 @@
+{
+    "1": {
+        "name": "mayank",
+        "email": "mayank@example.com",
+        "department": "IT",
+        "salary": 50000
+    },
+    "3": {
+        "name": "adi",
+        "email": "Adi@gamil.com",
+        "department": "CS",
+        "salary": 345500.0
+    },
+    "2": {
+        "name": "rohit",
+        "email": "rohit@gmail.com",
+        "department": "ECE",
+        "salary": 345.0
+    }
+}
