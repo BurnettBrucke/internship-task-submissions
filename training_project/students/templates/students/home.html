@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home page</title>
+</head>
+<body>
+
+    <h1>Welcome to {{ company_name }} Training Program</h1>
+     <a href="{% url 'student_list' %}" class="add-button">
+    + Student Dashboard
+    </a>
+    <style>
+        .add-button {
+         display: block;
+         width: fit-content;
+         margin: 20px 20px auto;
+         padding: 12px 20px;
+         background-color: #222;
+         color: white;
+         text-decoration: none;
+         border-radius: 6px;
+         font-weight: bold;
+        }
+
+        .add-button:hover {
+         background-color: #444;
+        }
+    </style>
+</body>
+</html>
