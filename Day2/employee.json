@@ -1,0 +1,14 @@
+{
+    "E3": {
+        "name": "Mayank",
+        "email": "mayan@gmail.com",
+        "department": "Python",
+        "salary": 60000.0
+    },
+    "E5": {
+        "name": "Abhay",
+        "email": "abh@gmail.com",
+        "department": "qa",
+        "salary": 2345.0
+    }
+}

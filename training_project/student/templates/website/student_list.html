@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Students
+{% endblock %}
+
+{% block content %}
+
+<h1>All Students</h1>
+
+<h2>Total Students: {{ total_student }}</h2>
+
+<h2>Active Students: {{ active_student }}</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+
+{% if students %}
+
+<table>
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Course</th>
+            <th>Marks</th>
+            <th>Joined Date</th>
+            <th>Active</th>
+            <th>Result</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for student in students %}
+
+        <tr>
+
+            <td>{{ student.name }}</td>
+
+            <td>{{ student.email }}</td>
+
+            <td>{{ student.age }}</td>
+
+            <td>{{ student.course }}</td>
+
+            <td>{{ student.marks }}</td>
+
+            <td>{{ student.joined_date }}</td>
+
+            <td>
+                {% if student.active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+            </td>
+
+            <td>
+                {% if student.marks >= 40 %}
+                    Pass
+                {% else %}
+                    Fail
+                {% endif %}
+            </td>
+
+        </tr>
+
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+<a href="{% url 'add_student' %}"
+   style="display:inline-block; margin-top:25px; padding:12px 25px; background:#667eea; color:white; border-radius:8px; text-decoration:none;">
+    + Add Student
+</a>
+{% else %}
+
+<p>No students found.</p>
+
+{% endif %}
+
+
+{% endblock %}
