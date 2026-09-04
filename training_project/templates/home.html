@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Home
+{% endblock %}
+
+
+{% block content %}
+
+<div class="card">
+
+    <h1>
+        Welcome to {{ company_name }}
+    </h1>
+
+    <p>
+        Python and Django Training Program
+    </p>
+
+    <p>
+        This application is used to manage student information,
+        courses, marks and active student records.
+    </p>
+
+    <br>
+
+    <a class="button" href="{% url 'students_list' %}">
+        View Students
+    </a>
+
+</div>
+
+{% endblock %}

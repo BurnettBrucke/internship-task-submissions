@@ -1,15 +1,23 @@
 from django.contrib import admin
-
-from . models import Student, StudentProfile, Department, Course
-
+from .models import Student
 
 
-admin.site.register(Student)
-admin.site.register(StudentProfile)
-admin.site.register(Department)
-admin.site.register(Course)
-
-
-
-
-
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "email",
+        "age",
+        "course",
+        "marks",
+        "joined_date",
+        "active",
+    )
+    list_filter = (
+        "course",
+        "active"       
+    )
+    search_fields = (
+        "name",
+        "email",
+    )
