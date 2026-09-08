@@ -25,7 +25,7 @@ try:
     num2 = float(num2)
 
     # Check negative numbers
-    if num1 < 0 or num2 < 0:
+    if num1 < 0 and num2 < 0:
         raise NegativeNumberError("Negative numbers are not allowed")
 
     # Division
