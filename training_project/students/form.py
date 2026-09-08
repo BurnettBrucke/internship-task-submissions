@@ -12,8 +12,12 @@ class StudentForm(forms.ModelForm):
             "age" ,
             "course",
             "marks",
-            "active"
+            "active",
+            "department",
         ]
+        widgets = {
+            "course": forms.SelectMultiple(),
+        }
 
     def clean_name(self):
         name = self.cleaned_data["name"].strip()
@@ -29,14 +33,6 @@ class StudentForm(forms.ModelForm):
             )
 
         return name
-    def clean_course(self):
-        course = self.cleaned_data["course"]
-
-        if not course.strip():
-            raise forms.ValidationError(
-                "Course cannot be empty."
-            )
-        return course
 
     def clean_age(self):
         age = self.cleaned_data["age"]

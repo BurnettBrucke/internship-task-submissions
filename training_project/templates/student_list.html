@@ -81,6 +81,8 @@ Students
         <th>Joined Date</th>
         <th>Active</th>
         <th>Result</th>
+        <th>Department</th>
+        <th>Action</th>
 
     </tr>
 
@@ -100,9 +102,12 @@ Students
         <td>
             {{ student.age }}
         </td>
-
         <td>
-            {{ student.course }}
+            {% for course in student.course.all %}
+                {{ course.course_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                No courses
+            {% endfor %}
         </td>
 
         <td>
@@ -140,6 +145,13 @@ Students
             {% endif %}
 
         </td>
+        <td>
+            {{ student.department }}
+        </td>
+        <td> 
+            <a href="{% url 'student_detail' student.id %}" class="view-btn">
+                View
+            </a> 
 
     </tr>
 

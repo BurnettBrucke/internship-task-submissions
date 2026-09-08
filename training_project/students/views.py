@@ -1,8 +1,9 @@
-from django.shortcuts import render , redirect
+from django.shortcuts import render , redirect , get_object_or_404
 from django.http import HttpResponse 
 from .form import StudentForm
 from .models import Student
 from django.contrib import messages
+from .services import send_mail
 # Create your views here.
 
 def home(request):
@@ -36,7 +37,8 @@ def add_student(request):
         form = StudentForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            student = form.save()
+            send_mail(student)
 
             messages.success(
                 request , 
@@ -50,8 +52,56 @@ def add_student(request):
     return render(
     request,
     "add_student.html",
-    {
-        "form": form
-    }
+    {"form": form}
 
 )
+
+def student_detail(request , id):
+    student = get_object_or_404(Student , id = id)
+    return render(
+        request , 
+        "student_detail.html",
+        {
+            "student" : student
+        }
+    )
+
+def edit_student(request, id):
+    student = get_object_or_404(Student, id=id)
+
+    if request.method == "POST":
+        form = StudentForm(request.POST, instance=student)
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(
+                request,
+                "Student updated successfully."
+            )
+
+            return redirect("student_detail", id=student.id)
+
+    else:
+        form = StudentForm(instance=student)
+
+    return render(
+        request,
+        "edit_student.html",
+        {
+            "form": form,
+            "student": student
+        }
+    )
+
+def delete_student(request , id):
+    student = get_object_or_404(Student , id = id)
+    if request.method == "POST":
+        student.delete()
+        messages.success(request , "Student delete successfully.")
+
+        return redirect("students_list")
+
+    return render(
+        request , "student_confirm_delete.html" , {"student" : student}
+    )
