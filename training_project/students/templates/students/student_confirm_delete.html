@@ -1,0 +1,107 @@
+{% extends 'students/base.html' %}
+
+{% block title %}Delete Student - Student Management{% endblock %}
+
+{% block content %}
+
+<style>
+    .container {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px 20px;
+    }
+
+    .delete-box {
+        background: white;
+        width: 100%;
+        max-width: 500px;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .delete-box h1 {
+        color: #dc2626;
+        margin-bottom: 20px;
+    }
+
+    .delete-box p {
+        color: #555;
+        font-size: 17px;
+        margin-bottom: 30px;
+    }
+
+    .delete-button {
+        padding: 11px 22px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-right: 8px;
+    }
+
+    .delete-button:hover {
+        background: #b91c1c;
+    }
+
+    .cancel-button {
+        display: inline-block;
+        padding: 10px 22px;
+        background: #6b7280;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    .cancel-button:hover {
+        background: #4b5563;
+    }
+
+    @media (max-width: 600px) {
+        .delete-box {
+            padding: 30px 20px;
+        }
+
+        .delete-button,
+        .cancel-button {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="delete-box">
+
+        <h1>Delete Student</h1>
+
+        <p>
+            Are you sure you want to delete
+            <strong>{{ student.name }}</strong>?
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <button type="submit" class="delete-button">
+                Yes, Delete
+            </button>
+
+            <a href="{% url 'student_detail' student.pk %}"
+               class="cancel-button">
+                Cancel
+            </a>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

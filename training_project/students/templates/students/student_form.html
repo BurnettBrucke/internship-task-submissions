@@ -1,0 +1,158 @@
+{% extends 'students/base.html' %}
+
+{% block title %}{{ title }} - Student Management{% endblock %}
+
+{% block content %}
+
+<style>
+    .container {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px 20px;
+    }
+
+    .form-box {
+        background: white;
+        width: 100%;
+        max-width: 650px;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-box h1 {
+        text-align: center;
+        color: #1f2937;
+        margin-bottom: 30px;
+    }
+
+    .form-box form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-box p {
+        margin-bottom: 15px;
+    }
+
+    .form-box label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+        color: #374151;
+    }
+
+    .form-box input,
+    .form-box select,
+    .form-box textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
+    .form-box input:focus,
+    .form-box select:focus,
+    .form-box textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+    }
+
+    .errorlist {
+        color: #dc2626;
+        font-size: 14px;
+        margin: 5px 0 10px;
+        padding-left: 20px;
+    }
+
+    .helptext {
+        display: block;
+        color: #666;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .button {
+        padding: 11px 22px;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .save-button {
+        background: #16a34a;
+        color: white;
+    }
+
+    .save-button:hover {
+        background: #15803d;
+    }
+
+    .back-button {
+        background: #6b7280;
+        color: white;
+    }
+
+    .back-button:hover {
+        background: #4b5563;
+    }
+
+    @media (max-width: 600px) {
+        .form-box {
+            padding: 30px 20px;
+        }
+
+        .buttons {
+            flex-direction: column;
+        }
+
+        .button {
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="form-box">
+
+        <h1>{{ title }}</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {{ form.non_field_errors }}
+
+            {{ form.as_p }}
+
+            <div class="buttons">
+                <button type="submit" class="button save-button">
+                    Save Student
+                </button>
+
+                <a href="{% url 'student_list' %}"
+                   class="button back-button">
+                    Back to Students
+                </a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

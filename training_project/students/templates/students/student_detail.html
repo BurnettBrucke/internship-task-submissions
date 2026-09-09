@@ -1,0 +1,264 @@
+{% extends 'students/base.html' %}
+
+{% block title %}Student Details - Student Management{% endblock %}
+
+{% block content %}
+
+<style>
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .detail-box {
+        background: white;
+        padding: 35px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-box h1 {
+        color: #1f2937;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .student-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .info-item {
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 6px;
+    }
+
+    .info-item strong {
+        display: block;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .info-item span {
+        color: #555;
+    }
+
+    .courses {
+        margin-top: 25px;
+    }
+
+    .courses h3,
+    .profile-section h3 {
+        color: #1f2937;
+        margin-bottom: 12px;
+    }
+
+    .courses ul {
+        padding-left: 20px;
+    }
+
+    .courses li {
+        margin-bottom: 6px;
+        color: #555;
+    }
+
+    .result-pass {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .result-fail {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .active {
+        color: #16a34a;
+        font-weight: bold;
+    }
+
+    .inactive {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .profile-section {
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid #ddd;
+    }
+
+    .actions {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .button {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: white;
+        margin: 5px;
+        font-size: 14px;
+    }
+
+    .back-button {
+        background: #6b7280;
+    }
+
+    .edit-button {
+        background: #2563eb;
+    }
+
+    .delete-button {
+        background: #dc2626;
+    }
+
+    .button:hover {
+        opacity: 0.9;
+    }
+
+    @media (max-width: 600px) {
+        .detail-box {
+            padding: 25px 20px;
+        }
+
+        .student-info {
+            grid-template-columns: 1fr;
+        }
+
+        .button {
+            display: block;
+            margin: 8px 0;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="detail-box">
+
+        <h1>Student Details</h1>
+
+        <div class="student-info">
+
+            <div class="info-item">
+                <strong>ID</strong>
+                <span>{{ student.id }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Name</strong>
+                <span>{{ student.name }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Email</strong>
+                <span>{{ student.email }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Age</strong>
+                <span>{{ student.age }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Department</strong>
+                <span>{{ student.department }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Marks</strong>
+                <span>{{ student.marks }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Result</strong>
+
+                {% if student.marks >= 40 %}
+                    <span class="result-pass">PASS</span>
+                {% else %}
+                    <span class="result-fail">FAIL</span>
+                {% endif %}
+            </div>
+
+            <div class="info-item">
+                <strong>Joined Date</strong>
+                <span>{{ student.joined_date }}</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Active Status</strong>
+
+                {% if student.active_status %}
+                    <span class="active">Active</span>
+                {% else %}
+                    <span class="inactive">Inactive</span>
+                {% endif %}
+            </div>
+
+        </div>
+
+         <div class="courses">
+            <h3>Courses</h3>
+
+            {% for course in student.courses.all %}
+              <p>{{ course }}</p>
+            {% empty %}
+              <p>No courses assigned.</p>
+            {% endfor %}
+          </div>
+
+        {% if student.profile %}
+            <div class="profile-section">
+
+                <h3>Student Profile</h3>
+
+                <div class="student-info">
+
+                    <div class="info-item">
+                        <strong>Phone</strong>
+                        <span>{{ student.profile.phone }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <strong>Address</strong>
+                        <span>{{ student.profile.address }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <strong>Date of Birth</strong>
+                        <span>{{ student.profile.date_of_birth }}</span>
+                    </div>
+
+                </div>
+
+            </div>
+        {% endif %}
+
+        <div class="actions">
+
+            <a href="{% url 'student_list' %}"
+               class="button back-button">
+                Back to Students
+            </a>
+
+            <a href="{% url 'edit_student' student.pk %}"
+               class="button edit-button">
+                Edit
+            </a>
+
+            <a href="{% url 'delete_student' student.pk %}"
+               class="button delete-button">
+                Delete
+            </a>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

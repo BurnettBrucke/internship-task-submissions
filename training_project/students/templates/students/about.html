@@ -1,0 +1,104 @@
+{% extends 'students\base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+
+<style>
+    .container {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px 20px;
+    }
+
+    .about-box {
+        background: white;
+        width: 100%;
+        max-width: 650px;
+        padding: 45px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .about-box h1 {
+        color: #1f2937;
+        margin-bottom: 20px;
+    }
+
+    .about-box p {
+        font-size: 17px;
+        line-height: 1.7;
+        color: #555;
+        margin-bottom: 30px;
+    }
+
+    .button {
+        display: inline-block;
+        padding: 11px 22px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 15px;
+        margin: 5px;
+    }
+
+    .home-button {
+        background: #2563eb;
+        color: white;
+    }
+
+    .home-button:hover {
+        background: #1d4ed8;
+    }
+
+    .student-button {
+        background: #16a34a;
+        color: white;
+    }
+
+    .student-button:hover {
+        background: #15803d;
+    }
+
+    @media (max-width: 600px) {
+
+        .about-box {
+            padding: 30px 20px;
+        }
+
+        .button {
+            width: 100%;
+            margin: 6px 0;
+        }
+    }
+</style>
+
+<div class="container">
+
+
+<div class="about-box">
+
+    <h1>About Page</h1>
+
+    <p>
+        This is the training program website.
+        It is created as part of the Django training project
+        to practice views, URLs, templates, forms, and CRUD operations.
+    </p>
+
+    <a href="{% url 'home' %}" class="button home-button">
+        Home
+    </a>
+
+    <a href="{% url 'student_list' %}" class="button student-button">
+        Students
+    </a>
+
+</div>
+
+
+</div>
+
+{% endblock %}

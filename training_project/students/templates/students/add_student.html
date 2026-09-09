@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Add Student</title>
+    <title>{{ title }}</title>
 
     <style>
         * {
@@ -16,25 +17,49 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f6f8;
-            padding: 40px;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: #1f2937;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            color: white;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 15px;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
         }
 
         .container {
+            width: 90%;
             max-width: 650px;
-            margin: auto;
+            margin: 40px auto;
         }
 
         .form-box {
-            background: white;
+            background-color: white;
             padding: 35px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         h1 {
-            text-align: center;
             margin-bottom: 30px;
-            color: #222;
+            color: #1f2937;
         }
 
         .form-group {
@@ -45,100 +70,162 @@
             display: block;
             margin-bottom: 7px;
             font-weight: bold;
+            color: #374151;
         }
 
         input,
-        select {
+        select,
+        textarea {
             width: 100%;
             padding: 11px;
-            border: 1px solid #ccc;
+            border: 1px solid #d1d5db;
             border-radius: 6px;
             font-size: 15px;
+            font-family: Arial, sans-serif;
         }
 
         input:focus,
-        select:focus {
+        select:focus,
+        textarea:focus {
             outline: none;
-            border-color: #555;
+            border-color: #2563eb;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
         }
 
         .error {
-            color: red;
+            color: #dc2626;
             font-size: 14px;
             margin-top: 5px;
         }
 
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
         .button {
-            width: 100%;
+            flex: 1;
             padding: 12px;
             border: none;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
+            text-align: center;
+            text-decoration: none;
         }
 
         .submit-button {
-            background-color: #222;
+            background-color: #2563eb;
             color: white;
         }
 
         .submit-button:hover {
-            background-color: #444;
+            background-color: #1d4ed8;
         }
 
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            text-decoration: none;
-            color: #333;
+        .back-button {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+
+        .back-button:hover {
+            background-color: #d1d5db;
+        }
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .container {
+                width: 92%;
+                margin: 25px auto;
+            }
+
+            .form-box {
+                padding: 25px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+    <nav class="navbar">
 
-    <div class="form-box">
+        <h2>Student Management</h2>
 
-        <h1>Add Student</h1>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'student_list' %}">Students</a>
+        </div>
 
-        <form method="POST">
+    </nav>
 
-            {% csrf_token %}
 
-            {% for field in form %}
+    <div class="container">
 
-                <div class="form-group">
+        <div class="form-box">
 
-                    {{ field.label_tag }}
+            <h1>{{ title }}</h1>
 
-                    {{ field }}
+            <form method="POST">
 
-                    {% if field.errors %}
-                        {% for error in field.errors %}
-                            <p class="error">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
+                {% csrf_token %}
+
+                {% for field in form %}
+
+                    <div class="form-group">
+
+                        {{ field.label_tag }}
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <p class="error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+
+                <div class="button-group">
+
+                    <button
+                        type="submit"
+                        class="button submit-button">
+                        Save Student
+                    </button>
+
+                    <a
+                        href="{% url 'student_list' %}"
+                        class="button back-button">
+                        Back to Students
+                    </a>
 
                 </div>
 
-            {% endfor %}
+            </form>
 
-            <button type="submit" class="button submit-button">
-                Add Student
-            </button>
-
-        </form>
-
-        <a href="{% url 'student_list' %}" class="back-link">
-            ← Back to Student List
-        </a>
+        </div>
 
     </div>
 
-</div>
-
 </body>
+
 </html>

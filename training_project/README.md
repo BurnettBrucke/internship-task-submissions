@@ -1,124 +1,151 @@
-# Django Training Project
+# Student Training Portal
 
-## Project Overview
+A Django-based Student Training Portal developed as part of the training project. The application provides authentication, student CRUD operations, dashboard statistics, search, filtering, Django ORM queries, and automated testing.
 
-This project is created as part of training project tasks. It demonstrates basic Django concepts including project setup, URL routing, views, templates, models, migrations, Django Admin, ModelForms, form validation, messages, and CRUD-related operations.
+## Technologies
 
-## Setup Instructions
+* Python
+* Django 5.2.10
+* SQLite
+* HTML/CSS
+* Django ORM
+* Django ModelForm
+* Django Authentication
 
-1. Make sure Python is installed.
-2. Open the terminal in the `training_project` directory.
-3. Install Django:
+## Setup
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+Install Django:
 
 ```bash
 pip install django
 ```
 
-4. Run the database migrations:
+Run migrations:
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-## Run the Server
+Create superuser:
 
-Start the Django development server using:
+```bash
+python manage.py createsuperuser
+```
+
+Run server:
 
 ```bash
 python manage.py runserver
 ```
 
-The project will be available at:
+Application:
 
-`http://127.0.0.1:8000/`
+```text
+http://127.0.0.1:8000/
+```
 
-## Created URLs
+Admin:
 
-| URL              | Purpose                |
-| ---------------- | ---------------------- |
-| `/`              | Home page              |
-| `/about/`        | About page             |
-| `/students/`     | Student list/dashboard |
-| `/students/add/` | Add new student        |
-| `/admin/`        | Django Admin panel     |
+```text
+http://127.0.0.1:8000/admin/
+```
 
-## Tasks Completed
+## URLs
 
-### Django Mini Setup
+* `/` - Home
+* `/about/` - About
+* `/register/` - Registration
+* `/login/` - Login
+* `/logout/` - Logout
+* `/dashboard/` - Dashboard
+* `/students/` - Student List
+* `/students/add/` - Add Student
+* `/students/<id>/` - Student Details
+* `/students/<id>/edit/` - Edit Student
+* `/students/<id>/delete/` - Delete Student
 
-* Created Django project and `students` app.
-* Configured URL routing.
-* Created Home and About pages.
-* Created a Home template.
-* Passed company name from the view to the template.
-* Displayed the training program message.
+## Authentication
 
-### Django Models and Admin
+Django built-in authentication is used for registration, login and logout.
 
-* Created the `Student` model.
-* Added student fields including name, email, age, course, marks, joined date, and active status.
-* Created and applied database migrations.
-* Registered the Student model in Django Admin.
-* Created and tested a Django Admin superuser.
-* Added and managed student records through Django Admin.
-* Verified that the Student model migration works successfully on a fresh database.
-* Verified that the Student model appears correctly in Django Admin.
+Dashboard and student management pages are protected using `login_required`.
 
-### Student List
+## Models & Relationships
 
-* Created the Student List page.
-* Displayed total student count.
-* Displayed active student count.
-* Implemented Pass/Fail result based on marks.
-* Added active/inactive status display.
-* Added navigation between Student List and Add Student pages.
+The project contains:
 
-### Student Form
+* **Department**
+* **Course**
+* **Student**
+* **StudentProfile**
 
-* Created a `StudentForm` using Django ModelForm.
-* Added form validation for:
+Relationships:
 
-  * Name
-  * Email
-  * Age
-  * Course
-  * Marks
-* Added CSRF protection.
-* Added success message after successfully adding a student.
-* Tested valid and invalid form inputs.
-* Tested boundary marks such as 0, 40, and 100.
+* Department → Student: `ForeignKey`
+* Student ↔ Course: `ManyToManyField`
+* Student → StudentProfile: `OneToOneField`
 
-## Problems Faced
+## Features
 
-* Faced migration-related issues while setting up and modifying the Student model.
-* Verified the migration process on a fresh database to ensure the model can be created correctly.
-* Tested the Django Admin panel after fresh migration.
-* Configured form validation and tested different invalid and boundary inputs.
+* Student CRUD operations
+* Dashboard statistics
+* Search by name, email and course
+* Department and course filtering
+* Active/Inactive filtering
+* Pass/Fail filtering
+* Student form validation
+* Django messages
+* Template inheritance
+* Business logic separated into `services.py`
 
-## Topics Learned
+## ORM Queries
 
-* Django project and app structure
-* URL routing
-* Views
-* Templates
-* Django Models
-* Database migrations
-* Django ORM basics
-* Django Admin
-* ModelForm
-* Form validation
-* CSRF protection
-* GET and POST requests
-* Django messages framework
-* Redirects
-* Fresh database migration testing
+Django ORM is used for:
 
-## Pending Work
+* CRUD operations
+* Filtering and searching
+* `Q` queries
+* `Avg()` and `Max()`
+* Counting records
+* Relationship queries
+* Recently joined students
 
-* Final Git commit and submission.
-* Push the completed work to the assigned GitHub branch.
+Detailed queries are available in `orm_queries.md`.
+
+## Testing
+
+The project contains **20 automated tests** covering CRUD, authentication, dashboard, search, filters, relationships and form validation.
+
+Run tests:
+
+```bash
+python manage.py test students
+```
+
+Result:
+
+```text
+Ran 20 tests
+
+OK
+```
+
+## Problems Faced & Topics Learned
+
+Practiced Django models, relationships, migrations, ORM, ModelForms, authentication, CRUD, search/filtering, template inheritance, service layer, Django messages and automated testing.
 
 ## Git Commit ID
 
-`fd35c59.`
+Final commit ID will be added after the final changes are committed and pushed.
+
+## Pending Work
+
+* Add final commit ID to README
