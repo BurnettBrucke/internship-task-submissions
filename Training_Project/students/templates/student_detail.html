@@ -1,370 +1,401 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
+{% block title %}Student Details | Student Training Portal{% endblock %}
 
-    <title>Student Details</title>
+{% block content %}
 
-    <style>
+<style>
+    .detail-container {
+        max-width: 1000px;
+        margin: 40px auto;
+    }
 
-        * {
-            box-sizing: border-box;
+    .detail-header {
+        background: linear-gradient(135deg, #2563eb, #60a5fa);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+    }
+
+    .detail-header h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+    }
+
+    .detail-header p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .student-card {
+        background: white;
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .student-title {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .student-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .student-title h2 {
+        margin: 0 0 5px;
+        color: #1e3a8a;
+    }
+
+    .student-title p {
+        margin: 0;
+        color: #64748b;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .detail-item {
+        background: #f8fafc;
+        padding: 18px;
+        border-radius: 12px;
+        border-left: 4px solid #60a5fa;
+    }
+
+    .detail-label {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .detail-value {
+        font-size: 17px;
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .pass {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .fail {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        text-decoration: none;
+        padding: 11px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-back {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .btn-edit {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    .section-title {
+        color: #1e3a8a;
+        margin-bottom: 20px;
+        font-size: 22px;
+    }
+
+    .no-data {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 10px;
+        color: #64748b;
+        text-align: center;
+    }
+
+    @media (max-width: 700px) {
+        .details-grid {
+            grid-template-columns: 1fr;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #eef2ff, #f8f9fa);
-            min-height: 100vh;
+        .detail-container {
+            margin: 20px 10px;
         }
 
-        .container {
-            width: 90%;
-            max-width: 700px;
-            margin: auto;
-            background-color: white;
-            padding: 35px;
-            border-radius: 18px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.10);
+        .student-card {
+            padding: 20px;
         }
 
-        /* Header */
-
-        .header {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-            padding: 25px;
-            border-radius: 14px;
-            text-align: center;
-            margin-bottom: 25px;
+        .student-title {
+            flex-direction: column;
+            align-items: flex-start;
         }
+    }
+</style>
 
-        .header h1 {
-            margin: 0;
-            font-size: 30px;
-        }
+<div class="detail-container">
 
-        .header p {
-            margin: 8px 0 0;
-            opacity: 0.9;
-        }
+    <!-- Page Header -->
+    <div class="detail-header">
+        <h1>Student Details</h1>
+        <p>View complete information about the student</p>
+    </div>
 
-        /* Student Details */
+    <!-- Student Information -->
+    <div class="student-card">
 
-        .details {
-            margin-top: 20px;
-        }
+        <div class="student-title">
 
-        .detail {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 10px;
-            background-color: #f8f9ff;
-            border-radius: 8px;
-            border-left: 4px solid #4f46e5;
-        }
+            <div class="student-avatar">
+                {{ student.name|first|upper }}
+            </div>
 
-        .detail strong {
-            color: #444;
-            width: 150px;
-        }
+            <div>
+                <h2>{{ student.name }}</h2>
+                <p>{{ student.email }}</p>
+            </div>
 
-        .detail span {
-            color: #222;
-            font-weight: 500;
-            text-align: right;
-            flex: 1;
-        }
+        </div>
 
-        /* Status */
+        <div class="details-grid">
 
-        .status {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-        }
+            <!-- Name -->
+            <div class="detail-item">
+                <div class="detail-label">Full Name</div>
+                <div class="detail-value">
+                    {{ student.name }}
+                </div>
+            </div>
 
-        .active {
-            background-color: #dcfce7;
-            color: #15803d;
-        }
+            <!-- Email -->
+            <div class="detail-item">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">
+                    {{ student.email }}
+                </div>
+            </div>
 
-        .inactive {
-            background-color: #f3f4f6;
-            color: #6b7280;
-        }
+            <!-- Age -->
+            <div class="detail-item">
+                <div class="detail-label">Age</div>
+                <div class="detail-value">
+                    {{ student.age }} years
+                </div>
+            </div>
 
-        .pass {
-            background-color: #dcfce7;
-            color: #15803d;
-        }
+            <!-- Course -->
+            <div class="detail-item">
+                <div class="detail-label">Course</div>
+                <div class="detail-value">
+                    {{ student.course }}
+                </div>
+            </div>
 
-        .fail {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
+            <!-- Department -->
+            <div class="detail-item">
+                <div class="detail-label">Department</div>
+                <div class="detail-value">
 
-        /* Buttons */
+                    {% if student.department %}
+                        {{ student.department.name }}
+                    {% else %}
+                        Not Assigned
+                    {% endif %}
 
-        .buttons {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
+                </div>
+            </div>
 
-        .button {
-            display: inline-block;
-            padding: 11px 20px;
-            margin: 5px;
-            text-decoration: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+            <!-- Marks -->
+            <div class="detail-item">
+                <div class="detail-label">Marks</div>
+                <div class="detail-value">
+                    {{ student.marks }} / 100
+                </div>
+            </div>
 
-        .button:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
+            <!-- Result -->
+            <div class="detail-item">
+                <div class="detail-label">Result</div>
+                <div class="detail-value">
 
-        .back {
-            background-color: #2563eb;
-        }
+                    {% if student.marks >= 40 %}
+                        <span class="status-badge pass">
+                            Pass
+                        </span>
+                    {% else %}
+                        <span class="status-badge fail">
+                            Fail
+                        </span>
+                    {% endif %}
 
-        .edit {
-            background-color: #f59e0b;
-        }
+                </div>
+            </div>
 
-        .delete {
-            background-color: #dc2626;
-        }
+            <!-- Active Status -->
+            <div class="detail-item">
+                <div class="detail-label">Status</div>
+                <div class="detail-value">
 
-        /* Responsive */
+                    {% if student.active %}
+                        <span class="status-badge active">
+                            Active
+                        </span>
+                    {% else %}
+                        <span class="status-badge inactive">
+                            Inactive
+                        </span>
+                    {% endif %}
 
-        @media (max-width: 600px) {
+                </div>
+            </div>
 
-            .container {
-                width: 95%;
-                padding: 20px;
-            }
+            <!-- Joined Date -->
+            <div class="detail-item">
+                <div class="detail-label">Joined Date</div>
+                <div class="detail-value">
+                    {{ student.joined_date }}
+                </div>
+            </div>
 
-            .detail {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-            }
+            <!-- Course Count -->
+            <div class="detail-item">
+                <div class="detail-label">Total Courses</div>
+                <div class="detail-value">
+                    {{ student.courses.count }}
+                </div>
+            </div>
 
-            .detail strong {
-                width: auto;
-            }
+        </div>
 
-            .detail span {
-                text-align: left;
-            }
+        <!-- Action Buttons -->
+        <div class="action-buttons">
 
-        }
+            <a href="{% url 'student_list' %}" class="btn btn-back">
+                ← Back to Students
+            </a>
 
-    </style>
+            <a href="{% url 'edit_student' student.id %}" class="btn btn-edit">
+                Edit Student
+            </a>
 
-</head>
+            <a href="{% url 'delete_student' student.id %}" class="btn btn-delete">
+                Delete Student
+            </a>
 
-
-<body>
-
-
-<div class="container">
-
-
-    <!-- Header -->
-
-    <div class="header">
-
-        <h1>🎓 Student Details</h1>
-
-        <p>Complete information about the student</p>
+        </div>
 
     </div>
 
+    <!-- Enrolled Courses -->
+    <div class="student-card">
 
-    <!-- Student Details -->
+        <h2 class="section-title">Enrolled Courses</h2>
 
-    <div class="details">
+        {% if student.courses.all %}
 
+            <div class="details-grid">
 
-        <div class="detail">
+                {% for course in student.courses.all %}
 
-            <strong>🆔 Student ID</strong>
+                    <div class="detail-item">
 
-            <span>
-                {{ student.id }}
-            </span>
+                        <div class="detail-label">
+                            Course Name
+                        </div>
 
-        </div>
+                        <div class="detail-value">
+                            {{ course.course_name }}
+                        </div>
 
+                        <div style="margin-top: 8px; color: #64748b;">
+                            <strong>Code:</strong> {{ course.code }}
+                        </div>
 
-        <div class="detail">
+                        <div style="margin-top: 5px; color: #64748b;">
+                            <strong>Duration:</strong> {{ course.duration }}
+                        </div>
 
-            <strong>👤 Name</strong>
+                    </div>
 
-            <span>
-                {{ student.name }}
-            </span>
+                {% empty %}
 
-        </div>
+                    <div class="no-data">
+                        No courses assigned to this student.
+                    </div>
 
+                {% endfor %}
 
-        <div class="detail">
+            </div>
 
-            <strong>📧 Email</strong>
+        {% else %}
 
-            <span>
-                {{ student.email }}
-            </span>
+            <div class="no-data">
+                No courses assigned to this student.
+            </div>
 
-        </div>
-
-
-        <div class="detail">
-
-            <strong>🎂 Age</strong>
-
-            <span>
-                {{ student.age }}
-            </span>
-
-        </div>
-
-
-        <div class="detail">
-
-            <strong>📚 Course</strong>
-
-            <span>
-                {{ student.course }}
-            </span>
-
-        </div>
-
-
-        <div class="detail">
-
-            <strong>📊 Marks</strong>
-
-            <span>
-                {{ student.marks }}
-            </span>
-
-        </div>
-
-
-        <div class="detail">
-
-            <strong>📅 Joined Date</strong>
-
-            <span>
-                {{ student.joined_date }}
-            </span>
-
-        </div>
-
-
-        <!-- Active / Inactive -->
-
-        <div class="detail">
-
-            <strong>🔘 Account Status</strong>
-
-            <span>
-
-                {% if student.active %}
-
-                    <span class="status active">
-                        ● Active
-                    </span>
-
-                {% else %}
-
-                    <span class="status inactive">
-                        ● Inactive
-                    </span>
-
-                {% endif %}
-
-            </span>
-
-        </div>
-
-
-        <!-- Pass / Fail -->
-
-        <div class="detail">
-
-            <strong>🏆 Result</strong>
-
-            <span>
-
-                {% if student.marks >= 40 %}
-
-                    <span class="status pass">
-                        ✓ Pass
-                    </span>
-
-                {% else %}
-
-                    <span class="status fail">
-                        ✕ Fail
-                    </span>
-
-                {% endif %}
-
-            </span>
-
-        </div>
-
+        {% endif %}
 
     </div>
-
-
-    <!-- Buttons -->
-
-    <div class="buttons">
-
-        <a href="{% url 'student_list' %}"
-           class="button back">
-
-            ← Back to List
-
-        </a>
-
-
-        <a href="{% url 'edit_student' student.id %}"
-           class="button edit">
-
-            ✏️ Edit Student
-
-        </a>
-
-
-        <a href="{% url 'delete_student' student.id %}"
-           class="button delete">
-
-            🗑️ Delete Student
-
-        </a>
-
-    </div>
-
 
 </div>
 
-
-</body>
-
-</html>
+{% endblock %}

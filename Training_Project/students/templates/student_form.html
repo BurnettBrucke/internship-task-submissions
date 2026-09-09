@@ -1,30 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-    <title>{{ title }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ title }} | Student Management Dashboard</title>
 
     <style>
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 40px 20px;
             background: linear-gradient(135deg, #eef2ff, #f8f9fa);
             min-height: 100vh;
+            padding: 35px 20px;
         }
 
         .container {
-            width: 90%;
+            width: 92%;
             max-width: 650px;
-            margin: auto;
+            margin: 0 auto;
+        }
+
+        /* Main Card */
+
+        .card {
             background: white;
-            padding: 35px;
+            padding: 30px;
             border-radius: 18px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.10);
         }
@@ -34,19 +43,20 @@
         .header {
             background: linear-gradient(135deg, #4f46e5, #7c3aed);
             color: white;
-            padding: 25px;
-            border-radius: 14px;
+            padding: 28px;
+            border-radius: 15px;
             text-align: center;
             margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
         }
 
         .header h1 {
-            margin: 0;
             font-size: 28px;
+            margin-bottom: 8px;
         }
 
         .header p {
-            margin: 8px 0 0;
+            font-size: 15px;
             opacity: 0.9;
         }
 
@@ -61,20 +71,25 @@
             font-weight: bold;
             color: #444;
             margin-bottom: 7px;
+            font-size: 14px;
         }
 
         input,
-        select {
+        select,
+        textarea {
             width: 100%;
-            padding: 11px;
+            padding: 11px 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 15px;
             outline: none;
+            background: white;
+            transition: 0.2s;
         }
 
         input:focus,
-        select:focus {
+        select:focus,
+        textarea:focus {
             border-color: #4f46e5;
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
@@ -86,7 +101,7 @@
 
         .errorlist {
             color: #dc2626;
-            font-size: 14px;
+            font-size: 13px;
             margin: 5px 0;
             padding-left: 20px;
         }
@@ -113,32 +128,49 @@
             transition: 0.2s;
         }
 
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+        }
+
         .submit {
             background: linear-gradient(135deg, #16a34a, #22c55e);
             color: white;
         }
 
         .back {
-            background-color: #2563eb;
+            background: #2563eb;
             color: white;
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
         }
 
         /* Responsive */
 
         @media (max-width: 600px) {
 
+            body {
+                padding: 20px 10px;
+            }
+
             .container {
                 width: 95%;
+            }
+
+            .card {
                 padding: 20px;
+            }
+
+            .header {
+                padding: 22px 15px;
             }
 
             .header h1 {
                 font-size: 24px;
+            }
+
+            .button {
+                display: block;
+                width: 100%;
+                margin: 8px 0;
             }
 
         }
@@ -147,58 +179,54 @@
 
 </head>
 
-
 <body>
 
+    <div class="container">
 
-<div class="container">
+        <div class="card">
 
+            <!-- Header -->
 
-    <!-- Header -->
+            <div class="header">
 
-    <div class="header">
+                <h1>🎓 {{ title }}</h1>
 
-        <h1>🎓 {{ title }}</h1>
+                <p>
+                    Enter student information below
+                </p>
 
-        <p>Enter student information below</p>
-
-    </div>
-
-
-    <!-- Student Form -->
-
-    <form method="POST">
-
-        {% csrf_token %}
-
-        {{ form.as_p }}
+            </div>
 
 
-        <!-- Buttons -->
+            <!-- Student Form -->
 
-        <div class="buttons">
+            <form method="POST">
 
-            <button type="submit" class="button submit">
+                {% csrf_token %}
 
-                ✓ Save Student
-
-            </button>
+                {{ form.as_p }}
 
 
-            <a href="{% url 'student_list' %}"
-               class="button back">
+                <!-- Buttons -->
 
-                ← Back to List
+                <div class="buttons">
 
-            </a>
+                    <button type="submit" class="button submit">
+                        ✓ Save Student
+                    </button>
+
+                    <a href="{% url 'student_list' %}"
+                       class="button back">
+                        ← Back to List
+                    </a>
+
+                </div>
+
+            </form>
 
         </div>
 
-    </form>
-
-
-</div>
-
+    </div>
 
 </body>
 
