@@ -13,5 +13,9 @@ urlpatterns = [
     path("students/add/" , views.add_student ,name= "add_students"),
     path("students/<int:id>/" , views.student_detail , name = "student_detail"),#
     path("students/<int:id>/edit/" , views.edit_student , name = "edit_student"),
-    path("students/<int:id>/delete/" , views.delete_student ,name = "delete_student" )
+    path("students/<int:id>/delete/" , views.delete_student ,name = "delete_student" ),
+    path("register/", views.register, name="register"),
+    path("login/" , views.login_backend , name = "login"),
+    path("logout/", views.logout_backend, name="logout"),
+    path("dashboard/", views.dashboard, name="dashboard"),
 ]
