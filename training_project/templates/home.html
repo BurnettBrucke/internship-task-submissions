@@ -11,7 +11,11 @@ Home
 <div class="card">
 
     <h1>
-        Welcome to {{ company_name }}
+        {% if user.is_authenticated %}
+            Welcome {{ user.username }} to {{ company_name }}
+        {% else %}
+            Welcome to {{ company_name }}
+        {% endif %}
     </h1>
 
     <p>
@@ -25,9 +29,22 @@ Home
 
     <br>
 
-    <a class="button" href="{% url 'students_list' %}">
-        View Students
-    </a>
+    {% if user.is_authenticated %}
+
+        <a class="button" href="{% url 'students_list' %}">
+            View Students
+        </a>
+        <a class="button" href="{% url 'dashboard' %}"> 
+            Dashboard
+        </a>
+
+    {% else %}
+
+        <a class="button" href="{% url 'login' %}">
+            Login
+        </a>
+
+    {% endif %}
 
 </div>
 

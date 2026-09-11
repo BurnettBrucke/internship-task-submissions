@@ -59,10 +59,12 @@
     <a href="{% url 'edit_student' student.id %}" class="button">
         Edit Student
     </a>
+    {% if user.is_staff %}
 
     <a href="{% url 'delete_student' student.id %}" class="button">
         Delete Student
     </a>
+    {% endif %}
 
     <a href="{% url 'students_list' %}" class="button">
         Back to Students

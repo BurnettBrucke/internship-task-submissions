@@ -65,8 +65,138 @@ Students
 
 <br>
 <br>
+<div class="filter-card">
+
+    <form method="GET" class="filter-form">
+
+        <!-- Search -->
+        <div class="search-group">
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search name, email or course"
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </div>
 
 
+        <!-- Department -->
+        <select name="department">
+
+            <option value="">
+                All Departments
+            </option>
+
+            {% for department_item in departments %}
+
+                <option
+                    value="{{ department_item.id }}"
+                    {% if department == department_item.id|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ department_item.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <!-- Course -->
+        <select name="course">
+
+            <option value="">
+                All Courses
+            </option>
+
+            {% for course_item in courses %}
+
+                <option
+                    value="{{ course_item.id }}"
+                    {% if course == course_item.id|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ course_item.course_name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <!-- Activity -->
+        <select name="status">
+
+            <option value="">
+                All Activity
+            </option>
+
+            <option
+                value="active"
+                {% if status == "active" %}selected{% endif %}
+            >
+                Active
+            </option>
+
+            <option
+                value="inactive"
+                {% if status == "inactive" %}selected{% endif %}
+            >
+                Inactive
+            </option>
+
+        </select>
+
+
+        <!-- Result -->
+        <select name="result">
+
+            <option value="">
+                All Results
+            </option>
+
+            <option
+                value="pass"
+                {% if result == "pass" %}selected{% endif %}
+            >
+                Pass
+            </option>
+
+            <option
+                value="fail"
+                {% if result == "fail" %}selected{% endif %}
+            >
+                Fail
+            </option>
+
+        </select>
+
+
+        <!-- Apply -->
+        <button type="submit">
+            Apply Filters
+        </button>
+
+
+        <!-- Clear -->
+        <a
+            href="{% url 'students_list' %}"
+            class="button"
+        >
+            Clear
+        </a>
+
+    </form>
+
+</div>
 <!-- Student table -->
 
 <table>
@@ -77,6 +207,7 @@ Students
         <th>Email</th>
         <th>Age</th>
         <th>Course</th>
+        <th>Couese Count</th>
         <th>Marks</th>
         <th>Joined Date</th>
         <th>Active</th>
@@ -109,12 +240,16 @@ Students
                 No courses
             {% endfor %}
         </td>
+        <td>
+           {{ student.course_count }}
 
+        </td>
         <td>
             {{ student.marks }}
         </td>
 
         <td>
+
             {{ student.joined_date }}
         </td>
 
@@ -152,6 +287,7 @@ Students
             <a href="{% url 'student_detail' student.id %}" class="view-btn">
                 View
             </a> 
+        </td>
 
     </tr>
 
@@ -160,7 +296,7 @@ Students
 
     <tr>
 
-        <td colspan="8">
+        <td colspan="11">
             No students found.
         </td>
 
