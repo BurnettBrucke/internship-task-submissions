@@ -375,65 +375,65 @@ Use select_related() and prefetch_related() for related student data.
 
 #### ORM Query for select_related()
 
-## >>> students = Student.objects.select_related("department")
-## >>> 
-## >>> for student in students:
-## ...     print(student.name, student.department.name)
+### >>> students = Student.objects.select_related("department")
+### >>> 
+### >>> for student in students:
+### ...     print(student.name, student.department.name)
 
 
 
 Output of select_realted()
 
-## Mayank Joshi Information Technology
-## Aditya Singh Lodhi Computer Science
-## Madhur Virli Information Technology
-## Mahima Rana Information Technology
-## Naman Barde Management                 
-## Sachin Prajapat Management
-## Sneha Joshi Computer Science
-## Kaushal kashdoriya Lifelong Learning
-## Raj Rathod Management
-## Shubham Sharma Mechanical Engineering
-## Shubham vyas Lifelong Learning
+### Mayank Joshi Information Technology
+### Aditya Singh Lodhi Computer Science
+### Madhur Virli Information Technology
+### Mahima Rana Information Technology
+### Naman Barde Management                 
+### Sachin Prajapat Management
+### Sneha Joshi Computer Science
+### Kaushal kashdoriya Lifelong Learning
+### Raj Rathod Management
+### Shubham Sharma Mechanical Engineering
+### Shubham vyas Lifelong Learning
 
 #### ORM Query for perfetch_related()
 
-## >>> students = Student.objects.prefetch_related("course")
-## >>> for student in students:
-## ...     print(student.name)
-## ...     for course in student.course.all():
-## ...         print(course.course_name)
+### >>> students = Student.objects.prefetch_related("course")
+### >>> for student in students:
+### ...     print(student.name)
+### ...     for course in student.course.all():
+### ...         print(course.course_name)
 
 Ouput of  perfetch_related()
 
-## Mayank Joshi
-## AI&DS
-## Aditya Singh Lodhi
-## Python Developer
-## Madhur Virli
-## Django
-## AI&DS
-## Mahima Rana
-## AI&DS
-## SQL
-## Naman Barde
-## Java
-## Sachin Prajapat
-## Web Development
-## Sneha Joshi
-## Python Developer
-## AI&DS
-## SQL
-## Kaushal kashdoriya
-## Django
-## Java
-## Raj Rathod
-## AI&DS
-## Shubham Sharma
-## AI&DS
-## Web Development
-## Shubham vyas
-## Web Development
+### Mayank Joshi
+### AI&DS
+### Aditya Singh Lodhi
+### Python Developer
+### Madhur Virli
+### Django
+### AI&DS
+### Mahima Rana
+### AI&DS
+### SQL
+### Naman Barde
+### Java
+### Sachin Prajapat
+### Web Development
+### Sneha Joshi
+### Python Developer
+### AI&DS
+### SQL
+### Kaushal kashdoriya
+### Django
+### Java
+### Raj Rathod
+### AI&DS
+### Shubham Sharma
+### AI&DS
+### Web Development
+### Shubham vyas
+### Web Development
 
 
 Short Explanation
