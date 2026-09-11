@@ -1,175 +1,270 @@
-from django.http import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Count, Avg, Max, Q
-from . models import Student, Department, Course, StudentProfile
-from . forms import StudentForm, RegisterForm
+from django.shortcuts import render , redirect , get_object_or_404
+from django.http import HttpResponse 
+from .form import StudentForm
+from .models import Student , Department , Course , StudentProfile
 from django.contrib import messages
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm
+from .services import send_mail
+from django.contrib.auth.models import User
+from django.contrib.auth import login , authenticate , logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
-
-
-def register(request):
-    if request.method == "POST":
-        form = RegisterForm(request.POST)
-
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Registration successful.")
-            return redirect("student_list")
-    else:
-        form = RegisterForm()
-    return render(request, "registration/register.html", {"form": form})
-
-
-def user_login(request):
-    if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
-
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, "Login successful.")
-            return redirect("student_list")
-    else:
-        form = AuthenticationForm()
-    return render(request, "registration/login.html", {"form": form})
-
-
-def user_logout(request):
-    logout(request)
-    messages.success(request, "Logged out successfully.")
-    return redirect("login")
-
+from django.core.paginator import Paginator
+from django.db.models import Avg , Max , Q , Count
+# Create your views here.
 
 def home(request):
-    welcome_msg = 'Welcome to Bug Network Private Limited Training Program'
-    context = {'welcome msg': welcome_msg}
-    return render(request, 'students/home.html', context)
+    context = {'company_name' : "Bug Network private Limited"}
+    return render(request ,"home.html" , context) 
 
 def about(request):
-    message = 'Welcome to the About Page'
-    context = {'welcome msg': message}
-    return HttpResponse('This is About Page', context)
-
+    return render(request , "about.html")
 
 @login_required
 def student_list(request):
-    active_students = Student.objects.filter(active_status=True)
-    total_students = Student.objects.all().count()    
 
-    students = Student.objects.select_related("department").prefetch_related("course").annotate(course_count=Count("course"))
+    students = Student.objects.all()
 
+    # Search
+    search = request.GET.get("search", "").strip()
+
+    if search:
+        students = students.filter(
+            Q(name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(course__course_name__icontains=search)
+        )
+
+    # Department filter
     department = request.GET.get("department")
+
     if department:
-        students = students.filter(department__id=department)
+        students = students.filter(
+            department_id=department
+        )
 
-
+    # Course filter
     course = request.GET.get("course")
+
     if course:
-        students = students.filter(course__id=course)
+        students = students.filter(
+            course__id=course
+        )
 
-
-    active = request.GET.get("active_status")
-    if active != "" and active is not None:
-        students = students.filter(active_status=(active == "True"))
-
-
+    # Activity filter
     status = request.GET.get("status")
-    if status == "pass":
+
+    if status == "active":
+        students = students.filter(active=True)
+
+    elif status == "inactive":
+        students = students.filter(active=False)
+
+    # Pass / Fail filter
+    result = request.GET.get("result")
+
+    if result == "pass":
         students = students.filter(marks__gte=40)
 
-    elif status == "fail":
+    elif result == "fail":
         students = students.filter(marks__lt=40)
 
+    # Remove duplicates from ManyToMany filtering
+    students = students.distinct()
 
-    search = request.GET.get("search")
-    if search:
-        students = students.filter(Q(name__icontains=search) | Q(email__icontains=search) |
-            Q(courses__course_name__icontains=search)).distinct()
+    # Course count
+    students = students.annotate(
+        course_count=Count("course", distinct=True)
+    )
 
-    context = {
-        "students": students,
-        "departments": Department.objects.all(),
-        "courses": Course.objects.all(),
-        "active_students": active_students,
-        "total_students": total_students
-    }
-    return render(request,"students/student_list.html",context,)
+    # Statistics
+    total_students = students.count()
 
- 
-# Display one student
+    active_students = students.filter(active=True).count()
+
+    # Dropdown data
+    departments = Department.objects.all()
+
+    courses = Course.objects.all()
+
+    return render(
+        request,
+        "student_list.html",
+        {
+            "search": search,
+            "department": department,
+            "course": course,
+            "status": status,
+            "result": result,
+
+            "departments": departments,
+            "courses": courses,
+
+            "students": students,
+
+            "total_students": total_students,
+            "active_students": active_students,
+        }
+    )
 @login_required
-def student_detail(request, id):
-    student = get_object_or_404(Student, pk=id)
-    return render(request,"students/student_detail.html",{"student": student})
- 
-# Add student
-@login_required
-def student_add(request):
+def add_student(request):
+
     if request.method == "POST":
         form = StudentForm(request.POST)
+
         if form.is_valid():
-            form.save()
-            messages.success(request, "Student added successfully.")
-            return redirect("student_list")
+            student = form.save()
+            send_mail(student)
+
+            messages.success(
+                request , 
+                "Student added sucessfully."
+            )
+
+            return redirect("students_list")
+
     else:
         form = StudentForm()
+    return render(
+    request,
+    "add_student.html",
+    {"form": form}
 
-    return render(request, "students/student_form.html", {"form": form})
-
+)
 
 @login_required
-def student_edit(request, id):
-    student = get_object_or_404(Student, pk=id)
+def student_detail(request , id):
+    student = get_object_or_404(Student , id = id)
+    return render(
+        request , 
+        "student_detail.html",
+        {
+            "student" : student
+        }
+    )
+@login_required
+def edit_student(request, id):
+    student = get_object_or_404(Student, id=id)
 
     if request.method == "POST":
         form = StudentForm(request.POST, instance=student)
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Student updated successfully.")
-            return redirect("student_list")
+
+            messages.success(
+                request,
+                "Student updated successfully."
+            )
+
+            return redirect("student_detail", id=student.id) # type: ignore
+
     else:
         form = StudentForm(instance=student)
-    return render(request, "students/student_form.html", {"form": form})
 
+    return render(
+        request,
+        "edit_student.html",
+        {
+            "form": form,
+            "student": student
+        }
+    )
 
-def is_staff(user):
-    return user.is_staff
-
-
-@user_passes_test(is_staff)
 @login_required
-def student_delete(request, id):
-    student = get_object_or_404(Student, pk=id)
+def delete_student(request , id):
+    if not request.user.is_staff:
+        messages.error(
+            request,
+            "You do not have permission to delete students."
+        )
+        return redirect("students_list")
 
+    student = get_object_or_404(Student , id = id)
     if request.method == "POST":
         student.delete()
-        messages.success(request, "Student deleted successfully.")
-        return redirect("student_list")
+        messages.success(request , "Student delete successfully.")
 
-    return render(request, "students/student_confirm_delete.html",{"student": student})
+        return redirect("students_list")
 
+    return render(
+        request , "student_confirm_delete.html" , {"student" : student}
+    )
 
+def register(request):
+    if request.method =="POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        if not username or not password:
+            messages.error(request , "Username & Password is requried.")
+            return redirect("register")
+
+        if User.objects.filter(username=username).exists():
+                messages.error(request, "Username already exists please try to login.")
+                return redirect("register")
+
+        User.objects.create_user(
+            username = username,
+            password = password
+        )
+
+        messages.success(request, "Account created successfully.")
+        return redirect("login")
+
+    return render(request, "register.html")
+
+def login_backend(request):
+    if request.method =="POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request , username= username , password= password)
+
+        if user is not None:
+            login(request , user)
+            messages.success(request , "Login successful.")
+            return redirect("home")
+        
+        messages.error(request,"You don't have id please register.")
+
+    return render(request, "login.html")
+
+def logout_backend(request):
+    logout(request)
+
+    messages.success(
+        request,
+        "You have been logged out successfully."
+    )
+
+    return redirect("login")
+
+@login_required
 def dashboard(request):
-    context = {
-        "total_students": Student.objects.count(),
 
-        "active_students":Student.objects.filter(active_status=True).count(),
+    total_students = Student.objects.count()
 
-        "total_departments":Department.objects.count(),
+    active_students = Student.objects.filter(active = True).count()
 
-        "total_courses":Course.objects.count(),
+    total_departments = Department.objects.count()
 
-        "average_marks":Student.objects.aggregate(Avg("marks"))["marks__avg"],
+    total_courses = Course.objects.count()
 
-        "highest_student":Student.objects.order_by("-marks").first(),
+    average_marks = Student.objects.aggregate(average_marks = Avg("marks"))["average_marks"]
 
-        "recent_students":Student.objects.order_by("-joined_date")[:5],
-    }
+    highest_students = Student.objects.order_by("-marks")[:3]
 
-    return render(request,"students/dashboard.html",context,)
+    recent_students =  Student.objects.order_by("-joined_date")[:3] 
+    return render(
+        request,
+        "dashboard.html",
+        {
+            "total_students": total_students,
+            "active_students": active_students,
+            "total_departments": total_departments,
+            "total_courses": total_courses,
+            "average_marks": average_marks,
+            "highest_students": highest_students,
+            "recent_students": recent_students,
+        }
+    )
 

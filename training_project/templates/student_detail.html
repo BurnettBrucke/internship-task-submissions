@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Student Details
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h1>{{ student.name }}</h1>
+
+    <p>
+        <strong>Email:</strong>
+        {{ student.email }}
+    </p>
+
+    <p>
+        <strong>Age:</strong>
+        {{ student.age }}
+    </p>
+
+    <p>
+        <strong>Marks:</strong>
+        {{ student.marks }}
+    </p>
+
+    <p>
+        <strong>Status:</strong>
+
+        {% if student.active %}
+            <span class="pass">Active</span>
+        {% else %}
+            <span class="fail">Inactive</span>
+        {% endif %}
+
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <h2>Result</h2>
+
+    {% if student.marks >= 40 %}
+        <p class="pass">PASS</p>
+    {% else %}
+        <p class="fail">FAIL</p>
+    {% endif %}
+
+</div>
+
+
+<div class="card">
+
+    <h2>Actions</h2>
+
+    <a href="{% url 'edit_student' student.id %}" class="button">
+        Edit Student
+    </a>
+    {% if user.is_staff %}
+
+    <a href="{% url 'delete_student' student.id %}" class="button">
+        Delete Student
+    </a>
+    {% endif %}
+
+    <a href="{% url 'students_list' %}" class="button">
+        Back to Students
+    </a>
+
+</div>
+
+{% endblock %}

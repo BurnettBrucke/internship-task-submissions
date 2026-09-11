@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Dashboard
+{% endblock %}
+
+{% block content %}
+
+<!-- Dashboard Header -->
+
+<div class="dashboard-header">
+
+    <h1>Student Training Portal</h1>
+
+    <p>
+        Overview of students, departments, courses and performance.
+    </p>
+
+</div>
+
+
+<!-- Main Statistics -->
+
+<div class="dashboard-stats">
+
+    <div class="dashboard-stat-card">
+        <h3>Total Students</h3>
+        <div class="dashboard-stat-number">
+            {{ total_students }}
+        </div>
+        <p>Registered students</p>
+    </div>
+
+
+    <div class="dashboard-stat-card">
+        <h3>Active Students</h3>
+        <div class="dashboard-stat-number">
+            {{ active_students }}
+        </div>
+        <p>Currently active</p>
+    </div>
+
+
+    <div class="dashboard-stat-card">
+        <h3>Departments</h3>
+        <div class="dashboard-stat-number">
+            {{ total_departments }}
+        </div>
+        <p>Available departments</p>
+    </div>
+
+
+    <div class="dashboard-stat-card">
+        <h3>Courses</h3>
+        <div class="dashboard-stat-number">
+            {{ total_courses }}
+        </div>
+        <p>Available courses</p>
+    </div>
+
+</div>
+
+
+<!-- Performance + Top Students -->
+
+<div class="dashboard-grid">
+
+
+    <!-- Performance -->
+
+    <div class="dashboard-panel performance-panel">
+
+        <h2>Performance Overview</h2>
+
+        <div class="average-section">
+
+            <p>Average Marks</p>
+
+            <div class="average-marks">
+                {{ average_marks|floatformat:1 }}
+            </div>
+
+            <span>
+                Overall student performance
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Top Students -->
+
+    <div class="dashboard-panel">
+
+        <h2>Top 3 Highest-Scoring Students</h2>
+
+        {% if highest_students %}
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Marks</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for student in highest_students %}
+
+                        <tr>
+
+                            <td>
+                                <strong>{{ forloop.counter }}</strong>
+                            </td>
+
+                            <td>
+                                {{ student.name }}
+                            </td>
+
+                            <td>
+                                <strong>{{ student.marks }}</strong>
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <p class="empty-message">
+                No student records found.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- Recently Joined -->
+
+<div class="dashboard-panel recent-panel">
+
+    <div class="panel-heading">
+
+        <div>
+            <h2>Recently Joined Students</h2>
+
+            <p>
+                The three most recently added students.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'students_list' %}"
+            class="button"
+        >
+            View All Students
+        </a>
+
+    </div>
+
+
+    {% if recent_students %}
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Joined Date</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for student in recent_students %}
+
+                    <tr>
+
+                        <td>
+                            {{ student.name }}
+                        </td>
+
+                        <td>
+                            {{ student.email }}
+                        </td>
+
+                        <td>
+                            {{ student.department }}
+                        </td>
+
+                        <td>
+                            {{ student.joined_date }}
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <p class="empty-message">
+            No recently joined students found.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

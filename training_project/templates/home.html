@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Home
+{% endblock %}
+
+
+{% block content %}
+
+<div class="card">
+
+    <h1>
+        {% if user.is_authenticated %}
+            Welcome {{ user.username }} to {{ company_name }}
+        {% else %}
+            Welcome to {{ company_name }}
+        {% endif %}
+    </h1>
+
+    <p>
+        Python and Django Training Program
+    </p>
+
+    <p>
+        This application is used to manage student information,
+        courses, marks and active student records.
+    </p>
+
+    <br>
+
+    {% if user.is_authenticated %}
+
+        <a class="button" href="{% url 'students_list' %}">
+            View Students
+        </a>
+        <a class="button" href="{% url 'dashboard' %}"> 
+            Dashboard
+        </a>
+
+    {% else %}
+
+        <a class="button" href="{% url 'login' %}">
+            Login
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
