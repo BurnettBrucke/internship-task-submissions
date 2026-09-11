@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import student
+from .models import student,department,StudentProfile,Course
 
 # Register your models here.
 
@@ -17,5 +17,15 @@ class StudentAdmin(admin.ModelAdmin):
         "active",
     )
 
-    list_filter = ("course", "active")
-    search_fields = ("name", "email", "course")
+
+@admin.register(department)
+class DepartmentAdmin(admin.ModelAdmin):
+    pass
+@admin.register(StudentProfile)
+class StudentProfileAdmin(admin.ModelAdmin):
+    pass
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    pass
+
+   

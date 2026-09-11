@@ -86,13 +86,43 @@
 </head>
 
 <body>
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <p>{{ message }}</p>
+
+        {% endfor %}
+
+    {% endif %}
 
     <!-- Common Navbar -->
     <nav>
+       
         <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'dashboard'%}">Dashboard</a>
         <a href="{% url 'about' %}">About</a>
-        <a href="{% url 'student_list' %}">Students</a>
-        <a href="{% url 'add_student' %}">Add Student</a>
+
+        {% if user.is_authenticated %}
+
+            <a href="{% url 'student_list' %}">Students</a>
+            <a href="{% url 'add_student' %}">Add Student</a>
+            <a href="{% url 'logout' %}">Logout</a>
+
+            <span style="color: white; margin-right: 15px;">
+                Welcome, {{ user.username }}
+            </span>
+
+
+        {% else %}
+
+            <a href="{% url 'login' %}">Login</a>
+
+            <a href="{% url 'register' %}">Register</a>
+
+        {% endif %}
+
+
     </nav>
 
 
@@ -106,3 +136,4 @@
 
 </body>
 </html>
+

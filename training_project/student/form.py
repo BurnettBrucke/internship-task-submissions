@@ -1,5 +1,26 @@
 from django import forms
-from .models import student
+from .models import student,UserProfile
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+# class RegisterForm(UserCreationForm):
+#     email=forms.EmailField(required=True)
+#     role=forms.ChoiceField(
+#         choices=[
+#             ("student","Student"),
+#             ("trainer","Trainer")
+#         ]
+#     )
+#     class Meta:
+#         model=User
+#         fields=[
+#             "username",
+#             "email",
+#             "password1",
+#             "password2",
+#             "role"
+#         ]
+        
 
 
 class StudentForm(forms.ModelForm):
@@ -13,6 +34,7 @@ class StudentForm(forms.ModelForm):
             "course",
             "marks",
             "active",
+            "department"
         ]
 
     def clean_name(self):

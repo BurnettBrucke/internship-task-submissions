@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Students
+{% endblock %}
+
+{% block content %}
+
+<h1>Students</h1>
+
+<table>
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Course</th>
+            <th>Department</th>
+            <th>Marks</th>
+            <th>Joined Date</th>
+            <th>Active</th>
+            <th>Result</th>
+        
+        </tr>
+    </thead>
+
+    <tbody>
+
+        
+
+        <tr>
+
+            <td>{{ students.name }}</td>
+
+            <td>{{ students.email }}</td>
+
+            <td>{{ students.age }}</td>
+
+            <td>{{ students.course }}</td>
+            
+            <td>{{ students.department}}</td>
+
+            <td>{{ students.marks }}</td>
+
+            <td>{{ students.joined_date }}</td>
+
+            <td>
+                {% if students.active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+            </td>
+
+            <td>
+                {% if students.marks >= 40 %}
+                    Pass
+                {% else %}
+                    Fail
+                {% endif %}
+            </td>
+                       
+        </tr>
+
+
+    </tbody>
+
+</table>
+
+
+{% endblock %}

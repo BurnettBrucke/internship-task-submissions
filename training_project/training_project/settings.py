@@ -51,6 +51,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "training_project.urls"
+LOGIN_URL = "login"
 
 TEMPLATES = [
     {

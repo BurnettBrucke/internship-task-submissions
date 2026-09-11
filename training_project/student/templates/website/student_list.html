@@ -18,6 +18,75 @@
     {% endfor %}
 {% endif %}
 
+<form method="GET">
+
+    <!-- Search -->
+    <input
+        type="text"
+        name="search"
+        placeholder="Search by name, email or course"
+        value="{{ search|default:'' }}"
+    >
+
+    <!-- Department -->
+    <select name="department">
+        <option value="">All Departments</option>
+
+        {% for dept in departments %}
+            <option value="{{ dept }}"
+                {% if selected_department == dept %}selected{% endif %}>
+                {{ dept }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <!-- Course -->
+    <select name="course">
+        <option value="">All Courses</option>
+
+        {% for c in courses %}
+            <option value="{{ c }}"
+                {% if selected_course == c %}selected{% endif %}>
+                {{ c }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <!-- Active Status -->
+    <select name="active">
+        <option value="">All Status</option>
+
+        <option value="active"
+            {% if selected_active == "active" %}selected{% endif %}>
+            Active
+        </option>
+
+        <option value="inactive"
+            {% if selected_active == "inactive" %}selected{% endif %}>
+            Inactive
+        </option>
+    </select>
+
+    <!-- Pass / Fail -->
+    <select name="status">
+        <option value="">All Results</option>
+
+        <option value="pass"
+            {% if selected_status == "pass" %}selected{% endif %}>
+            Pass
+        </option>
+
+        <option value="fail"
+            {% if selected_status == "fail" %}selected{% endif %}>
+            Fail
+        </option>
+    </select>
+
+    <button type="submit">Search / Filter</button>
+
+    <a href="{% url 'student_list' %}">Clear</a>
+
+</form>
 
 {% if students %}
 
@@ -29,10 +98,13 @@
             <th>Email</th>
             <th>Age</th>
             <th>Course</th>
+            <th>Department</th>
             <th>Marks</th>
             <th>Joined Date</th>
             <th>Active</th>
             <th>Result</th>
+            <th>Update</th>
+            <th>Delete</th>
         </tr>
     </thead>
 
@@ -42,13 +114,19 @@
 
         <tr>
 
-            <td>{{ student.name }}</td>
+            <td>
+                <a href="{% url 'single_student' student.id %}">
+                    {{ student.name }}
+                </a>
+            </td>
 
             <td>{{ student.email }}</td>
 
             <td>{{ student.age }}</td>
 
             <td>{{ student.course }}</td>
+
+            <td>{{ student.department }}</td>
 
             <td>{{ student.marks }}</td>
 
@@ -68,6 +146,32 @@
                 {% else %}
                     Fail
                 {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'update_student' student.id %}">
+                    <button type="button" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 25px; padding: 6px 14px; background: #22c55e; color: white; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: sans-serif; text-decoration: none; border: none; cursor: pointer;">
+                        <svg xmlns="http://w3.org" viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Edit
+                    </button>
+                    
+                    
+                </a>
+            </td>
+
+            <td>
+                <a href="{% url 'delete_student' student.id %}">
+                    <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-top: 25px; width: 78px; height: 32px; background: #ef4444; color: white; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: sans-serif; text-decoration: none; border: none; cursor: pointer;">
+                        <svg xmlns="http://w3.org" viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                        Delete
+                    </button>
+                    
+                    
+
+                </a>
             </td>
 
         </tr>
