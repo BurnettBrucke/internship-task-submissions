@@ -1,6 +1,23 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path
-
 from . import views
+from .views import (
+    home,
+    about,
+    register_user,
+    login_user,
+    logout_user,
+    dashboard,
+    admin_dashboard,
+    trainer_dashboard,
+    student_dashboard,
+    student_list,
+    student_detail,
+    add_student,
+    edit_student,
+    delete_student,
+    trainer_update_student,
+)
 
 
 urlpatterns = [
@@ -17,6 +34,14 @@ urlpatterns = [
 
     path('dashboard/', views.dashboard, name='dashboard'),
 
+    path('audit-logs/', views.audit_logs, name='audit_logs'),
+
+    path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
+
+    path('dashboard/trainer/', views.trainer_dashboard, name='trainer_dashboard'),
+
+    path('dashboard/student/', views.student_dashboard, name='student_dashboard'),
+
     # Student CRUD URLs
     path('students/', views.student_list, name='student_list'),
 
@@ -27,5 +52,20 @@ urlpatterns = [
     path('students/<int:id>/edit/', views.edit_student, name='edit_student'),
 
     path('students/<int:id>/delete/', views.delete_student, name='delete_student'),
+
+    path(
+        'password-change/',
+        auth_views.PasswordChangeView.as_view(
+            template_name='password_change.html',
+            success_url='/dashboard/'
+        ),
+        name='password_change'
+    ),
+
+    path(
+        'students/<int:id>/trainer-update/',
+        trainer_update_student,
+        name='trainer_update_student'
+    ),
 
 ]

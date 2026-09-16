@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}Trainer Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #0d47a1, #1976d2);
+        color: white;
+        border-radius: 18px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .dashboard-header h1 {
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header p {
+        margin-bottom: 0;
+        opacity: 0.9;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 16px;
+        padding: 22px;
+        background: white;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+        transition: 0.3s;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0d47a1;
+    }
+
+    .stat-title {
+        color: #6c757d;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-top: 25px;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #17365d;
+        margin-bottom: 20px;
+    }
+
+    .course-card {
+        border: 1px solid #e8edf5;
+        border-radius: 14px;
+        padding: 20px;
+        height: 100%;
+        transition: 0.3s;
+        background: #f8fbff;
+    }
+
+    .course-card:hover {
+        transform: translateY(-4px);
+        border-color: #90caf9;
+    }
+
+    .course-icon {
+        font-size: 30px;
+        margin-bottom: 10px;
+    }
+
+    .course-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0d47a1;
+    }
+
+    .course-info {
+        margin-top: 12px;
+        color: #555;
+    }
+
+    .student-table {
+        overflow-x: auto;
+    }
+
+    .student-table table {
+        min-width: 700px;
+    }
+
+    .student-table thead {
+        background: #0d47a1;
+        color: white;
+    }
+
+    .student-table th {
+        padding: 14px;
+        white-space: nowrap;
+    }
+
+    .student-table td {
+        padding: 14px;
+        vertical-align: middle;
+    }
+
+    .student-name {
+        font-weight: 600;
+        color: #17365d;
+    }
+
+    .marks {
+        font-weight: 700;
+    }
+
+    .progress {
+        height: 8px;
+        border-radius: 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 35px;
+        color: #6c757d;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 7px 14px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.18);
+        color: white;
+        font-weight: 600;
+        margin-top: 8px;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>👨‍🏫 Trainer Dashboard</h1>
+
+        <p>
+            Welcome,
+            <strong>{{ request.user.username }}</strong>
+        </p>
+
+        <span class="role-badge">
+            Trainer
+        </span>
+    </div>
+
+
+    <!-- Statistics -->
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+
+                <div class="stat-number">
+                    {{ assigned_courses|length }}
+                </div>
+
+                <div class="stat-title">
+                    Assigned Courses
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🎓</div>
+
+                <div class="stat-number">
+                    {{ assigned_students|length }}
+                </div>
+
+                <div class="stat-title">
+                    Assigned Students
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Assigned Courses -->
+    <div class="section-card">
+
+        <h3 class="section-title">
+            📚 My Assigned Courses
+        </h3>
+
+        {% if assigned_courses %}
+
+        <div class="row g-4">
+
+            {% for course in assigned_courses %}
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="course-card">
+
+                    <div class="course-icon">
+                        📖
+                    </div>
+
+                    <div class="course-name">
+                        {{ course.course_name }}
+                    </div>
+
+                    <span class="badge bg-success mt-2">
+                        {% if course.active %}
+                            Active
+                        {% else %}
+                            Inactive
+                        {% endif %}
+                    </span>
+
+                    <div class="course-info">
+
+                        <div>
+                            <strong>Code:</strong>
+                            {{ course.code }}
+                        </div>
+
+                        <div>
+                            <strong>Duration:</strong>
+                            {{ course.duration }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <div style="font-size: 40px;">📚</div>
+
+            <h5>No courses assigned</h5>
+
+            <p>
+                No course has been assigned to you yet.
+            </p>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- Students -->
+    <div class="section-card">
+
+        <h3 class="section-title">
+            👨‍🎓 My Students
+        </h3>
+
+        {% if assigned_students %}
+
+        <div class="student-table">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Marks</th>
+                        <th>Performance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for student in assigned_students %}
+
+                    <tr>
+
+                        <td class="student-name">
+                            {{ student.name }}
+                        </td>
+
+                        <td>
+                            {{ student.email }}
+                        </td>
+
+                        <td class="marks">
+                            {{ student.marks }}/100
+                        </td>
+
+                        <td style="min-width: 180px;">
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar
+                                    {% if student.marks >= 40 %}
+                                        bg-success
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %}"
+                                    style="width: {{ student.marks }}%;"
+                                >
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            {% if student.marks >= 40 %}
+
+                                <span class="badge bg-success px-3 py-2">
+                                    ✓ Pass
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger px-3 py-2">
+                                    ✕ Fail
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+
+            <div style="font-size: 40px;">
+                👨‍🎓
+            </div>
+
+            <h5>No students assigned</h5>
+
+            <p>
+                There are currently no students enrolled in your courses.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

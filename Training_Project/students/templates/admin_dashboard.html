@@ -137,6 +137,24 @@
             font-size: 13px;
         }
     }
+
+    .audit-btn {
+        display: inline-block;
+        background: #1565c0;
+        color: white;
+        text-decoration: none;
+        padding: 12px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+        transition: 0.2s ease;
+    }
+
+    .audit-btn:hover {
+        background: #0d47a1;
+        color: white;
+        transform: translateY(-1px);
+    }
 </style>
 
 
@@ -144,7 +162,7 @@
 
 <div class="dashboard-header">
 
-    <h1>Student Training Dashboard</h1>
+    <h1>Admin Dashboard</h1>
 
     <p>
         Welcome to the Student Training Portal.
@@ -152,6 +170,10 @@
     </p>
 
 </div>
+
+<a href="{% url 'audit_logs' %}" class="audit-btn">
+    View Audit Logs →
+</a>
 
 
 <!-- Statistics Cards -->

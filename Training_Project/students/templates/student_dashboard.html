@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- Welcome Section -->
+    <div class="mb-4">
+        <h2>Student Dashboard</h2>
+        <p class="text-muted">
+            Welcome, {{ request.user.username }}!
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">My Role</h6>
+                    <h4>
+                        <span class="badge bg-primary">
+                            {{ request.user.profile.role|title }}
+                        </span>
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Account Status</h6>
+                    {% if request.user.is_active %}
+                        <h4>
+                            <span class="badge bg-success">Active</span>
+                        </h4>
+                    {% else %}
+                        <h4>
+                            <span class="badge bg-danger">Inactive</span>
+                        </h4>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Course Performance</h6>
+                    <h4>{{ performance_percentage|default:0 }}%</h4>
+
+                    <div class="progress mt-2">
+                        <div
+                            class="progress-bar"
+                            role="progressbar"
+                            style="width: {{ performance_percentage|default:0 }}%;"
+                        >
+                            {{ performance_percentage|default:0 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Profile Completion -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <h5 class="card-title">Profile Completion</h5>
+
+            <div class="progress mt-3">
+                <div
+                    class="progress-bar bg-info"
+                    role="progressbar"
+                    style="width: {{ profile_completion|default:0 }}%;"
+                >
+                    {{ profile_completion|default:0 }}%
+                </div>
+            </div>
+
+            {% if profile_completion < 100 %}
+                <p class="text-muted mt-2">
+                    Complete your profile to keep your information updated.
+                </p>
+            {% else %}
+                <p class="text-success mt-2">
+                    Your profile is complete.
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    <!-- Student Information -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h5 class="card-title mb-3">My Information</h5>
+
+            {% if student %}
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+
+                    <tr>
+                        <th>Name</th>
+                        <td>{{ student.name }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Email</th>
+                        <td>{{ student.email }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Age</th>
+                        <td>{{ student.age }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Course</th>
+                        <td>{{ student.course }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Marks</th>
+                        <td>{{ student.marks }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            {% if student.active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Result</th>
+                        <td>
+                            {% if student.marks >= 40 %}
+                                <span class="badge bg-success">Pass</span>
+                            {% else %}
+                                <span class="badge bg-danger">Fail</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+
+            {% else %}
+
+                <div class="alert alert-info">
+                    No student record is linked with your account yet.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- My Courses -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h5 class="card-title mb-3">My Courses</h5>
+
+            {% if courses %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-striped">
+
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Code</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for course in courses %}
+
+                            <tr>
+                                <td>{{ course.course_name }}</td>
+                                <td>{{ course.code }}</td>
+                                <td>{{ course.duration }}</td>
+
+                                <td>
+                                    {% if course.active %}
+                                        <span class="badge bg-success">
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            Inactive
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="alert alert-info mb-0">
+                    No courses are assigned to you yet.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

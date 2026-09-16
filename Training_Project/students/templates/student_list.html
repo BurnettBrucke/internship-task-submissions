@@ -5,6 +5,7 @@
 {% block content %}
 
 <style>
+
     .student-page {
         width: 100%;
     }
@@ -422,7 +423,6 @@
         .filter-grid {
             grid-template-columns: repeat(2, 1fr);
         }
-
     }
 
     @media (max-width: 700px) {
@@ -452,8 +452,8 @@
         .page-header h1 {
             font-size: 25px;
         }
-
     }
+
 </style>
 
 
@@ -474,13 +474,17 @@
 
     <!-- ================= ADD STUDENT ================= -->
 
-    <div class="add-section">
+    {% if request.user.profile.role == 'admin' %}
 
-        <a href="{% url 'add_student' %}" class="add-student-btn">
-            ＋ Add Student
-        </a>
+        <div class="add-section">
 
-    </div>
+            <a href="{% url 'add_student' %}" class="add-student-btn">
+                ＋ Add Student
+            </a>
+
+        </div>
+
+    {% endif %}
 
 
     <!-- ================= STATISTICS ================= -->
@@ -524,8 +528,13 @@
             <span>🔎</span>
 
             <div>
+
                 <h3>Search & Filter</h3>
-                <span>Find students quickly using the options below</span>
+
+                <span>
+                    Find students quickly using the options below
+                </span>
+
             </div>
 
         </div>
@@ -722,6 +731,7 @@
             <div class="records-count">
 
                 {{ students|length }}
+
                 Student{{ students|length|pluralize }}
 
             </div>
@@ -780,11 +790,15 @@
                                 <div class="student-info">
 
                                     <div class="avatar">
+
                                         {{ student.name|first|upper }}
+
                                     </div>
 
                                     <span class="student-name">
+
                                         {{ student.name }}
+
                                     </span>
 
                                 </div>
@@ -826,7 +840,11 @@
                             <!-- Marks -->
 
                             <td>
-                                <strong>{{ student.marks }}</strong>
+
+                                <strong>
+                                    {{ student.marks }}
+                                </strong>
+
                             </td>
 
 
@@ -878,6 +896,8 @@
 
                                 <div class="actions">
 
+                                    <!-- Everyone can view -->
+
                                     <a
                                         href="{% url 'student_detail' student.id %}"
                                         class="action-btn view-btn"
@@ -885,19 +905,26 @@
                                         View
                                     </a>
 
-                                    <a
-                                        href="{% url 'edit_student' student.id %}"
-                                        class="action-btn edit-btn"
-                                    >
-                                        Edit
-                                    </a>
 
-                                    <a
-                                        href="{% url 'delete_student' student.id %}"
-                                        class="action-btn delete-btn"
-                                    >
-                                        Delete
-                                    </a>
+                                    <!-- Only Admin can edit and delete -->
+
+                                    {% if request.user.profile.role == 'admin' %}
+
+                                        <a
+                                            href="{% url 'edit_student' student.id %}"
+                                            class="action-btn edit-btn"
+                                        >
+                                            Edit
+                                        </a>
+
+                                        <a
+                                            href="{% url 'delete_student' student.id %}"
+                                            class="action-btn delete-btn"
+                                        >
+                                            Delete
+                                        </a>
+
+                                    {% endif %}
 
                                 </div>
 
@@ -921,7 +948,9 @@
                     📭
                 </div>
 
-                <h3>No Students Found</h3>
+                <h3>
+                    No Students Found
+                </h3>
 
                 <p>
                     No student records match your search or selected filters.
@@ -941,6 +970,8 @@
         {% endif %}
 
     </div>
+
+    {% include 'includes/pagination.html' %}
 
 </div>
 

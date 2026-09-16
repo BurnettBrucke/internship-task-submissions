@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Department(models.Model):
 
@@ -17,6 +17,7 @@ class Student(models.Model):
     age = models.IntegerField()
     course = models.CharField(max_length=100)
     marks = models.IntegerField()
+    feedback = models.TextField(blank=True, default='')
     joined_date = models.DateField()
     active = models.BooleanField(default=True)
 
@@ -26,6 +27,14 @@ class Student(models.Model):
         null=True,
         blank=True,
         related_name='students'
+    )
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='student_record'
     )
 
     def __str__(self):
@@ -60,5 +69,49 @@ class Course(models.Model):
         related_name='courses'
     )
 
+    trainer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_courses'
+    )
+
     def __str__(self):
         return f"{self.course_name} ({self.code})"
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('trainer', 'Trainer'),
+        ('student', 'Student'),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='student'
+    )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
+
+class AuditLog(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    action = models.CharField(max_length=100)
+    description = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.action} - {self.timestamp}"

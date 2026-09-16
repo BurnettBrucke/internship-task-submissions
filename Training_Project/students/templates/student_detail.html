@@ -272,6 +272,21 @@
                 </div>
             </div>
 
+            <!-- Feedback -->
+            <div class="col-md-6">
+                <div class="p-3 bg-light border-start border-primary border-4 rounded">
+                    <h6 class="text-muted">Trainer Feedback</h6>
+
+                    {% if student.feedback %}
+                        <p class="mb-0">{{ student.feedback }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            No feedback provided yet.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Result -->
             <div class="detail-item">
                 <div class="detail-label">Result</div>
@@ -327,21 +342,33 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="action-buttons">
+            <div class="mt-4 d-flex gap-2 flex-wrap">
 
-            <a href="{% url 'student_list' %}" class="btn btn-back">
-                ← Back to Students
-            </a>
+                <a href="{% url 'student_list' %}"
+                   class="btn btn-secondary">
+                    ← Back to Students
+                </a>
 
-            <a href="{% url 'edit_student' student.id %}" class="btn btn-edit">
-                Edit Student
-            </a>
+                <!-- Only Admin can Edit and Delete -->
+                {% if request.user.profile.role == 'admin' %}
 
-            <a href="{% url 'delete_student' student.id %}" class="btn btn-delete">
-                Delete Student
-            </a>
+                    <a href="{% url 'edit_student' student.id %}" class="btn btn-primary">
+                        Edit Student
+                    </a>
 
-        </div>
+                    <a href="{% url 'delete_student' student.id %}" class="btn btn-danger">
+                        Delete Student
+                    </a>
+
+                {% elif request.user.profile.role == 'trainer' %}
+
+                    <a href="{% url 'trainer_update_student' student.id %}" class="btn btn-primary">
+                        Update Marks & Feedback
+                    </a>
+
+                {% endif %}
+
+            </div>
 
     </div>
 

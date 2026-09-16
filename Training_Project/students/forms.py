@@ -12,6 +12,7 @@ class StudentForm(forms.ModelForm):
             'age',
             'course',
             'marks',
+            'feedback',
             'joined_date',
             'active',
         ]
@@ -45,5 +46,24 @@ class StudentForm(forms.ModelForm):
 
         if marks < 0 or marks > 100:
             raise forms.ValidationError("Marks must be between 0 and 100.")
+
+        return marks
+
+class TrainerStudentForm(forms.ModelForm):
+
+    class Meta:
+        model = Student
+        fields = [
+            'marks',
+            'feedback',
+        ]
+
+    def clean_marks(self):
+        marks = self.cleaned_data['marks']
+
+        if marks < 0 or marks > 100:
+            raise forms.ValidationError(
+                "Marks must be between 0 and 100."
+            )
 
         return marks

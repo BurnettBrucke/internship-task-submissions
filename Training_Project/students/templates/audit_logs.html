@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Audit Logs</h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
+            Back to Dashboard
+        </a>
+    </div>
+
+    {% if logs %}
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Description</th>
+                    <th>Date & Time</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>
+                        {% if log.user %}
+                            {{ log.user.username }}
+                        {% else %}
+                            System
+                        {% endif %}
+                    </td>
+
+                    <td>{{ log.action }}</td>
+
+                    <td>{{ log.description }}</td>
+
+                    <td>{{ log.timestamp|date:"d M Y, h:i A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+        <div class="alert alert-info">
+            No audit logs available.
+        </div>
+
+    {% endif %}
+
+    {% if page_obj.has_other_pages %}
+        {% include 'includes/pagination.html' %}
+    {% endif %}
+
+</div>
+
+{% endblock %}
