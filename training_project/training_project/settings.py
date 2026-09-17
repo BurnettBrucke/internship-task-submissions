@@ -145,3 +145,30 @@ MAILERS = {
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/login/"
+
+# Prevent JavaScript from accessing the session cookie.
+SESSION_COOKIE_HTTPONLY = True
+
+# Keep the session alive until the browser is closed.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Session cookie lifetime.
+# 3600 seconds = 1 hour.
+SESSION_COOKIE_AGE = 3600
+
+# =========================================================
+# PRODUCTION HTTPS CONFIGURATION
+# =========================================================
+
+# When the application is deployed behind HTTPS, change to:
+#
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+#
+# These settings should only be enabled when HTTPS is properly
+# configured in the production environment.
+
+
+
+TIME_ZONE = "Asia/Kolkata"
+USE_TZ = True

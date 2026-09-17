@@ -566,3 +566,65 @@ tr:hover {
     }
 
 }
+
+:root {
+    --primary-color: #243447;
+    --accent-color: #3b82f6;
+    --background-color: #f5f7fa;
+    --card-radius: 14px;
+    --shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* ADMIN */
+.role-admin {
+    --primary-color: #1e3a5f;
+    --accent-color: #2563eb;
+}
+
+/* TRAINER */
+.role-trainer {
+    --primary-color: #155e63;
+    --accent-color: #0d9488;
+}
+
+/* STUDENT */
+.role-student {
+    --primary-color: #5b3a8e;
+    --accent-color: #7c3aed;
+}
+
+/* GENERAL */
+
+body {
+    margin: 0;
+    background: var(--background-color);
+    color: #1f2937;
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    background: var(--primary-color) !important;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.card {
+    border: none;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow);
+}
+
+.dashboard-title {
+    color: var(--primary-color);
+}
+
+.role-badge {
+    background-color: var(--accent-color);
+}

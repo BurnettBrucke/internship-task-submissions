@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    Student Details
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1>
+                {{ student.name }}
+            </h1>
+
+            <p class="text-muted mb-0">
+                Student details and course performance
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- Basic Information -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h4 class="mb-4">
+                Student Information
+            </h4>
+
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Name</strong>
+
+                    <div>
+                        {{ student.name }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Email</strong>
+
+                    <div>
+                        {{ student.email }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Age</strong>
+
+                    <div>
+                        {{ student.age }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Department</strong>
+
+                    <div>
+                        {{ student.department.name|default:"-" }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Joined Date</strong>
+
+                    <div>
+                        {{ student.joined_date }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Status</strong>
+
+                    <div>
+
+                        {% if student.active %}
+
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-secondary">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Personal Profile -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h4 class="mb-4">
+                Personal Profile
+            </h4>
+
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Phone</strong>
+
+                    <div>
+                        {{ student.profile.phone|default:"-" }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <strong>Date of Birth</strong>
+
+                    <div>
+                        {{ student.profile.date_of_birth|default:"-" }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-12 mb-3">
+
+                    <strong>Address</strong>
+
+                    <div>
+                        {{ student.profile.address|default:"-" }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Profile Completion -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                <h4 class="mb-0">
+                    Profile Completion
+                </h4>
+
+                <span class="fw-semibold">
+                    {{ student.profile_completion_data.percentage }}%
+                </span>
+
+            </div>
+
+
+            <div
+                class="progress"
+                style="height: 18px;"
+                role="progressbar"
+                aria-valuenow="{{ student.profile_completion_data.percentage }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+            >
+
+                <div
+                    class="progress-bar"
+                    style="width: {{ student.profile_completion_data.percentage }}%;"
+                >
+                </div>
+
+            </div>
+
+
+            <div class="mt-2">
+
+                <small class="text-muted">
+                    {{ student.profile_completion_data.completed }}
+                    of
+                    {{ student.profile_completion_data.total }}
+                    profile fields completed.
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Courses and Marks -->
+
+    <div class="card shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <h4 class="mb-4">
+            Courses and Progress
+        </h4>
+
+        {% if student.enrollments.all %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+                            <th>Course</th>
+                            <th>Code</th>
+                            <th style="min-width: 180px;">Progress</th>
+                            <th>Marks</th>
+                            <th>Result</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for enrollment in enrollments %}
+
+                            <tr>
+
+                                <td>
+                                    {{ enrollment.course.course_name }}
+                                </td>
+
+                                <td>
+                                    {{ enrollment.course.code }}
+                                </td>
+
+                                <td>
+
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                
+                                    <small class="fw-semibold">
+                                        {{ enrollment.progress_percentage }}%
+                                    </small>
+                                
+                                    {% if enrollment.progress_percentage == 0 %}
+                                
+                                        <small class="text-muted">
+                                            Not started
+                                        </small>
+                                    
+                                    {% elif enrollment.progress_percentage >= 100 %}
+                                    
+                                        <small class="text-success fw-semibold">
+                                            Completed
+                                        </small>
+                                    
+                                    {% endif %}
+                                    
+                                </div>
+                            
+                            
+                                <div
+                                    class="progress"
+                                    style="height: 12px;"
+                                    role="progressbar"
+                                    aria-valuenow="{{ enrollment.progress_percentage }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                >
+                            
+                                    <div
+                                        class="progress-bar"
+                                        style="width: {{ enrollment.progress_percentage }}%;"
+                                    >
+                                    </div>
+                                
+                                </div>
+                            
+
+    <small class="text-muted">
+        Ends: {{ enrollment.end_date }}
+    </small>
+
+</td>
+
+                                <td>
+
+                                    {% if enrollment.marks != None %}
+
+                                        <span class="badge bg-primary">
+                                            {{ enrollment.marks }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary">
+                                            Not assigned
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if enrollment.marks == None %}
+
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+
+                                    {% elif enrollment.marks >= 40 %}
+
+                                        <span class="badge bg-success">
+                                            Pass
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-danger">
+                                            Fail
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info mb-0">
+                This student is not enrolled in any courses.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+    <!-- Actions -->
+    {% if user.profile.role == "TRAINER" %}
+    
+        {% for enrollment in student.enrollments.all %}
+    
+            {% if enrollment.course.trainer_assignments.all %}
+    
+                {% for assignment in enrollment.course.trainer_assignments.all %}
+    
+                    {% if assignment.trainer == user %}
+    
+                        <div class="card shadow-sm mb-3">
+                        
+                            <div class="card-body">
+                            
+                                <h5>
+                                    {{ enrollment.course.course_name }}
+                                </h5>
+                            
+                                <div class="d-flex gap-2">
+                                
+                                    <a
+                                        href="{% url 'update_marks' enrollment.id %}"
+                                        class="btn btn-primary btn-sm"
+                                    >
+                                        Update Marks
+                                    </a>
+                                
+                                    <a
+                                        href="{% url 'create_feedback' enrollment.id %}"
+                                        class="btn btn-outline-primary btn-sm"
+                                    >
+                                        Give Feedback
+                                    </a>
+                                
+                                </div>
+                            
+                            </div>
+                        
+                        </div>
+                    
+                    {% endif %}
+                    
+                {% endfor %}
+                    
+            {% endif %}
+                    
+        {% endfor %}
+                    
+    {% endif %} 
+
+    <div class="d-flex gap-2">
+
+        {% if user.profile.role == "ADMIN" %}
+
+            <a
+                href="{% url 'edit_student' student.id %}"
+                class="btn btn-primary"
+            >
+                Edit Student
+            </a>
+
+
+            <a
+                href="{% url 'delete_student' student.id %}"
+                class="btn btn-danger"
+            >
+                Delete Student
+            </a>
+
+        {% endif %}
+
+
+        <a
+            href="{% url 'students_list' %}"
+            class="btn btn-secondary"
+        >
+            Back to Students
+        </a>
+
+    </div>
+
+</div>
+
+
+{% endblock %}

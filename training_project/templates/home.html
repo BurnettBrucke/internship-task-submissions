@@ -2,49 +2,87 @@
 
 
 {% block title %}
-Home
+    Home
 {% endblock %}
 
 
 {% block content %}
 
-<div class="card">
+<div class="container mt-5">
 
-    <h1>
-        {% if user.is_authenticated %}
-            Welcome {{ user.username }} to {{ company_name }}
-        {% else %}
-            Welcome to {{ company_name }}
-        {% endif %}
-    </h1>
+    <div class="card shadow-sm">
 
-    <p>
-        Python and Django Training Program
-    </p>
+        <div class="card-body p-5">
 
-    <p>
-        This application is used to manage student information,
-        courses, marks and active student records.
-    </p>
+            <h1 class="mb-3">
 
-    <br>
+                {% if user.is_authenticated %}
 
-    {% if user.is_authenticated %}
+                    Welcome
 
-        <a class="button" href="{% url 'students_list' %}">
-            View Students
-        </a>
-        <a class="button" href="{% url 'dashboard' %}"> 
-            Dashboard
-        </a>
+                    {% if user.profile.role == "STUDENT" %}
+                        {{ user.student.name }}
+                    {% else %}
+                        {{ user.username }}
+                    {% endif %}
 
-    {% else %}
+                    to {{ company_name }}
 
-        <a class="button" href="{% url 'login' %}">
-            Login
-        </a>
+                {% else %}
 
-    {% endif %}
+                    Welcome to {{ company_name }}
+
+                {% endif %}
+
+            </h1>
+
+
+            <p class="lead">
+                Python and Django Training Program
+            </p>
+
+
+            <p class="text-muted">
+                This application is used to manage student information,
+                courses, marks and active student records.
+            </p>
+
+
+            {% if user.is_authenticated %}
+
+                <a
+                    class="btn btn-primary me-2"
+                    href="{% url 'dashboard' %}"
+                >
+                    Dashboard
+                </a>
+
+
+                {% if user.profile.role == "ADMIN" %}
+
+                    <a
+                        class="btn btn-outline-primary"
+                        href="{% url 'students_list' %}"
+                    >
+                        View Students
+                    </a>
+
+                {% endif %}
+
+            {% else %}
+
+                <a
+                    class="btn btn-primary"
+                    href="{% url 'login' %}"
+                >
+                    Login
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </div>
 

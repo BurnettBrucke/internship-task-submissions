@@ -1,0 +1,82 @@
+{% if page_obj.has_other_pages %}
+
+<nav aria-label="Student pagination">
+
+    <ul class="pagination justify-content-center">
+
+        {% if page_obj.has_previous %}
+
+            <li class="page-item">
+
+                <a
+                    class="page-link"
+                    href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                >
+                    Previous
+                </a>
+
+            </li>
+
+        {% else %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+
+        {% endif %}
+
+
+        {% for number in page_obj.paginator.page_range %}
+
+            {% if page_obj.number == number %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ number }}
+                    </span>
+                </li>
+
+            {% else %}
+
+                <li class="page-item">
+
+                    <a
+                        class="page-link"
+                        href="?page={{ number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                    >
+                        {{ number }}
+                    </a>
+
+                </li>
+
+            {% endif %}
+
+        {% endfor %}
+
+
+        {% if page_obj.has_next %}
+
+            <li class="page-item">
+
+                <a
+                    class="page-link"
+                    href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                >
+                    Next
+                </a>
+
+            </li>
+
+        {% else %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+
+        {% endif %}
+
+    </ul>
+
+</nav>
+
+{% endif %}

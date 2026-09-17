@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    Delete Student
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-6">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+
+                    <h1 class="mb-3">
+                        Delete Student
+                    </h1>
+
+
+                    <p>
+                        Are you sure you want to delete
+                        <strong>{{ student.name }}</strong>?
+                    </p>
+
+
+                    <div class="alert alert-warning">
+
+                        This action cannot be undone.
+
+                    </div>
+
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-danger"
+                        >
+                            Yes, Delete
+                        </button>
+
+
+                        <a
+                            href="{% url 'student_detail' student.id %}"
+                            class="btn btn-secondary"
+                        >
+                            Cancel
+                        </a>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
