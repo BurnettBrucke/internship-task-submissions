@@ -1,158 +1,77 @@
-{% extends 'students/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}{{ title }} - Student Management{% endblock %}
 
 {% block content %}
 
-<style>
-    .container {
-        min-height: calc(100vh - 70px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 30px 20px;
-    }
+<div class="row justify-content-center py-4">
 
-    .form-box {
-        background: white;
-        width: 100%;
-        max-width: 650px;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
+<div class="col-md-8 col-lg-7">
 
-    .form-box h1 {
-        text-align: center;
-        color: #1f2937;
-        margin-bottom: 30px;
-    }
+    <div class="card shadow-sm border-0">
 
-    .form-box form {
-        display: flex;
-        flex-direction: column;
-    }
+        <!-- Form Header -->
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">{{ title }}</h4>
+        </div>
 
-    .form-box p {
-        margin-bottom: 15px;
-    }
+        <div class="card-body p-4">
 
-    .form-box label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: bold;
-        color: #374151;
-    }
+            <form method="POST">
+                {% csrf_token %}
 
-    .form-box input,
-    .form-box select,
-    .form-box textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 15px;
-        box-sizing: border-box;
-    }
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
 
-    .form-box input:focus,
-    .form-box select:focus,
-    .form-box textarea:focus {
-        outline: none;
-        border-color: #2563eb;
-    }
+                <!-- Form Fields -->
+                {% for field in form %}
+                    <div class="mb-3">
 
-    .errorlist {
-        color: #dc2626;
-        font-size: 14px;
-        margin: 5px 0 10px;
-        padding-left: 20px;
-    }
+                        {{ field.label_tag }}
 
-    .helptext {
-        display: block;
-        color: #666;
-        font-size: 13px;
-        margin-top: 5px;
-    }
+                        {{ field }}
 
-    .buttons {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 20px;
-    }
+                        {% if field.help_text %}
+                            <div class="form-text">
+                                {{ field.help_text }}
+                            </div>
+                        {% endif %}
 
-    .button {
-        padding: 11px 22px;
-        border: none;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 15px;
-        font-weight: bold;
-        cursor: pointer;
-    }
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
 
-    .save-button {
-        background: #16a34a;
-        color: white;
-    }
+                    </div>
+                {% endfor %}
 
-    .save-button:hover {
-        background: #15803d;
-    }
+                <!-- Buttons -->
+                <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
 
-    .back-button {
-        background: #6b7280;
-        color: white;
-    }
+                    <button type="submit" class="btn btn-success">
+                        Save Student
+                    </button>
 
-    .back-button:hover {
-        background: #4b5563;
-    }
+                    <a href="{% url 'student_list' %}"
+                       class="btn btn-secondary">
+                        Back to Students
+                    </a>
 
-    @media (max-width: 600px) {
-        .form-box {
-            padding: 30px 20px;
-        }
+                </div>
 
-        .buttons {
-            flex-direction: column;
-        }
+            </form>
 
-        .button {
-            width: 100%;
-            box-sizing: border-box;
-            text-align: center;
-        }
-    }
-</style>
-
-<div class="container">
-    <div class="form-box">
-
-        <h1>{{ title }}</h1>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            {{ form.non_field_errors }}
-
-            {{ form.as_p }}
-
-            <div class="buttons">
-                <button type="submit" class="button save-button">
-                    Save Student
-                </button>
-
-                <a href="{% url 'student_list' %}"
-                   class="button back-button">
-                    Back to Students
-                </a>
-            </div>
-        </form>
+        </div>
 
     </div>
+
+</div>
+
 </div>
 
 {% endblock %}

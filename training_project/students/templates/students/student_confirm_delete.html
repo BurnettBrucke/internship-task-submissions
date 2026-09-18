@@ -1,107 +1,56 @@
-{% extends 'students/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Delete Student - Student Management{% endblock %}
 
 {% block content %}
 
-<style>
-    .container {
-        min-height: calc(100vh - 70px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 30px 20px;
-    }
+<div class="row justify-content-center align-items-center py-5">
 
-    .delete-box {
-        background: white;
-        width: 100%;
-        max-width: 500px;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        text-align: center;
-    }
+<div class="col-md-7 col-lg-5">
 
-    .delete-box h1 {
-        color: #dc2626;
-        margin-bottom: 20px;
-    }
+    <div class="card shadow-sm border-0">
 
-    .delete-box p {
-        color: #555;
-        font-size: 17px;
-        margin-bottom: 30px;
-    }
+        <div class="card-header bg-danger text-white text-center">
+            <h4 class="mb-0">Delete Student</h4>
+        </div>
 
-    .delete-button {
-        padding: 11px 22px;
-        background: #dc2626;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 15px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-right: 8px;
-    }
+        <div class="card-body p-4 text-center">
 
-    .delete-button:hover {
-        background: #b91c1c;
-    }
+            <div class="alert alert-warning">
+                <strong>Warning!</strong>
+                This action cannot be undone.
+            </div>
 
-    .cancel-button {
-        display: inline-block;
-        padding: 10px 22px;
-        background: #6b7280;
-        color: white;
-        text-decoration: none;
-        border-radius: 6px;
-        font-size: 15px;
-    }
+            <p class="fs-5 mb-4">
+                Are you sure you want to delete
+                <strong>{{ student.name }}</strong>?
+            </p>
 
-    .cancel-button:hover {
-        background: #4b5563;
-    }
+            <form method="POST">
+                {% csrf_token %}
 
-    @media (max-width: 600px) {
-        .delete-box {
-            padding: 30px 20px;
-        }
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-        .delete-button,
-        .cancel-button {
-            display: block;
-            width: 100%;
-            margin: 8px 0;
-        }
-    }
-</style>
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Delete
+                    </button>
 
-<div class="container">
-    <div class="delete-box">
+                    <a href="{% url 'student_detail' student.pk %}"
+                       class="btn btn-secondary">
+                        Cancel
+                    </a>
 
-        <h1>Delete Student</h1>
+                </div>
 
-        <p>
-            Are you sure you want to delete
-            <strong>{{ student.name }}</strong>?
-        </p>
+            </form>
 
-        <form method="POST">
-            {% csrf_token %}
-
-            <button type="submit" class="delete-button">
-                Yes, Delete
-            </button>
-
-            <a href="{% url 'student_detail' student.pk %}"
-               class="cancel-button">
-                Cancel
-            </a>
-        </form>
+        </div>
 
     </div>
+
+</div>
+
+
 </div>
 
 {% endblock %}

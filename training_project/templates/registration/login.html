@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Student Management{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center py-5">
+
+
+<div class="col-md-6 col-lg-5">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-dark text-white text-center">
+            <h4 class="mb-0">Login</h4>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="Enter your email"
+                        required
+                    >
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+
+                <div class="text-end mb-3">
+                   <a href="{% url 'password_reset' %}"
+                    class="text-decoration-none">
+                    Forgot Password?
+                    </a>
+                </div>
+
+                <!-- Login Button -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        Login
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Register Link -->
+            <div class="text-center mt-4">
+                <span class="text-muted">
+                    Don't have an account?
+                </span>
+
+                <a href="{% url 'register' %}" class="text-decoration-none">
+                    Register
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

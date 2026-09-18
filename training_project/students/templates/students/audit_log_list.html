@@ -1,0 +1,475 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+    <div>
+        <h2 class="fw-semibold mb-1">
+            Audit Logs
+        </h2>
+
+        <p class="text-muted mb-0">
+            Monitor user activities and security events.
+        </p>
+    </div>
+
+</div>
+
+
+<!-- Filters -->
+
+<div class="card mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="mb-3">
+            <h5 class="fw-semibold mb-1">
+                Search & Filters
+            </h5>
+
+            <p class="text-muted small mb-0">
+                Filter activity logs by user, action or date.
+            </p>
+        </div>
+
+
+        <form method="GET">
+
+            <div class="row g-3">
+
+                <!-- Search -->
+
+                <div class="col-md-6 col-lg-4">
+
+                    <label class="form-label">
+                        Search
+                    </label>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Username, object or description"
+                        value="{{ search }}"
+                    >
+
+                </div>
+
+
+                <!-- Action -->
+
+                <div class="col-md-6 col-lg-2">
+
+                    <label class="form-label">
+                        Action
+                    </label>
+
+                    <select name="action" class="form-select">
+
+                        <option value="">
+                            All Actions
+                        </option>
+
+                        <option value="CREATE"
+                            {% if action == 'CREATE' %}selected{% endif %}>
+                            CREATE
+                        </option>
+
+                        <option value="UPDATE"
+                            {% if action == 'UPDATE' %}selected{% endif %}>
+                            UPDATE
+                        </option>
+
+                        <option value="DELETE"
+                            {% if action == 'DELETE' %}selected{% endif %}>
+                            DELETE
+                        </option>
+
+                        <option value="LOGIN"
+                            {% if action == 'LOGIN' %}selected{% endif %}>
+                            LOGIN
+                        </option>
+
+                        <option value="LOGOUT"
+                            {% if action == 'LOGOUT' %}selected{% endif %}>
+                            LOGOUT
+                        </option>
+
+                        <option value="FAILED"
+                            {% if action == 'FAILED' %}selected{% endif %}>
+                            FAILED
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- From -->
+
+                <div class="col-md-6 col-lg-2">
+
+                    <label class="form-label">
+                        From
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        class="form-control"
+                        value="{{ start_date }}"
+                    >
+
+                </div>
+
+
+                <!-- To -->
+
+                <div class="col-md-6 col-lg-2">
+
+                    <label class="form-label">
+                        To
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        class="form-control"
+                        value="{{ end_date }}"
+                    >
+
+                </div>
+
+
+                <!-- Buttons -->
+
+                <div class="col-12 col-lg-2 d-flex align-items-end gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Filter
+                    </button>
+
+                    <a
+                        href="{% url 'audit_log_list' %}"
+                        class="btn btn-outline-secondary"
+                    >
+                        Clear
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- Logs -->
+
+<div class="card">
+
+    <div class="card-body p-0">
+
+        <div class="d-flex justify-content-between align-items-center p-4">
+
+            <div>
+                <h5 class="fw-semibold mb-1">
+                    Activity Logs
+                </h5>
+
+                <p class="text-muted small mb-0">
+                    Recent user actions and security activity.
+                </p>
+            </div>
+
+        </div>
+
+
+        {% if logs %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">User</th>
+                            <th>Action</th>
+                            <th>Affected Object</th>
+                            <th>Description</th>
+                            <th>IP Address</th>
+                            <th class="pe-4">Date & Time</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for log in logs %}
+
+                            <tr>
+
+                                <!-- User -->
+
+                                <td class="ps-4">
+
+                                    {% if log.user %}
+
+                                        <strong>
+                                            {{ log.user.username }}
+                                        </strong>
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            Deleted User
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Action -->
+
+                                <td>
+
+                                    {% if log.action == 'CREATE' %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            CREATE
+                                        </span>
+
+                                    {% elif log.action == 'UPDATE' %}
+
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            UPDATE
+                                        </span>
+
+                                    {% elif log.action == 'DELETE' %}
+
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            DELETE
+                                        </span>
+
+                                    {% elif log.action == 'LOGIN' %}
+
+                                        <span class="badge bg-info-subtle text-info-emphasis">
+                                            LOGIN
+                                        </span>
+
+                                    {% elif log.action == 'LOGOUT' %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            LOGOUT
+                                        </span>
+
+                                    {% elif log.action == 'FAILED' %}
+
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">
+                                            FAILED
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-dark-subtle text-dark">
+                                            {{ log.action }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Affected Object -->
+
+                                <td>
+                                    <span class="text-muted">
+                                        {{ log.affected_object|default:"-" }}
+                                    </span>
+                                </td>
+
+
+                                <!-- Description -->
+
+                                <td>
+                                    {{ log.description|default:"-" }}
+                                </td>
+
+
+                                <!-- IP -->
+
+                                <td>
+                                    <span class="text-muted small">
+                                        {{ log.ip_address|default:"-" }}
+                                    </span>
+                                </td>
+
+
+                                <!-- Date -->
+
+                                <td class="pe-4 text-muted small">
+                                    {{ log.created_at|date:"d M Y, h:i A" }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Pagination -->
+
+            {% if page_obj.has_other_pages %}
+
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+
+                    <small class="text-muted">
+                        Page {{ page_obj.number }}
+                        of {{ page_obj.paginator.num_pages }}
+                    </small>
+
+
+                    <nav aria-label="Audit log pagination">
+
+                        <ul class="pagination pagination-sm mb-0">
+
+                            <!-- Previous -->
+
+                            {% if page_obj.has_previous %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ page_obj.previous_page_number }}&search={{ search }}&action={{ action }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                                    >
+                                        Previous
+                                    </a>
+
+                                </li>
+
+                            {% else %}
+
+                                <li class="page-item disabled">
+
+                                    <span class="page-link">
+                                        Previous
+                                    </span>
+
+                                </li>
+
+                            {% endif %}
+
+
+                            <!-- Page Numbers -->
+
+                            {% for num in page_obj.paginator.page_range %}
+
+                                {% if page_obj.number == num %}
+
+                                    <li class="page-item active">
+
+                                        <span class="page-link">
+                                            {{ num }}
+                                        </span>
+
+                                    </li>
+
+                                {% else %}
+
+                                    <li class="page-item">
+
+                                        <a
+                                            class="page-link"
+                                            href="?page={{ num }}&search={{ search }}&action={{ action }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                                        >
+                                            {{ num }}
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            <!-- Next -->
+
+                            {% if page_obj.has_next %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ page_obj.next_page_number }}&search={{ search }}&action={{ action }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                                    >
+                                        Next
+                                    </a>
+
+                                </li>
+
+                            {% else %}
+
+                                <li class="page-item disabled">
+
+                                    <span class="page-link">
+                                        Next
+                                    </span>
+
+                                </li>
+
+                            {% endif %}
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+
+            {% endif %}
+
+
+        {% else %}
+
+            <!-- Empty State -->
+
+            <div class="text-center py-5">
+
+                <h5 class="text-muted mb-2">
+                    No audit logs found
+                </h5>
+
+                <p class="text-muted mb-0">
+                    No activities match your current filters.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+

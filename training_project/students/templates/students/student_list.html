@@ -1,497 +1,596 @@
-{% extends 'students/base.html' %}
 
-{% block title %}Student List - Student Management{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}Student Management{% endblock %}
 
 {% block content %}
 
-<style>
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 30px 20px;
-    }
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
+    <div>
+        <h2 class="fw-semibold mb-1">
+            Student Management
+        </h2>
 
-    .page-header h1 {
-        color: #1f2937;
-        margin: 0;
-    }
-
-    .add-button {
-        padding: 10px 18px;
-        background: #16a34a;
-        color: white;
-        text-decoration: none;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-
-    .add-button:hover {
-        background: #15803d;
-    }
-
-    .filter-box {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-        margin-bottom: 25px;
-    }
-
-    .filter-box h3 {
-        margin-top: 0;
-        color: #1f2937;
-    }
-
-    .filter-form {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 12px;
-        align-items: end;
-    }
-
-    .filter-field label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 6px;
-        color: #374151;
-    }
-
-    .filter-field input,
-    .filter-field select {
-        width: 100%;
-        padding: 9px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        box-sizing: border-box;
-    }
-
-    .filter-button {
-        padding: 10px;
-        background: #2563eb;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .filter-button:hover {
-        background: #1d4ed8;
-    }
-
-    .clear-button {
-        display: inline-block;
-        padding: 9px 15px;
-        background: #6b7280;
-        color: white;
-        text-decoration: none;
-        border-radius: 6px;
-        text-align: center;
-    }
-
-    .stats {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 25px;
-    }
-
-    .stat-box {
-        flex: 1;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .stat-box h3 {
-        margin: 0 0 8px;
-        color: #555;
-    }
-
-    .stat-box p {
-        font-size: 28px;
-        font-weight: bold;
-        margin: 0;
-        color: #1f2937;
-    }
-
-    .table-box {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 1000px;
-    }
-
-    th,
-    td {
-        padding: 13px 12px;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-
-    th {
-        background: #f3f4f6;
-        color: #374151;
-    }
-
-    td {
-        color: #555;
-    }
-
-    .pass {
-        color: #16a34a;
-        font-weight: bold;
-    }
-
-    .fail {
-        color: #dc2626;
-        font-weight: bold;
-    }
-
-    .active {
-        color: #16a34a;
-        font-weight: bold;
-    }
-
-    .inactive {
-        color: #dc2626;
-        font-weight: bold;
-    }
-
-    .action-button {
-        display: inline-block;
-        padding: 6px 10px;
-        border-radius: 5px;
-        text-decoration: none;
-        color: white;
-        font-size: 13px;
-        margin: 2px;
-    }
-
-    .view-button {
-        background: #2563eb;
-    }
-
-    .edit-button {
-        background: #f59e0b;
-    }
-
-    .delete-button {
-        background: #dc2626;
-    }
-
-    .no-records {
-        padding: 40px;
-        text-align: center;
-        color: #666;
-    }
-
-    .no-records h3 {
-        color: #374151;
-    }
-
-    @media (max-width: 900px) {
-        .filter-form {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .stats {
-            flex-direction: column;
-        }
-    }
-
-    @media (max-width: 600px) {
-        .page-header {
-            flex-direction: column;
-            gap: 15px;
-            align-items: flex-start;
-        }
-
-        .filter-form {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="container">
-
-    <div class="page-header">
-        <h1>Student List</h1>
-
-        <a href="{% url 'add_student' %}" class="add-button">
-            + Add Student
-        </a>
+        <p class="text-muted mb-0">
+            Manage and view student records, courses and performance.
+        </p>
     </div>
 
+    <a href="{% url 'add_student' %}" class="btn btn-primary">
+        Add Student
+    </a>
 
-    <!-- Filters -->
-    <div class="filter-box">
-
-        <h3>Search & Filters</h3>
-
-        <form method="GET" class="filter-form">
-
-            <div class="filter-field">
-                <label for="search">Search</label>
-
-                <input
-                    type="text"
-                    id="search"
-                    name="search"
-                    value="{{ request.GET.search }}"
-                    placeholder="Name, email or course"
-                >
-            </div>
+</div>
 
 
-            <div class="filter-field">
-                <label for="department">Department</label>
+<!-- Filters -->
+<div class="card mb-4">
 
-                <select name="department" id="department">
+    <div class="card-body p-4">
 
-                    <option value="">All Departments</option>
+        <div class="mb-3">
+            <h5 class="fw-semibold mb-1">
+                Search & Filters
+            </h5>
 
-                    {% for department in departments %}
+            <p class="text-muted small mb-0">
+                Find students using the available filters.
+            </p>
+        </div>
+
+
+        <form method="GET">
+
+            <div class="row g-3">
+
+                <!-- Search -->
+                <div class="col-md-6 col-lg-3">
+
+                    <label for="search" class="form-label">
+                        Search
+                    </label>
+
+                    <input
+                        type="text"
+                        id="search"
+                        name="search"
+                        value="{{ request.GET.search }}"
+                        class="form-control"
+                        placeholder="Name, email or course"
+                    >
+
+                </div>
+
+
+                <!-- Department -->
+                <div class="col-md-6 col-lg-2">
+
+                    <label for="department" class="form-label">
+                        Department
+                    </label>
+
+                    <select
+                        name="department"
+                        id="department"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Departments
+                        </option>
+
+                        {% for department in departments %}
+
+                            <option
+                                value="{{ department.id }}"
+                                {% if request.GET.department == department.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ department }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Course -->
+                <div class="col-md-6 col-lg-2">
+
+                    <label for="course" class="form-label">
+                        Course
+                    </label>
+
+                    <select
+                        name="course"
+                        id="course"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Courses
+                        </option>
+
+                        {% for course in courses %}
+
+                            <option
+                                value="{{ course.id }}"
+                                {% if request.GET.course == course.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ course }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Active Status -->
+                <div class="col-md-6 col-lg-2">
+
+                    <label for="active_status" class="form-label">
+                        Active Status
+                    </label>
+
+                    <select
+                        name="active_status"
+                        id="active_status"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All
+                        </option>
+
                         <option
-                            value="{{ department.id }}"
-                            {% if request.GET.department == department.id|stringformat:"s" %}
+                            value="active"
+                            {% if request.GET.active_status == "active" %}
                                 selected
                             {% endif %}
                         >
-                            {{ department }}
+                            Active
                         </option>
-                    {% endfor %}
 
-                </select>
-            </div>
-
-
-            <div class="filter-field">
-                <label for="course">Course</label>
-
-                <select name="course" id="course">
-
-                    <option value="">All Courses</option>
-
-                    {% for course in courses %}
                         <option
-                            value="{{ course.id }}"
-                            {% if request.GET.course == course.id|stringformat:"s" %}
+                            value="inactive"
+                            {% if request.GET.active_status == "inactive" %}
                                 selected
                             {% endif %}
                         >
-                            {{ course }}
+                            Inactive
                         </option>
-                    {% endfor %}
 
-                </select>
+                    </select>
+
+                </div>
+
+
+                <!-- Result -->
+                <div class="col-md-6 col-lg-2">
+
+                    <label for="status" class="form-label">
+                        Result
+                    </label>
+
+                    <select
+                        name="status"
+                        id="status"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Results
+                        </option>
+
+                        <option
+                            value="pass"
+                            {% if request.GET.status == "pass" %}
+                                selected
+                            {% endif %}
+                        >
+                            Pass
+                        </option>
+
+                        <option
+                            value="fail"
+                            {% if request.GET.status == "fail" %}
+                                selected
+                            {% endif %}
+                        >
+                            Fail
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Filter Buttons -->
+                <div class="col-12">
+
+                    <button type="submit" class="btn btn-primary">
+                        Apply Filters
+                    </button>
+
+                    <a
+                        href="{% url 'student_list' %}"
+                        class="btn btn-outline-secondary ms-1"
+                    >
+                        Clear
+                    </a>
+
+                </div>
+
             </div>
-
-
-            <div class="filter-field">
-                <label for="active_status">Active Status</label>
-
-                <select name="active_status" id="active_status">
-
-                    <option value="">All</option>
-
-                    <option
-                        value="active"
-                        {% if request.GET.active_status == "active" %}
-                            selected
-                        {% endif %}
-                    >
-                        Active
-                    </option>
-
-                    <option
-                        value="inactive"
-                        {% if request.GET.active_status == "inactive" %}
-                            selected
-                        {% endif %}
-                    >
-                        Inactive
-                    </option>
-
-                </select>
-            </div>
-
-
-            <div class="filter-field">
-                <label for="status">Result</label>
-
-                <select name="status" id="status">
-
-                    <option value="">All Results</option>
-
-                    <option
-                        value="pass"
-                        {% if request.GET.status == "pass" %}
-                            selected
-                        {% endif %}
-                    >
-                        Pass
-                    </option>
-
-                    <option
-                        value="fail"
-                        {% if request.GET.status == "fail" %}
-                            selected
-                        {% endif %}
-                    >
-                        Fail
-                    </option>
-
-                </select>
-            </div>
-
-
-            <button type="submit" class="filter-button">
-                Apply Filters
-            </button>
-
-            <a href="{% url 'student_list' %}" class="clear-button">
-                Clear
-            </a>
 
         </form>
 
     </div>
 
+</div>
 
-    <!-- Statistics -->
-    <div class="stats">
 
-        <div class="stat-box">
-            <h3>Total Students</h3>
-            <p>{{ total_students }}</p>
-        </div>
+<!-- Statistics -->
+<div class="row g-4 mb-4">
 
-        <div class="stat-box">
-            <h3>Active Students</h3>
-            <p>{{ active_students }}</p>
+    <!-- Total -->
+    <div class="col-md-6">
+
+        <div class="card h-100">
+
+            <div class="card-body p-4">
+
+                <p class="text-muted mb-2">
+                    Total Students
+                </p>
+
+                <h2 class="fw-semibold mb-0">
+                    {{ total_students }}
+                </h2>
+
+            </div>
+
         </div>
 
     </div>
 
 
-    <!-- Student Table -->
-    <div class="table-box">
+    <!-- Active -->
+    <div class="col-md-6">
+
+        <div class="card h-100">
+
+            <div class="card-body p-4">
+
+                <p class="text-muted mb-2">
+                    Active Students
+                </p>
+
+                <h2 class="fw-semibold mb-0">
+                    {{ active_students }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Student Table -->
+<div class="card">
+
+    <div class="card-body p-0">
+
+        <div class="d-flex justify-content-between align-items-center p-4">
+
+            <div>
+
+                <h5 class="fw-semibold mb-1">
+                    Students
+                </h5>
+
+                <p class="text-muted small mb-0">
+                    Student records and performance overview.
+                </p>
+
+            </div>
+
+        </div>
+
 
         {% if students %}
 
-            <table>
+            <div class="table-responsive">
 
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Age</th>
-                        <th>Department</th>
-                        <th>Course Count</th>
-                        <th>Marks</th>
-                        <th>Status</th>
-                        <th>Active</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+                <table class="table table-hover align-middle mb-0">
 
-                <tbody>
-
-                    {% for student in students %}
+                    <thead class="table-light">
 
                         <tr>
-
-                            <td>{{ student.id }}</td>
-
-                            <td>{{ student.name }}</td>
-
-                            <td>{{ student.email }}</td>
-
-                            <td>{{ student.age }}</td>
-
-                            <td>{{ student.department }}</td>
-
-                            <td>
-                                {{ student.courses.count }}
-                            </td>
-
-                            <td>{{ student.marks }}</td>
-
-                            <td>
-                                {% if student.marks >= 40 %}
-                                    <span class="pass">PASS</span>
-                                {% else %}
-                                    <span class="fail">FAIL</span>
-                                {% endif %}
-                            </td>
-
-                            <td>
-                                {% if student.active_status %}
-                                    <span class="active">Active</span>
-                                {% else %}
-                                    <span class="inactive">Inactive</span>
-                                {% endif %}
-                            </td>
-
-                            <td>
-                                <a
-                                    href="{% url 'student_detail' student.pk %}"
-                                    class="action-button view-button"
-                                >
-                                    View
-                                </a>
-
-                                <a
-                                    href="{% url 'edit_student' student.pk %}"
-                                    class="action-button edit-button"
-                                >
-                                    Edit
-                                </a>
-
-                                <a
-                                    href="{% url 'delete_student' student.pk %}"
-                                    class="action-button delete-button"
-                                >
-                                    Delete
-                                </a>
-                            </td>
-
+                            <th class="ps-4">ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Age</th>
+                            <th>Department</th>
+                            <th>Courses</th>
+                            <th>Marks</th>
+                            <th>Result</th>
+                            <th>Status</th>
+                            <th class="pe-4">Actions</th>
                         </tr>
 
-                    {% endfor %}
+                    </thead>
 
-                </tbody>
 
-            </table>
+                    <tbody>
+
+                        {% for student in students %}
+
+                            <tr>
+
+                                <!-- ID -->
+
+                                <td class="ps-4 text-muted">
+                                    {{ student.id }}
+                                </td>
+
+
+                                <!-- Name -->
+
+                                <td>
+                                    <strong>
+                                        {{ student.name }}
+                                    </strong>
+                                </td>
+
+
+                                <!-- Email -->
+
+                                <td class="text-muted">
+                                    {{ student.email }}
+                                </td>
+
+
+                                <!-- Age -->
+
+                                <td>
+                                    {{ student.age }}
+                                </td>
+
+
+                                <!-- Department -->
+
+                                <td>
+                                    {{ student.department }}
+                                </td>
+
+
+                                <!-- Course Count -->
+
+                                <td>
+
+                                    <span class="badge bg-info-subtle text-info-emphasis">
+                                        {{ student.courses.count }}
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Marks -->
+
+                                <td>
+
+                                    <span class="fw-semibold">
+                                        {{ student.marks }}
+                                    </span>
+
+                                    <span class="text-muted">
+                                        /100
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Result -->
+
+                                <td>
+
+                                    {% if student.marks >= 40 %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            Pass
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            Fail
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Active Status -->
+
+                                <td>
+
+                                    {% if student.active_status %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            Inactive
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Actions -->
+
+                                <td class="pe-4">
+
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a
+                                            href="{% url 'student_detail' student.pk %}"
+                                            class="btn btn-sm btn-outline-primary"
+                                        >
+                                            View
+                                        </a>
+
+                                        <a
+                                            href="{% url 'edit_student' student.pk %}"
+                                            class="btn btn-sm btn-outline-warning"
+                                        >
+                                            Edit
+                                        </a>
+
+                                        <a
+                                            href="{% url 'delete_student' student.pk %}"
+                                            class="btn btn-sm btn-outline-danger"
+                                        >
+                                            Delete
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Pagination -->
+
+            {% if students.has_other_pages %}
+
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+
+                    <small class="text-muted">
+                        Page {{ students.number }} of {{ students.paginator.num_pages }}
+                    </small>
+
+
+                    <nav aria-label="Student pagination">
+
+                        <ul class="pagination pagination-sm mb-0">
+
+                            {% if students.has_previous %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?{{ query_params }}&page={{ students.previous_page_number }}"
+                                    >
+                                        Previous
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+
+                            {% for num in students.paginator.page_range %}
+
+                                {% if students.number == num %}
+
+                                    <li class="page-item active">
+
+                                        <span class="page-link">
+                                            {{ num }}
+                                        </span>
+
+                                    </li>
+
+                                {% else %}
+
+                                    <li class="page-item">
+
+                                        <a
+                                            class="page-link"
+                                            href="?{{ query_params }}&page={{ num }}"
+                                        >
+                                            {{ num }}
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            {% if students.has_next %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?{{ query_params }}&page={{ students.next_page_number }}"
+                                    >
+                                        Next
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+
+            {% endif %}
+
 
         {% else %}
 
-            <div class="no-records">
+            <!-- Empty State -->
 
-                <h3>No students found</h3>
+            <div class="text-center py-5">
 
-                <p>
+                <h5 class="text-muted mb-2">
+                    No students found
+                </h5>
+
+                <p class="text-muted mb-3">
                     No student records match your search or filters.
                 </p>
 
-                <a href="{% url 'add_student' %}" class="add-button">
-                    Add First Student
+                <a
+                    href="{% url 'add_student' %}"
+                    class="btn btn-primary btn-sm"
+                >
+                    Add Student
                 </a>
 
             </div>
@@ -503,3 +602,4 @@
 </div>
 
 {% endblock %}
+

@@ -1,264 +1,327 @@
-{% extends 'students/base.html' %}
+
+{% extends 'base.html' %}
 
 {% block title %}Student Details - Student Management{% endblock %}
 
 {% block content %}
 
-<style>
-    .container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 30px 20px;
-    }
+<div class="container py-4">
 
-    .detail-box {
-        background: white;
-        padding: 35px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
+    <!-- Page Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 
-    .detail-box h1 {
-        color: #1f2937;
-        margin-bottom: 25px;
-        text-align: center;
-    }
-
-    .student-info {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-    }
-
-    .info-item {
-        padding: 15px;
-        background: #f9fafb;
-        border-radius: 6px;
-    }
-
-    .info-item strong {
-        display: block;
-        color: #374151;
-        margin-bottom: 6px;
-    }
-
-    .info-item span {
-        color: #555;
-    }
-
-    .courses {
-        margin-top: 25px;
-    }
-
-    .courses h3,
-    .profile-section h3 {
-        color: #1f2937;
-        margin-bottom: 12px;
-    }
-
-    .courses ul {
-        padding-left: 20px;
-    }
-
-    .courses li {
-        margin-bottom: 6px;
-        color: #555;
-    }
-
-    .result-pass {
-        color: #16a34a;
-        font-weight: bold;
-    }
-
-    .result-fail {
-        color: #dc2626;
-        font-weight: bold;
-    }
-
-    .active {
-        color: #16a34a;
-        font-weight: bold;
-    }
-
-    .inactive {
-        color: #dc2626;
-        font-weight: bold;
-    }
-
-    .profile-section {
-        margin-top: 30px;
-        padding-top: 25px;
-        border-top: 1px solid #ddd;
-    }
-
-    .actions {
-        margin-top: 30px;
-        text-align: center;
-    }
-
-    .button {
-        display: inline-block;
-        padding: 10px 20px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: white;
-        margin: 5px;
-        font-size: 14px;
-    }
-
-    .back-button {
-        background: #6b7280;
-    }
-
-    .edit-button {
-        background: #2563eb;
-    }
-
-    .delete-button {
-        background: #dc2626;
-    }
-
-    .button:hover {
-        opacity: 0.9;
-    }
-
-    @media (max-width: 600px) {
-        .detail-box {
-            padding: 25px 20px;
-        }
-
-        .student-info {
-            grid-template-columns: 1fr;
-        }
-
-        .button {
-            display: block;
-            margin: 8px 0;
-        }
-    }
-</style>
-
-<div class="container">
-    <div class="detail-box">
-
-        <h1>Student Details</h1>
-
-        <div class="student-info">
-
-            <div class="info-item">
-                <strong>ID</strong>
-                <span>{{ student.id }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Name</strong>
-                <span>{{ student.name }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Email</strong>
-                <span>{{ student.email }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Age</strong>
-                <span>{{ student.age }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Department</strong>
-                <span>{{ student.department }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Marks</strong>
-                <span>{{ student.marks }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Result</strong>
-
-                {% if student.marks >= 40 %}
-                    <span class="result-pass">PASS</span>
-                {% else %}
-                    <span class="result-fail">FAIL</span>
-                {% endif %}
-            </div>
-
-            <div class="info-item">
-                <strong>Joined Date</strong>
-                <span>{{ student.joined_date }}</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Active Status</strong>
-
-                {% if student.active_status %}
-                    <span class="active">Active</span>
-                {% else %}
-                    <span class="inactive">Inactive</span>
-                {% endif %}
-            </div>
-
+        <div>
+            <h1 class="mb-1">Student Details</h1>
+            <p class="text-muted mb-0">
+                View complete student information
+            </p>
         </div>
 
-         <div class="courses">
-            <h3>Courses</h3>
+        <a href="{% url 'student_list' %}" class="btn btn-secondary">
+            ← Back to Students
+        </a>
 
-            {% for course in student.courses.all %}
-              <p>{{ course }}</p>
-            {% empty %}
-              <p>No courses assigned.</p>
-            {% endfor %}
-          </div>
+    </div>
 
-        {% if student.profile %}
-            <div class="profile-section">
 
-                <h3>Student Profile</h3>
+    <!-- Basic Information -->
+    <div class="card shadow-sm border-0 mb-4">
 
-                <div class="student-info">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Basic Information</h5>
+        </div>
 
-                    <div class="info-item">
-                        <strong>Phone</strong>
-                        <span>{{ student.profile.phone }}</span>
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <small class="text-muted">ID</small>
+                        <div class="fw-bold">{{ student.id }}</div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <small class="text-muted">Name</small>
+                        <div class="fw-bold">{{ student.name }}</div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <small class="text-muted">Email</small>
+                        <div>{{ student.email }}</div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <small class="text-muted">Age</small>
+                        <div>{{ student.age }}</div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <small class="text-muted">Department</small>
+                        <div>{{ student.department }}</div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3">
+                        <small class="text-muted">Joined Date</small>
+                        <div>{{ student.joined_date }}</div>
+                    </div>
+                </div>
+
+
+                <!-- Active Status -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Active Status
+                        </small>
+
+                        <div class="mt-1">
+
+                            {% if student.active_status %}
+
+                                <span class="badge text-bg-success">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge text-bg-secondary">
+                                    Not Active
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
                     </div>
 
-                    <div class="info-item">
-                        <strong>Address</strong>
-                        <span>{{ student.profile.address }}</span>
-                    </div>
+                </div>
 
-                    <div class="info-item">
-                        <strong>Date of Birth</strong>
-                        <span>{{ student.profile.date_of_birth }}</span>
+
+                <!-- Result -->
+                <div class="col-md-6">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Result
+                        </small>
+
+                        <div class="mt-1">
+
+                            {% if student.marks >= 40 %}
+
+                                <span class="badge text-bg-success">
+                                    Pass
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge text-bg-danger">
+                                    Fail
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
                     </div>
 
                 </div>
 
             </div>
-        {% endif %}
-
-        <div class="actions">
-
-            <a href="{% url 'student_list' %}"
-               class="button back-button">
-                Back to Students
-            </a>
-
-            <a href="{% url 'edit_student' student.pk %}"
-               class="button edit-button">
-                Edit
-            </a>
-
-            <a href="{% url 'delete_student' student.pk %}"
-               class="button delete-button">
-                Delete
-            </a>
 
         </div>
 
     </div>
+
+
+    <!-- Course Performance -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header">
+            <h5 class="mb-0">Course Performance</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between mb-2">
+
+                <span class="fw-bold">
+                    Marks
+                </span>
+
+                <span class="fw-bold">
+                    {{ student.marks }} / 100
+                </span>
+
+            </div>
+
+
+            <div class="progress" role="progressbar"
+                 aria-label="Student marks"
+                 aria-valuenow="{{ student.marks }}"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+
+                <div
+                    class="progress-bar"
+                    style="width: {{ student.marks }}%;"
+                >
+                    {{ student.marks }}%
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Courses -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header">
+            <h5 class="mb-0">Courses</h5>
+        </div>
+
+        <div class="card-body">
+
+            {% for course in student.courses.all %}
+
+                <span class="badge text-bg-info me-1 mb-1">
+                    {{ course }}
+                </span>
+
+            {% empty %}
+
+                <div class="alert alert-light border mb-0">
+                    No courses assigned.
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Student Profile -->
+    {% if student.profile %}
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-header">
+                <h5 class="mb-0">Student Profile</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted">
+                                Phone
+                            </small>
+
+                            <div>
+                                {{ student.profile.phone }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted">
+                                Address
+                            </small>
+
+                            <div>
+                                {{ student.profile.address }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="border rounded p-3">
+
+                            <small class="text-muted">
+                                Date of Birth
+                            </small>
+
+                            <div>
+                                {{ student.profile.date_of_birth }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+        <a
+            href="{% url 'student_list' %}"
+            class="btn btn-secondary"
+        >
+            Back
+        </a>
+
+        <a
+            href="{% url 'edit_student' student.pk %}"
+            class="btn btn-warning"
+        >
+            Edit
+        </a>
+
+        <a
+            href="{% url 'delete_student' student.pk %}"
+            class="btn btn-danger"
+        >
+            Delete
+        </a>
+
+    </div>
+
 </div>
 
 {% endblock %}
+

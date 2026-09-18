@@ -1,0 +1,553 @@
+
+{% extends 'base.html' %}
+
+{% block title %}
+    Trainer Dashboard
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+
+<div class="mb-4">
+
+    <h2 class="fw-semibold mb-1">
+        Trainer Dashboard
+    </h2>
+
+    <p class="text-muted mb-0">
+        Welcome, {{ request.user.username }}
+    </p>
+
+</div>
+
+
+<!-- Summary Cards -->
+
+<div class="row g-4 mb-4">
+
+    <div class="col-md-6">
+
+        <div class="card h-100">
+
+            <div class="card-body p-4">
+
+                <p class="text-muted mb-2">
+                    Assigned Courses
+                </p>
+
+                <h2 class="fw-semibold mb-1">
+                    {{ courses|length }}
+                </h2>
+
+                <span class="small text-muted">
+                    Courses assigned to you
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-6">
+
+        <div class="card h-100">
+
+            <div class="card-body p-4">
+
+                <p class="text-muted mb-2">
+                    Students
+                </p>
+
+                <h2 class="fw-semibold mb-1">
+                    {{ students|length }}
+                </h2>
+
+                <span class="small text-muted">
+                    Students enrolled in your courses
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Assigned Courses -->
+
+<div class="card mb-4">
+
+    <div class="card-body p-0">
+
+        <div class="p-4">
+
+            <h5 class="fw-semibold mb-1">
+                My Courses
+            </h5>
+
+            <p class="text-muted small mb-0">
+                Courses currently assigned to you.
+            </p>
+
+        </div>
+
+
+        {% if courses %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th class="ps-4">Course Name</th>
+                            <th>Code</th>
+                            <th>Duration</th>
+                            <th class="pe-4">Status</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for course in courses %}
+
+                            <tr>
+
+                                <td class="ps-4">
+                                    <strong>
+                                        {{ course.course_name }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-info-subtle text-info-emphasis">
+                                        {{ course.code }}
+                                    </span>
+                                </td>
+
+                                <td class="text-muted">
+                                    {{ course.duration }}
+                                </td>
+
+                                <td class="pe-4">
+
+                                    {% if course.active_status %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            Not Active
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="text-center py-5">
+
+                <h6 class="text-muted mb-2">
+                    No courses assigned
+                </h6>
+
+                <p class="text-muted small mb-0">
+                    Courses assigned by the administrator will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- My Students -->
+
+<div class="card mb-4">
+
+    <div class="card-body p-0">
+
+        <div class="p-4">
+
+            <h5 class="fw-semibold mb-1">
+                My Students
+            </h5>
+
+            <p class="text-muted small mb-0">
+                Students enrolled in your assigned courses.
+            </p>
+
+        </div>
+
+
+        {% if students %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Marks</th>
+                            <th>Last Updated By</th>
+                            <th>Updated Date</th>
+                            <th>Status</th>
+                            <th class="pe-4">Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for student in students %}
+
+                            <tr>
+
+                                <!-- Name -->
+
+                                <td class="ps-4">
+                                    <strong>
+                                        {{ student.name }}
+                                    </strong>
+                                </td>
+
+
+                                <!-- Email -->
+
+                                <td class="text-muted">
+                                    {{ student.email }}
+                                </td>
+
+
+                                <!-- Department -->
+
+                                <td>
+                                    {{ student.department.name }}
+                                </td>
+
+
+                                <!-- Marks -->
+
+                                <td>
+
+                                    <span class="fw-semibold">
+                                        {{ student.marks }}/100
+                                    </span>
+
+                                    {% if student.marks >= 40 %}
+
+                                        <span class="badge bg-success-subtle text-success ms-1">
+                                            Pass
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-danger-subtle text-danger ms-1">
+                                            Fail
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Last Updated By -->
+
+                                <td>
+
+                                    {% if student.latest_marks_update %}
+
+                                        {{ student.latest_marks_update.trainer.username }}
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Updated Date -->
+
+                                <td class="text-muted small">
+
+                                    {% if student.latest_marks_update %}
+
+                                        {{ student.latest_marks_update.updated_at|date:'d M Y, h:i A' }}
+
+                                    {% else %}
+
+                                        -
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Status -->
+
+                                <td>
+
+                                    {% if student.active_status %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            Not Active
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Actions -->
+
+                                <td class="pe-4">
+
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a href="{% url 'update_marks' student.pk %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Update Marks
+                                        </a>
+
+                                        <a href="{% url 'add_feedback' student.pk %}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            Add Feedback
+                                        </a>
+
+                                        <a href="{% url 'marks_history' student.pk %}"
+                                           class="btn btn-sm btn-outline-info">
+                                            History
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="text-center py-5">
+
+                <h6 class="text-muted mb-2">
+                    No students assigned yet
+                </h6>
+
+                <p class="text-muted small mb-0">
+                    Students enrolled in your courses will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- My Feedback -->
+
+<div class="card">
+
+    <div class="card-body p-0">
+
+        <div class="p-4">
+
+            <h5 class="fw-semibold mb-1">
+                My Feedback
+            </h5>
+
+            <p class="text-muted small mb-0">
+                Feedback submitted by you for your students.
+            </p>
+
+        </div>
+
+
+        {% if feedbacks %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">Student</th>
+                            <th>Course</th>
+                            <th>Rating</th>
+                            <th>Feedback</th>
+                            <th>Date</th>
+                            <th class="pe-4">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for feedback in feedbacks %}
+
+                            <tr>
+
+                                <!-- Student -->
+
+                                <td class="ps-4">
+                                    <strong>
+                                        {{ feedback.student.name }}
+                                    </strong>
+                                </td>
+
+
+                                <!-- Course -->
+
+                                <td>
+
+                                    {% if feedback.course %}
+
+                                        <span class="badge bg-info-subtle text-info-emphasis">
+                                            {{ feedback.course.course_name }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Rating -->
+
+                                <td>
+
+                                    {% if feedback.rating %}
+
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">
+                                            {{ feedback.rating }}/5
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Feedback -->
+
+                                <td>
+                                    {{ feedback.feedback }}
+                                </td>
+
+
+                                <!-- Date -->
+
+                                <td class="text-muted small">
+                                    {{ feedback.created_at|date:'d M Y' }}
+                                </td>
+
+
+                                <!-- Action -->
+
+                                <td class="pe-4">
+
+                                    <a href="{% url 'edit_feedback' feedback.pk %}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Edit
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="text-center py-5">
+
+                <h6 class="text-muted mb-2">
+                    No feedback submitted yet
+                </h6>
+
+                <p class="text-muted small mb-0">
+                    Feedback given by you will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+

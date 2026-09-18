@@ -1,8 +1,14 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from .models import (
+    Student,
+    Department,
+    Course,
+    StudentProfile,
+    UserProfile
+)
 
-from .models import Student, Department, Course, StudentProfile
 
 
 class StudentPortalTests(TestCase):
@@ -66,6 +72,12 @@ class StudentPortalTests(TestCase):
             username='testuser',
             email='testuser@gmail.com',
             password='testpassword123'
+        )
+        
+        UserProfile.objects.create(
+            user=self.user,
+            role='admin',
+            is_approved=True
         )
 
 
@@ -145,7 +157,7 @@ class StudentPortalTests(TestCase):
 
         self.assertRedirects(
             response,
-            reverse('student_list')
+            reverse('admin_dashboard')
         )
 
 

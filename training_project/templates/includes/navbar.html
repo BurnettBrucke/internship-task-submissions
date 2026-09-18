@@ -1,0 +1,205 @@
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+
+    <div class="container">
+
+        <!-- Brand -->
+        <a class="navbar-brand fw-semibold"
+           href="{% url 'home' %}">
+            Student Training Portal
+        </a>
+
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarContent"
+                aria-controls="navbarContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+
+        <!-- Navbar Content -->
+        <div class="collapse navbar-collapse"
+             id="navbarContent">
+
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+
+                <!-- Common Links -->
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{% url 'home' %}">
+                        Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{% url 'about' %}">
+                        About
+                    </a>
+                </li>
+
+
+                {% if user.is_authenticated %}
+
+
+                    <!-- ADMIN -->
+
+                    {% if user.profile.role == 'admin' %}
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'admin_dashboard' %}">
+                                Dashboard
+                            </a>
+                        </li>
+
+
+                        <!-- Management Dropdown -->
+
+                        <li class="nav-item dropdown">
+
+                            <a class="nav-link dropdown-toggle"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+
+                                Management
+
+                            </a>
+
+
+                            <ul class="dropdown-menu shadow-sm">
+
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{% url 'student_list' %}">
+                                        Students
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{% url 'trainer_list' %}">
+                                        Trainers
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{% url 'course_list' %}">
+                                        Courses
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item"
+                                       href="{% url 'user_list' %}">
+                                        Users
+                                    </a>
+                                </li>
+
+                            </ul>
+
+                        </li>
+
+
+                        <!-- Admin Links -->
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'audit_log_list' %}">
+                                Audit Logs
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'admin_feedback_list' %}">
+                                Feedback
+                            </a>
+                        </li>
+
+
+                    <!-- TRAINER -->
+
+                    {% elif user.profile.role == 'trainer' %}
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'trainer_dashboard' %}">
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'trainer_students' %}">
+                                My Students
+                            </a>
+                        </li>
+
+
+                    <!-- STUDENT -->
+
+                    {% elif user.profile.role == 'student' %}
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               href="{% url 'student_dashboard' %}">
+                                My Dashboard
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+
+                    <!-- Account -->
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'change_password' %}">
+                            Change Password
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-danger"
+                           href="{% url 'logout' %}">
+                            Logout
+                        </a>
+                    </li>
+
+
+                {% else %}
+
+
+                    <!-- Guest -->
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'login' %}">
+                            Login
+                        </a>
+                    </li>
+
+
+                {% endif %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+

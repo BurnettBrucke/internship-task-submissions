@@ -1,104 +1,54 @@
-{% extends 'students\base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}About{% endblock %}
+{% block title %}About | Student Training Portal{% endblock %}
 
 {% block content %}
 
-<style>
-    .container {
-        min-height: calc(100vh - 70px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 30px 20px;
-    }
+<div class="row justify-content-center align-items-center" style="min-height: 65vh;">
 
-    .about-box {
-        background: white;
-        width: 100%;
-        max-width: 650px;
-        padding: 45px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        text-align: center;
-    }
+    <div class="col-md-9 col-lg-8">
 
-    .about-box h1 {
-        color: #1f2937;
-        margin-bottom: 20px;
-    }
+        <div class="card shadow-sm border-0 text-center">
 
-    .about-box p {
-        font-size: 17px;
-        line-height: 1.7;
-        color: #555;
-        margin-bottom: 30px;
-    }
+            <div class="card-body p-5">
 
-    .button {
-        display: inline-block;
-        padding: 11px 22px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 15px;
-        margin: 5px;
-    }
+                <h1 class="fw-bold mb-3">
+                    About Student Training Portal
+                </h1>
 
-    .home-button {
-        background: #2563eb;
-        color: white;
-    }
+                <p class="text-muted mb-4">
+                    {{ company_name }} Training Program is a Django-based
+                    student management portal created to manage students,
+                    courses, marks and training activities in one place.
+                </p>
 
-    .home-button:hover {
-        background: #1d4ed8;
-    }
+                <p class="text-muted mb-4">
+                    The portal provides role-based access for Administrators,
+                    Trainers and Students, allowing each user to access the
+                    features relevant to their role.
+                </p>
 
-    .student-button {
-        background: #16a34a;
-        color: white;
-    }
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-    .student-button:hover {
-        background: #15803d;
-    }
+                    <a href="{% url 'home' %}"
+                       class="btn btn-primary px-4">
+                        Home
+                    </a>
 
-    @media (max-width: 600px) {
+                    <a href="{% url 'login' %}"
+                       class="btn btn-outline-secondary px-4">
+                        Login
+                    </a>
 
-        .about-box {
-            padding: 30px 20px;
-        }
+                </div>
 
-        .button {
-            width: 100%;
-            margin: 6px 0;
-        }
-    }
-</style>
+            </div>
 
-<div class="container">
+        </div>
 
-
-<div class="about-box">
-
-    <h1>About Page</h1>
-
-    <p>
-        This is the training program website.
-        It is created as part of the Django training project
-        to practice views, URLs, templates, forms, and CRUD operations.
-    </p>
-
-    <a href="{% url 'home' %}" class="button home-button">
-        Home
-    </a>
-
-    <a href="{% url 'student_list' %}" class="button student-button">
-        Students
-    </a>
-
-</div>
-
+    </div>
 
 </div>
 
 {% endblock %}
+
