@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}
+Update Marks
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <span class="badge bg-success mb-2">
+            TRAINER PORTAL
+        </span>
+
+        <h1>Update Marks</h1>
+
+        <p class="text-muted">
+            Update the marks for this student's course enrollment.
+        </p>
+    </div>
+
+
+    <div class="row">
+
+        <div class="col-md-8">
+
+            <div class="card p-4">
+
+                <!-- Student Information -->
+
+                <div class="mb-4">
+
+                    <h5>Student Information</h5>
+
+                    <p class="mb-1">
+                        <strong>Name:</strong>
+                        {{ enrollment.student.name }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Email:</strong>
+                        {{ enrollment.student.email }}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>Course:</strong>
+                        {{ enrollment.course.course_name }}
+                    </p>
+
+                </div>
+
+
+                <hr>
+
+
+                <!-- Marks Form -->
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+
+                    <!-- Marks -->
+
+                    <div class="mb-3">
+
+                        <label
+                            for="{{ form.marks.id_for_label }}"
+                            class="form-label"
+                        >
+                            Marks
+                        </label>
+
+                        {{ form.marks }}
+
+                        {% if form.marks.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.marks.errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="form-text">
+                            Enter marks between 0 and 100.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Reason -->
+
+                    <div class="mb-3">
+
+                        <label
+                            for="{{ form.reason.id_for_label }}"
+                            class="form-label"
+                        >
+                            Reason for Update
+                        </label>
+
+                        {{ form.reason }}
+
+                        {% if form.reason.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.reason.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-success"
+                        >
+                            Update Marks
+                        </button>
+
+                        <a
+                            href="{% url 'trainer_dashboard' %}"
+                            class="btn btn-outline-secondary"
+                        >
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block title %}
+Trainer Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between align-items-md-center
+                gap-3 mb-4">
+
+        <div>
+            <h1 class="mb-1">Trainer Details</h1>
+
+            <p class="text-muted mb-0">
+                View and manage trainer information, courses,
+                students, feedback and marks.
+            </p>
+        </div>
+
+        <a href="{% url 'admin_dashboard' %}"
+           class="btn btn-outline-secondary">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+
+    <!-- Trainer Information -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+
+                    <h4 class="mb-3">
+                        {{ trainer.username }}
+                    </h4>
+
+                    <p class="mb-2">
+                        <strong>Email:</strong>
+                        {{ trainer.email }}
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Joined:</strong>
+                        {{ trainer.date_joined|date:"d M Y" }}
+                    </p>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <p class="mb-2">
+                        <strong>Approval:</strong>
+                    </p>
+
+                    {% if profile.status == "APPROVED" %}
+
+                        <span class="badge bg-success">
+                            Approved
+                        </span>
+
+                    {% elif profile.status == "PENDING" %}
+
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-danger">
+                            Rejected
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <p class="mb-2">
+                        <strong>Account:</strong>
+                    </p>
+
+                    {% if trainer.is_active %}
+
+                        <span class="badge bg-success">
+                            Active
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-secondary">
+                            Inactive
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-lg-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Courses Assigned
+                    </small>
+
+                    <h2 class="mb-0">
+                        {{ total_courses }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-lg-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Students
+                    </small>
+
+                    <h2 class="mb-0">
+                        {{ total_students }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-lg-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Feedback Given
+                    </small>
+
+                    <h2 class="mb-0">
+                        {{ total_feedback }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-lg-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Marks Updates
+                    </small>
+
+                    <h2 class="mb-0">
+                        {{ total_marks_updates }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Assigned Courses -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex flex-column flex-md-row
+                        justify-content-between
+                        align-items-md-center gap-2">
+
+                <div>
+
+                    <h4 class="mb-1">
+                        Assigned Courses
+                    </h4>
+
+                    <small class="text-muted">
+                        Courses currently assigned to this trainer.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            {% if assigned_courses %}
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+
+                    {% for course in assigned_courses %}
+
+                        <span class="badge bg-primary fs-6 p-2">
+                            {{ course.course_name }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p class="text-muted">
+                    No courses are currently assigned.
+                </p>
+
+            {% endif %}
+
+
+            <!-- Assign Course -->
+            {% if trainer.is_active %}
+
+                <form method="post"
+                      action="{% url 'assign_trainer_course' trainer.id %}"
+                      class="row g-2 align-items-end">
+
+                    {% csrf_token %}
+
+                    <div class="col-md-8">
+
+                        <label for="course"
+                               class="form-label">
+                            Assign New Course
+                        </label>
+
+                        <select name="course"
+                                id="course"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Select a course
+                            </option>
+
+                            {% for course in available_courses %}
+
+                                <option value="{{ course.id }}">
+                                    {{ course.course_name }}
+                                    ({{ course.code }})
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            + Assign Course
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Students -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <h4 class="mb-1">
+                Students
+            </h4>
+
+            <small class="text-muted">
+                Students enrolled in this trainer's courses.
+            </small>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if assigned_enrollments %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Student</th>
+                                <th>Email</th>
+                                <th>Course</th>
+                                <th>Marks</th>
+                                <th>Result</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for enrollment in assigned_enrollments %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <a href="{% url 'student_detail' enrollment.student.id %}"
+                                           class="text-decoration-none">
+
+                                            {{ enrollment.student.name }}
+
+                                        </a>
+
+                                    </td>
+
+                                    <td>
+                                        {{ enrollment.student.email }}
+                                    </td>
+
+                                    <td>
+                                        {{ enrollment.course.course_name }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if enrollment.marks is not None %}
+
+                                            {{ enrollment.marks }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                Not updated
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+
+                                        {% if enrollment.marks is None %}
+
+                                            <span class="badge bg-secondary">
+                                                Pending
+                                            </span>
+
+                                        {% elif enrollment.marks >= 40 %}
+
+                                            <span class="badge bg-success">
+                                                Pass
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-danger">
+                                                Fail
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="p-4 text-center text-muted">
+
+                    No students are currently assigned
+                    through this trainer's courses.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Feedback -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex flex-column flex-md-row
+                        justify-content-between
+                        align-items-md-center">
+
+                <div>
+
+                    <h4 class="mb-1">
+                        Feedback Given
+                    </h4>
+
+                    <small class="text-muted">
+                        Feedback created by this trainer.
+                    </small>
+
+                </div>
+
+                <div class="mt-2 mt-md-0">
+
+                    <span class="badge bg-info text-dark">
+                        Average Rating:
+                        {% if average_rating %}
+                            {{ average_rating|floatformat:1 }}/5
+                        {% else %}
+                            —
+                        {% endif %}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if feedback_given %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Visible</th>
+                                <th>Date</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for feedback in feedback_given %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ feedback.student.name }}
+                                    </td>
+
+                                    <td>
+                                        {{ feedback.course.course_name }}
+                                    </td>
+
+                                    <td>
+
+                                        <span class="badge bg-warning text-dark">
+                                            {{ feedback.rating }}/5
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+                                        {{ feedback.comment }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if feedback.visible %}
+
+                                            <span class="badge bg-success">
+                                                Visible
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+                                                Hidden
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+                                        {{ feedback.created_at|date:"d M Y, h:i A" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="p-4 text-center text-muted">
+
+                    This trainer has not given any feedback yet.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Marks History -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+
+            <h4 class="mb-1">
+                Marks Updated
+            </h4>
+
+            <small class="text-muted">
+                Complete marks update history for this trainer.
+            </small>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if marks_history %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Previous</th>
+                                <th>New</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for history in marks_history %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ history.enrollment.student.name }}
+                                    </td>
+
+                                    <td>
+                                        {{ history.enrollment.course.course_name }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if history.previous_marks is not None %}
+
+                                            {{ history.previous_marks }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+
+                                        <strong>
+                                            {{ history.new_marks }}
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+                                        {{ history.reason }}
+                                    </td>
+
+                                    <td>
+                                        {{ history.updated_at|date:"d M Y, h:i A" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="p-4 text-center text-muted">
+
+                    This trainer has not updated any marks yet.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
