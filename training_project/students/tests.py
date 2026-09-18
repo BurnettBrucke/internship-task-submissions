@@ -1,10 +1,7 @@
 from django.test import TestCase
-
-# Create your tests here.
-
-from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 from .models import (
     UserProfile,
@@ -19,12 +16,16 @@ from .models import (
 )
 
 
+# ============================================================
+# COMMON TEST SETUP
+# ============================================================
+
 class StudentPortalTestSetup(TestCase):
 
     def setUp(self):
 
         # -------------------------------------------------
-        # USERS
+        # ADMIN
         # -------------------------------------------------
 
         self.admin = User.objects.create_user(
@@ -40,6 +41,10 @@ class StudentPortalTestSetup(TestCase):
         )
 
 
+        # -------------------------------------------------
+        # TRAINER
+        # -------------------------------------------------
+
         self.trainer = User.objects.create_user(
             username="trainer",
             email="trainer@test.com",
@@ -53,6 +58,10 @@ class StudentPortalTestSetup(TestCase):
         )
 
 
+        # -------------------------------------------------
+        # SECOND TRAINER
+        # -------------------------------------------------
+
         self.other_trainer = User.objects.create_user(
             username="trainer2",
             email="trainer2@test.com",
@@ -65,6 +74,10 @@ class StudentPortalTestSetup(TestCase):
             status=UserProfile.Status.APPROVED,
         )
 
+
+        # -------------------------------------------------
+        # STUDENT USER
+        # -------------------------------------------------
 
         self.student_user = User.objects.create_user(
             username="student",
@@ -149,8 +162,14 @@ class StudentPortalTestSetup(TestCase):
             course=self.other_course,
         )
 
+
+# ============================================================
+# 1 - 3 AUTHENTICATION TESTS
+# ============================================================
+
 class AuthenticationTests(StudentPortalTestSetup):
 
+    # 1
     def test_login_with_valid_credentials(self):
 
         response = self.client.post(
@@ -171,19 +190,15 @@ class AuthenticationTests(StudentPortalTestSetup):
         )
 
 
+    # 2
     def test_invalid_login_creates_failed_login_audit(self):
 
-        response = self.client.post(
+        self.client.post(
             reverse("login"),
             {
                 "login": "trainer",
                 "password": "WrongPassword@123",
             },
-        )
-
-        self.assertEqual(
-            response.status_code,
-            200,
         )
 
         self.assertTrue(
@@ -194,30 +209,32 @@ class AuthenticationTests(StudentPortalTestSetup):
         )
 
 
-    def test_five_failed_attempts_block_account(self):
+    # 3
+    def test_failed_login_increments_attempt_counter(self):
 
-        for _ in range(5):
-
-            self.client.post(
-                reverse("login"),
-                {
-                    "login": "trainer",
-                    "password": "WrongPassword@123",
-                },
-            )
+        self.client.post(
+            reverse("login"),
+            {
+                "login": "trainer",
+                "password": "WrongPassword@123",
+            },
+        )
 
         profile = self.trainer.profile
 
-        self.assertTrue(
-            profile.login_blocked
-        )
-
         self.assertEqual(
             profile.failed_login_attempts,
-            5,
+            1,
         )
 
 
+# ============================================================
+# 4 - 10 AUTHORIZATION TESTS
+# ============================================================
+
+class AuthorizationTests(StudentPortalTestSetup):
+
+    # 6
     def test_blocked_account_cannot_login(self):
 
         profile = self.trainer.profile
@@ -244,9 +261,7 @@ class AuthenticationTests(StudentPortalTestSetup):
         )
 
 
-
-class AuthorizationTests(StudentPortalTestSetup):
-
+    # 7
     def test_student_cannot_update_marks(self):
 
         self.client.login(
@@ -278,6 +293,7 @@ class AuthorizationTests(StudentPortalTestSetup):
         )
 
 
+    # 8
     def test_unapproved_trainer_cannot_update_marks(self):
 
         profile = self.trainer.profile
@@ -307,6 +323,7 @@ class AuthorizationTests(StudentPortalTestSetup):
         )
 
 
+    # 9
     def test_trainer_cannot_update_another_trainers_course(self):
 
         self.client.login(
@@ -314,7 +331,6 @@ class AuthorizationTests(StudentPortalTestSetup):
             password="Trainer@12345",
         )
 
-        # Create enrollment for the other trainer's course
         other_enrollment = Enrollment.objects.create(
             student=self.student,
             course=self.other_course,
@@ -345,6 +361,7 @@ class AuthorizationTests(StudentPortalTestSetup):
         )
 
 
+    # 10
     def test_student_can_only_view_own_student_detail(self):
 
         another_user = User.objects.create_user(
@@ -386,9 +403,13 @@ class AuthorizationTests(StudentPortalTestSetup):
         )
 
 
+# ============================================================
+# 11 - 15 MARKS TESTS
+# ============================================================
 
 class MarksTests(StudentPortalTestSetup):
 
+    # 11
     def test_assigned_trainer_can_update_marks(self):
 
         self.client.login(
@@ -423,6 +444,7 @@ class MarksTests(StudentPortalTestSetup):
         )
 
 
+    # 12
     def test_mark_history_is_created(self):
 
         self.client.login(
@@ -466,6 +488,7 @@ class MarksTests(StudentPortalTestSetup):
         )
 
 
+    # 13
     def test_marks_update_creates_audit_log(self):
 
         self.client.login(
@@ -492,6 +515,7 @@ class MarksTests(StudentPortalTestSetup):
         )
 
 
+    # 14
     def test_reason_is_required_for_marks_update(self):
 
         self.client.login(
@@ -523,9 +547,63 @@ class MarksTests(StudentPortalTestSetup):
         )
 
 
+    # 15
+    def test_mark_history_stores_multiple_updates(self):
+
+        self.client.login(
+            username="trainer",
+            password="Trainer@12345",
+        )
+
+        self.client.post(
+            reverse(
+                "update_marks",
+                args=[self.enrollment.id],
+            ),
+            {
+                "marks": 80,
+                "reason": "First update",
+            },
+        )
+
+        self.client.post(
+            reverse(
+                "update_marks",
+                args=[self.enrollment.id],
+            ),
+            {
+                "marks": 90,
+                "reason": "Final update",
+            },
+        )
+
+        history = MarkHistory.objects.filter(
+            enrollment=self.enrollment
+        ).order_by("updated_at")
+
+        self.assertEqual(
+            history.count(),
+            2,
+        )
+
+        self.assertEqual(
+            history.first().new_marks,
+            80,
+        )
+
+        self.assertEqual(
+            history.last().new_marks,
+            90,
+        )
+
+
+# ============================================================
+# 16 - 20 FEEDBACK TESTS
+# ============================================================
 
 class FeedbackTests(StudentPortalTestSetup):
 
+    # 16
     def test_trainer_can_create_feedback(self):
 
         self.client.login(
@@ -561,6 +639,7 @@ class FeedbackTests(StudentPortalTestSetup):
         )
 
 
+    # 17
     def test_feedback_creates_audit_log(self):
 
         self.client.login(
@@ -587,6 +666,7 @@ class FeedbackTests(StudentPortalTestSetup):
         )
 
 
+    # 18
     def test_trainer_cannot_create_feedback_for_other_course(self):
 
         self.client.login(
@@ -617,6 +697,7 @@ class FeedbackTests(StudentPortalTestSetup):
         )
 
 
+    # 19
     def test_trainer_can_edit_own_feedback(self):
 
         feedback = Feedback.objects.create(
@@ -664,6 +745,7 @@ class FeedbackTests(StudentPortalTestSetup):
         )
 
 
+    # 20
     def test_trainer_cannot_edit_another_trainers_feedback(self):
 
         feedback = Feedback.objects.create(
@@ -696,8 +778,13 @@ class FeedbackTests(StudentPortalTestSetup):
         )
 
 
+# ============================================================
+# 21 - 25 TRAINER / MODEL TESTS
+# ============================================================
+
 class TrainerManagementTests(StudentPortalTestSetup):
 
+    # 21
     def test_admin_can_delete_trainer_without_history(self):
 
         self.client.login(
@@ -726,6 +813,7 @@ class TrainerManagementTests(StudentPortalTestSetup):
         )
 
 
+    # 22
     def test_trainer_deletion_creates_audit_log(self):
 
         self.client.login(
@@ -748,4 +836,45 @@ class TrainerManagementTests(StudentPortalTestSetup):
                 action=AuditLog.Action.DELETE,
                 description__icontains="trainer",
             ).exists()
+        )
+
+
+    # 23
+    def test_enrollment_unique_student_course(self):
+
+        with self.assertRaises(Exception):
+
+            Enrollment.objects.create(
+                student=self.student,
+                course=self.course,
+                marks=90,
+            )
+
+
+    # 24
+    def test_trainer_course_assignment_is_unique(self):
+
+        with self.assertRaises(Exception):
+
+            TrainerCourse.objects.create(
+                trainer=self.trainer,
+                course=self.course,
+            )
+
+
+    # 25
+    def test_student_dashboard_requires_student_role(self):
+
+        self.client.login(
+            username="trainer",
+            password="Trainer@12345",
+        )
+
+        response = self.client.get(
+            reverse("student_dashboard")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            403,
         )

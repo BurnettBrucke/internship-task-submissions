@@ -18,6 +18,7 @@ from .decorators import role_required
 from .form import StudentForm, TrainerRegistrationForm , LoginForm, MarkForm , FeedbackForm , FeedbackForm , StudentProfileForm , CourseForm 
 from .models import Student , Department , Course , StudentProfile , UserProfile , Enrollment , MarkHistory , TrainerCourse , Feedback , AuditLog
 from django.contrib.auth.models import User
+from .form import LoginForm
 
 from .audit import (audit_login,audit_logout,audit_failed_login,audit_account_blocked,audit_blocked_login,audit_student_created,audit_student_updated,
                     audit_student_deleted,audit_course_created,audit_course_updated,audit_course_status_changed,audit_trainer_approved,
@@ -433,82 +434,41 @@ def trainer_register(request):
         {"form": form}
     )
 
+"""from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.utils import timezone
+
+from .form import LoginForm
+from .models import UserProfile
+from .audit import (
+    audit_login,
+    audit_failed_login,
+    audit_account_blocked,
+    audit_blocked_login,
+)
+"""
+
 def login_backend(request):
 
+    # If user is already logged in
     if request.user.is_authenticated:
-        return redirect("dashboard")
+        return redirect("home")
 
     if request.method == "POST":
 
         form = LoginForm(request.POST)
 
-        if form.is_valid():
-
-            user = form.user
-            profile = getattr(user, "profile", None)
-
-            # Safety check
-            if profile and profile.login_blocked:
-
-                audit_blocked_login(
-                    request,
-                    user
-                )
-
-                form.add_error(
-                    None,
-                    "Your account is blocked because of too many "
-                    "failed login attempts."
-                )
-
-                return render(
-                    request,
-                    "registration/login.html",
-                    {"form": form}
-                )
-
-            # Successful login
-            if profile:
-
-                profile.failed_login_attempts = 0
-                profile.login_blocked = False
-                profile.login_blocked_at = None
-
-                profile.save(
-                    update_fields=[
-                        "failed_login_attempts",
-                        "login_blocked",
-                        "login_blocked_at",
-                    ]
-                )
-
-            login(request, user)
-
-            audit_login(
-                request,
-                user
-            )
-
-            messages.success(
-                request,
-                "Login successful."
-            )
-
-            return redirect("dashboard")
+        login_value = request.POST.get("login", "").strip()
+        password = request.POST.get("password", "")
 
         # -------------------------------------------------
-        # INVALID LOGIN
+        # 1. FIND USER BY EMAIL OR USERNAME
         # -------------------------------------------------
-
-        login_value = request.POST.get(
-            "login",
-            ""
-        ).strip()
 
         user = None
 
         try:
-
             user = User.objects.get(
                 email__iexact=login_value
             )
@@ -516,23 +476,57 @@ def login_backend(request):
         except User.DoesNotExist:
 
             try:
-
                 user = User.objects.get(
                     username=login_value
                 )
 
             except User.DoesNotExist:
-
                 user = None
 
         # -------------------------------------------------
-        # UNKNOWN EMAIL / USERNAME
+        # 2. UNKNOWN USER
         # -------------------------------------------------
 
         if user is None:
 
-            audit_failed_login(
-                request
+            form.add_error(
+                None,
+                "Invalid username/email or password."
+            )
+
+            audit_failed_login(request)
+
+            return render(
+                request,
+                "registration/login.html",
+                {"form": form}
+            )
+
+        # -------------------------------------------------
+        # 3. GET USER PROFILE
+        # -------------------------------------------------
+
+        profile = getattr(
+            user,
+            "profile",
+            None
+        )
+
+        # -------------------------------------------------
+        # 4. CHECK IF ACCOUNT IS ALREADY BLOCKED
+        # -------------------------------------------------
+
+        if profile and profile.login_blocked:
+
+            audit_blocked_login(
+                request,
+                user
+            )
+
+            form.add_error(
+                None,
+                "Your account is blocked because of too many "
+                "failed login attempts. Please contact the administrator."
             )
 
             return render(
@@ -542,25 +536,33 @@ def login_backend(request):
             )
 
         # -------------------------------------------------
-        # EXISTING USER - TRACK FAILED ATTEMPTS
+        # 5. AUTHENTICATE PASSWORD
         # -------------------------------------------------
 
-        if user and hasattr(user, "profile"):
+        authenticated_user = authenticate(
+            request,
+            username=user.username,
+            password=password
+        )
 
-            profile = user.profile
+        # -------------------------------------------------
+        # 6. WRONG PASSWORD
+        # -------------------------------------------------
 
-            # Don't keep incrementing an already blocked account
-            if not profile.login_blocked:
+        if authenticated_user is None:
+
+            if profile:
 
                 profile.failed_login_attempts += 1
 
-                # -------------------------------------------------
-                # 5TH FAILED ATTEMPT
-                # -------------------------------------------------
+                # -----------------------------------------
+                # BLOCK AFTER 5 FAILED ATTEMPTS
+                # -----------------------------------------
 
                 if profile.failed_login_attempts >= 5:
 
                     profile.login_blocked = True
+
                     profile.login_blocked_at = timezone.now()
 
                     profile.save(
@@ -583,9 +585,9 @@ def login_backend(request):
                         "Please contact the administrator."
                     )
 
-                # -------------------------------------------------
-                # FAILED ATTEMPT 1-4
-                # -------------------------------------------------
+                # -----------------------------------------
+                # FAILED ATTEMPTS 1-4
+                # -----------------------------------------
 
                 else:
 
@@ -611,13 +613,76 @@ def login_backend(request):
                         f"{remaining} login attempt(s) remaining."
                     )
 
-        return render(
+            return render(
+                request,
+                "registration/login.html",
+                {"form": form}
+            )
+
+        # -------------------------------------------------
+        # 7. CHECK IF DJANGO USER IS INACTIVE
+        # -------------------------------------------------
+
+        if not authenticated_user.is_active:
+
+            form.add_error(
+                None,
+                "Your account is inactive. "
+                "Please contact the administrator."
+            )
+
+            return render(
+                request,
+                "registration/login.html",
+                {"form": form}
+            )
+
+        # -------------------------------------------------
+        # 8. SUCCESSFUL LOGIN
+        # -------------------------------------------------
+
+        if profile:
+
+            # Reset failed attempts after successful login
+            profile.failed_login_attempts = 0
+            profile.login_blocked = False
+            profile.login_blocked_at = None
+
+            profile.save(
+                update_fields=[
+                    "failed_login_attempts",
+                    "login_blocked",
+                    "login_blocked_at",
+                ]
+            )
+
+        # Login user
+        login(
             request,
-            "registration/login.html",
-            {"form": form}
+            authenticated_user
         )
 
-    # GET request
+        # Create audit log
+        audit_login(
+            request,
+            authenticated_user
+        )
+
+        messages.success(
+            request,
+            "Login successful."
+        )
+
+        # -------------------------------------------------
+        # 9. REDIRECT TO HOME
+        # -------------------------------------------------
+
+        return redirect("home")
+
+    # -----------------------------------------------------
+    # GET REQUEST
+    # -----------------------------------------------------
+
     form = LoginForm()
 
     return render(
@@ -625,7 +690,6 @@ def login_backend(request):
         "registration/login.html",
         {"form": form}
     )
-
 @login_required
 def logout_backend(request):
 
@@ -664,6 +728,7 @@ def dashboard(request):
     return HttpResponseForbidden(
         "You are not authorized to access a dashboard."
     )
+
 
 @role_required(UserProfile.Role.ADMIN)
 def admin_dashboard(request):
@@ -718,14 +783,29 @@ def admin_dashboard(request):
     status = request.GET.get("status", "").strip()
 
     if status == "active":
-        students = students.filter(active=True)
+        students = students.filter(
+            active=True
+        )
 
     elif status == "inactive":
-        students = students.filter(active=False)
+        students = students.filter(
+            active=False
+        )
 
 
     # Remove duplicates caused by enrollment joins
     students = students.distinct()
+
+
+    # Student pagination
+    student_paginator = Paginator(
+        students,
+        10
+    )
+
+    students = student_paginator.get_page(
+        request.GET.get("student_page")
+    )
 
 
     # =========================================================
@@ -768,6 +848,10 @@ def admin_dashboard(request):
         is_active=True
     ).count()
 
+    pending_trainers = trainers.filter(
+        profile__status=UserProfile.Status.PENDING
+    ).count()
+
 
     total_courses = courses.count()
 
@@ -776,9 +860,32 @@ def admin_dashboard(request):
     ).count()
 
 
-    pending_trainers = trainers.filter(
-        profile__status=UserProfile.Status.PENDING
-    ).count()
+    # =========================================================
+    # TRAINER PAGINATION
+    # =========================================================
+
+    trainer_paginator = Paginator(
+        trainers,
+        10
+    )
+
+    trainers = trainer_paginator.get_page(
+        request.GET.get("trainer_page")
+    )
+
+
+    # =========================================================
+    # COURSE PAGINATION
+    # =========================================================
+
+    course_paginator = Paginator(
+        courses,
+        10
+    )
+
+    courses = course_paginator.get_page(
+        request.GET.get("course_page")
+    )
 
 
     # =========================================================
@@ -792,6 +899,17 @@ def admin_dashboard(request):
         "profile",
     ).order_by(
         "-date_joined"
+    )
+
+
+    # User pagination
+    user_paginator = Paginator(
+        users,
+        10
+    )
+
+    users = user_paginator.get_page(
+        request.GET.get("user_page")
     )
 
 
@@ -816,31 +934,35 @@ def admin_dashboard(request):
         request,
         "dashboards/admin_dashboard.html",
         {
+            # Tables
             "students": students,
             "trainers": trainers,
             "courses": courses,
             "users": users,
 
+            # Dropdowns
             "departments": departments,
             "all_courses": all_courses,
 
+            # Student filters
             "search": search,
             "department": department,
             "course": course,
             "status": status,
 
+            # Dashboard counts
             "total_students": total_students,
             "active_students": active_students,
 
             "total_trainers": total_trainers,
             "active_trainers": active_trainers,
+            "pending_trainers": pending_trainers,
 
             "total_courses": total_courses,
             "active_courses": active_courses,
-
-            "pending_trainers": pending_trainers,
         }
     )
+
 
 @role_required(UserProfile.Role.ADMIN)
 def trainer_detail(request, id):
@@ -979,8 +1101,8 @@ def assign_trainer_course(request, id):
         "trainer_detail",
         id=trainer.id
     )
-@role_required(UserProfile.Role.TRAINER)
 
+@role_required(UserProfile.Role.TRAINER)
 def trainer_dashboard(request):
 
     profile = request.user.profile
@@ -1092,11 +1214,12 @@ def student_dashboard(request):
         ),
         user=request.user
     )
-
     enrollments = Enrollment.objects.filter(
         student=student
     ).select_related(
         "course"
+    ).prefetch_related(
+        "mark_history"
     )
 
     feedback = Feedback.objects.filter(
@@ -1750,7 +1873,7 @@ def audit_logs(request):
             pass
 
     # Pagination
-    paginator = Paginator(logs, 15)
+    paginator = Paginator(logs, 10)
 
     page_number = request.GET.get("page")
 

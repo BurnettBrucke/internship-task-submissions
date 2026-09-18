@@ -10,6 +10,10 @@
 
 <div class="container mt-4">
 
+    <!-- ========================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================= -->
+
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
@@ -27,7 +31,9 @@
     </div>
 
 
-    <!-- Basic Information -->
+    <!-- ========================= -->
+    <!-- BASIC INFORMATION -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 
@@ -126,7 +132,9 @@
     </div>
 
 
-    <!-- Personal Profile -->
+    <!-- ========================= -->
+    <!-- PERSONAL PROFILE -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 
@@ -177,7 +185,10 @@
 
     </div>
 
-    <!-- Profile Completion -->
+
+    <!-- ========================= -->
+    <!-- PROFILE COMPLETION -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 
@@ -208,8 +219,7 @@
                 <div
                     class="progress-bar"
                     style="width: {{ student.profile_completion_data.percentage }}%;"
-                >
-                </div>
+                ></div>
 
             </div>
 
@@ -217,10 +227,12 @@
             <div class="mt-2">
 
                 <small class="text-muted">
+
                     {{ student.profile_completion_data.completed }}
                     of
                     {{ student.profile_completion_data.total }}
                     profile fields completed.
+
                 </small>
 
             </div>
@@ -229,212 +241,456 @@
 
     </div>
 
-    <!-- Courses and Marks -->
+
+    <!-- ========================= -->
+    <!-- COURSES AND MARKS -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <h4 class="mb-4">
-            Courses and Progress
-        </h4>
+            <h4 class="mb-4">
+                Courses and Progress
+            </h4>
 
-        {% if student.enrollments.all %}
 
-            <div class="table-responsive">
+            {% if enrollments %}
 
-                <table class="table table-hover align-middle">
+                <div class="table-responsive">
 
-                    <thead>
+                    <table class="table table-hover align-middle">
 
-                        <tr>
-                            <th>Course</th>
-                            <th>Code</th>
-                            <th style="min-width: 180px;">Progress</th>
-                            <th>Marks</th>
-                            <th>Result</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {% for enrollment in enrollments %}
+                        <thead>
 
                             <tr>
 
-                                <td>
-                                    {{ enrollment.course.course_name }}
-                                </td>
+                                <th>
+                                    Course
+                                </th>
 
-                                <td>
-                                    {{ enrollment.course.code }}
-                                </td>
+                                <th>
+                                    Code
+                                </th>
 
-                                <td>
+                                <th style="min-width: 180px;">
+                                    Progress
+                                </th>
 
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                
-                                    <small class="fw-semibold">
-                                        {{ enrollment.progress_percentage }}%
-                                    </small>
-                                
-                                    {% if enrollment.progress_percentage == 0 %}
-                                
-                                        <small class="text-muted">
-                                            Not started
-                                        </small>
-                                    
-                                    {% elif enrollment.progress_percentage >= 100 %}
-                                    
-                                        <small class="text-success fw-semibold">
-                                            Completed
-                                        </small>
-                                    
-                                    {% endif %}
-                                    
-                                </div>
-                            
-                            
-                                <div
-                                    class="progress"
-                                    style="height: 12px;"
-                                    role="progressbar"
-                                    aria-valuenow="{{ enrollment.progress_percentage }}"
-                                    aria-valuemin="0"
-                                    aria-valuemax="100"
-                                >
-                            
-                                    <div
-                                        class="progress-bar"
-                                        style="width: {{ enrollment.progress_percentage }}%;"
-                                    >
-                                    </div>
-                                
-                                </div>
-                            
+                                <th>
+                                    Marks
+                                </th>
 
-    <small class="text-muted">
-        Ends: {{ enrollment.end_date }}
-    </small>
+                                <th>
+                                    Result
+                                </th>
 
-</td>
-
-                                <td>
-
-                                    {% if enrollment.marks != None %}
-
-                                        <span class="badge bg-primary">
-                                            {{ enrollment.marks }}
-                                        </span>
-
-                                    {% else %}
-
-                                        <span class="badge bg-secondary">
-                                            Not assigned
-                                        </span>
-
-                                    {% endif %}
-
-                                </td>
-
-                                <td>
-
-                                    {% if enrollment.marks == None %}
-
-                                        <span class="text-muted">
-                                            -
-                                        </span>
-
-                                    {% elif enrollment.marks >= 40 %}
-
-                                        <span class="badge bg-success">
-                                            Pass
-                                        </span>
-
-                                    {% else %}
-
-                                        <span class="badge bg-danger">
-                                            Fail
-                                        </span>
-
-                                    {% endif %}
-
-                                </td>
+                                <th>
+                                    History
+                                </th>
 
                             </tr>
 
-                        {% endfor %}
+                        </thead>
 
-                    </tbody>
 
-                </table>
+                        <tbody>
 
-            </div>
+                            {% for enrollment in enrollments %}
 
-        {% else %}
+                                <!-- ========================= -->
+                                <!-- COURSE ROW -->
+                                <!-- ========================= -->
 
-            <div class="alert alert-info mb-0">
-                This student is not enrolled in any courses.
-            </div>
+                                <tr>
 
-        {% endif %}
+                                    <td>
+                                        {{ enrollment.course.course_name }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ enrollment.course.code }}
+                                    </td>
+
+
+                                    <!-- Progress -->
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+
+                                            <small class="fw-semibold">
+                                                {{ enrollment.progress_percentage }}%
+                                            </small>
+
+
+                                            {% if enrollment.progress_percentage == 0 %}
+
+                                                <small class="text-muted">
+                                                    Not started
+                                                </small>
+
+                                            {% elif enrollment.progress_percentage >= 100 %}
+
+                                                <small class="text-success fw-semibold">
+                                                    Completed
+                                                </small>
+
+                                            {% endif %}
+
+                                        </div>
+
+
+                                        <div
+                                            class="progress"
+                                            style="height: 12px;"
+                                            role="progressbar"
+                                            aria-valuenow="{{ enrollment.progress_percentage }}"
+                                            aria-valuemin="0"
+                                            aria-valuemax="100"
+                                        >
+
+                                            <div
+                                                class="progress-bar"
+                                                style="width: {{ enrollment.progress_percentage }}%;"
+                                            ></div>
+
+                                        </div>
+
+
+                                        <small class="text-muted">
+                                            Ends: {{ enrollment.end_date }}
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- Marks -->
+
+                                    <td>
+
+                                        {% if enrollment.marks != None %}
+
+                                            <span class="badge bg-primary">
+                                                {{ enrollment.marks }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+                                                Not assigned
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- Result -->
+
+                                    <td>
+
+                                        {% if enrollment.marks == None %}
+
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+
+                                        {% elif enrollment.marks >= 40 %}
+
+                                            <span class="badge bg-success">
+                                                Pass
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-danger">
+                                                Fail
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- History Button -->
+
+                                    <td>
+
+                                        {% if enrollment.mark_history.all %}
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#history-{{ enrollment.id }}"
+                                                aria-expanded="false"
+                                                aria-controls="history-{{ enrollment.id }}"
+                                            >
+                                                History
+                                            </button>
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                No history
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+
+                                <!-- ========================= -->
+                                <!-- MARKS HISTORY ROW -->
+                                <!-- ========================= -->
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="p-0 border-0"
+                                    >
+
+                                        <div
+                                            class="collapse"
+                                            id="history-{{ enrollment.id }}"
+                                        >
+
+                                            <div class="bg-light border rounded p-3 m-2">
+
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                                    <div>
+
+                                                        <h6 class="mb-1">
+                                                            Marks History
+                                                        </h6>
+
+                                                        <small class="text-muted">
+                                                            {{ enrollment.course.course_name }}
+                                                        </small>
+
+                                                    </div>
+
+                                                </div>
+
+
+                                                {% if enrollment.mark_history.all %}
+
+                                                    <div class="table-responsive">
+
+                                                        <table
+                                                            class="table table-sm table-bordered align-middle mb-0"
+                                                        >
+
+                                                            <thead class="table-secondary">
+
+                                                                <tr>
+
+                                                                    <th>
+                                                                        Date
+                                                                    </th>
+
+                                                                    <th>
+                                                                        Previous
+                                                                    </th>
+
+                                                                    <th>
+                                                                        New
+                                                                    </th>
+
+                                                                    <th>
+                                                                        Reason
+                                                                    </th>
+
+                                                                    <th>
+                                                                        Updated By
+                                                                    </th>
+
+                                                                </tr>
+
+                                                            </thead>
+
+
+                                                            <tbody>
+
+                                                                {% for history in enrollment.mark_history.all %}
+
+                                                                    <tr>
+
+                                                                        <!-- Date -->
+
+                                                                        <td>
+
+                                                                            {{ history.updated_at|date:"d M Y, h:i A" }}
+
+                                                                        </td>
+
+
+                                                                        <!-- Previous Marks -->
+
+                                                                        <td>
+
+                                                                            {% if history.previous_marks != None %}
+
+                                                                                {{ history.previous_marks }}
+
+                                                                            {% else %}
+
+                                                                                <span class="text-muted">
+                                                                                    —
+                                                                                </span>
+
+                                                                            {% endif %}
+
+                                                                        </td>
+
+
+                                                                        <!-- New Marks -->
+
+                                                                        <td>
+
+                                                                            <span class="badge bg-primary">
+
+                                                                                {{ history.new_marks }}
+
+                                                                            </span>
+
+                                                                        </td>
+
+
+                                                                        <!-- Reason -->
+
+                                                                        <td>
+
+                                                                            {{ history.reason }}
+
+                                                                        </td>
+
+
+                                                                        <!-- Updated By -->
+
+                                                                        <td>
+
+                                                                            {{ history.updated_by.username }}
+
+                                                                        </td>
+
+                                                                    </tr>
+
+                                                                {% endfor %}
+
+                                                            </tbody>
+
+                                                        </table>
+
+                                                    </div>
+
+                                                {% else %}
+
+                                                    <div class="alert alert-light border mb-0">
+
+                                                        No marks history available for this course.
+
+                                                    </div>
+
+                                                {% endif %}
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="alert alert-info mb-0">
+
+                    This student is not enrolled in any courses.
+
+                </div>
+
+            {% endif %}
+
+        </div>
 
     </div>
 
-</div>
 
+    <!-- ========================= -->
+    <!-- TRAINER ACTIONS -->
+    <!-- ========================= -->
 
-    <!-- Actions -->
     {% if user.profile.role == "TRAINER" %}
-    
-        {% for enrollment in student.enrollments.all %}
-    
+
+        {% for enrollment in enrollments %}
+
             {% if enrollment.course.trainer_assignments.all %}
-    
+
                 {% for assignment in enrollment.course.trainer_assignments.all %}
-    
+
                     {% if assignment.trainer == user %}
-    
+
                         <div class="card shadow-sm mb-3">
-                        
+
                             <div class="card-body">
-                            
+
                                 <h5>
                                     {{ enrollment.course.course_name }}
                                 </h5>
-                            
+
+
                                 <div class="d-flex gap-2">
-                                
+
                                     <a
                                         href="{% url 'update_marks' enrollment.id %}"
                                         class="btn btn-primary btn-sm"
                                     >
                                         Update Marks
                                     </a>
-                                
+
+
                                     <a
                                         href="{% url 'create_feedback' enrollment.id %}"
                                         class="btn btn-outline-primary btn-sm"
                                     >
                                         Give Feedback
                                     </a>
-                                
+
                                 </div>
-                            
+
                             </div>
-                        
+
                         </div>
-                    
+
                     {% endif %}
-                    
+
                 {% endfor %}
-                    
+
             {% endif %}
-                    
+
         {% endfor %}
-                    
-    {% endif %} 
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- BOTTOM ACTIONS -->
+    <!-- ========================= -->
 
     <div class="d-flex gap-2">
 
@@ -459,7 +715,7 @@
 
 
         <a
-            href="{% url 'students_list' %}"
+            href="{% url 'dashboard' %}"
             class="btn btn-secondary"
         >
             Back to Students

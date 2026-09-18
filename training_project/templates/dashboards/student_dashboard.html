@@ -8,7 +8,9 @@
 
 <div class="container py-4">
 
-    <!-- Header -->
+    <!-- ========================= -->
+    <!-- HEADER -->
+    <!-- ========================= -->
 
     <div class="mb-4">
 
@@ -27,7 +29,9 @@
     </div>
 
 
-    <!-- Summary Cards -->
+    <!-- ========================= -->
+    <!-- SUMMARY CARDS -->
+    <!-- ========================= -->
 
     <div class="row g-4 mb-4">
 
@@ -89,7 +93,9 @@
     </div>
 
 
-    <!-- Profile -->
+    <!-- ========================= -->
+    <!-- PROFILE -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 
@@ -109,7 +115,7 @@
 
                 </div>
 
-               <a
+                <a
                     href="{% url 'edit_student_profile' %}"
                     class="btn btn-outline-primary"
                 >
@@ -154,9 +160,7 @@
                     <strong>Department</strong>
 
                     <div class="text-muted">
-
                         {{ student.department.name|default:"-" }}
-
                     </div>
 
                 </div>
@@ -182,9 +186,7 @@
                     <strong>Phone</strong>
 
                     <div class="text-muted">
-
                         {{ student.profile.phone|default:"-" }}
-
                     </div>
 
                 </div>
@@ -197,9 +199,7 @@
                     <strong>Date of Birth</strong>
 
                     <div class="text-muted">
-
                         {{ student.profile.date_of_birth|default:"-" }}
-
                     </div>
 
                 </div>
@@ -212,9 +212,7 @@
                     <strong>Joined Date</strong>
 
                     <div class="text-muted">
-
                         {{ student.joined_date|date:"d M Y" }}
-
                     </div>
 
                 </div>
@@ -253,7 +251,65 @@
     </div>
 
 
-    <!-- My Courses -->
+    <!-- ========================= -->
+    <!-- PROFILE COMPLETION -->
+    <!-- ========================= -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                <h4 class="mb-0">
+                    Profile Completion
+                </h4>
+
+                <span class="fw-semibold">
+                    {{ student.profile_completion_data.percentage }}%
+                </span>
+
+            </div>
+
+
+            <div
+                class="progress"
+                style="height: 18px;"
+                role="progressbar"
+                aria-valuenow="{{ student.profile_completion_data.percentage }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+            >
+
+                <div
+                    class="progress-bar"
+                    style="width: {{ student.profile_completion_data.percentage }}%;"
+                ></div>
+
+            </div>
+
+
+            <div class="mt-2">
+
+                <small class="text-muted">
+
+                    {{ student.profile_completion_data.completed }}
+                    of
+                    {{ student.profile_completion_data.total }}
+                    profile fields completed.
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MY COURSES -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 
@@ -275,6 +331,8 @@
             {% if enrollments %}
 
                 {% for enrollment in enrollments %}
+
+                    <!-- COURSE CARD -->
 
                     <div class="border rounded p-4 mb-4">
 
@@ -399,6 +457,154 @@
 
                         </div>
 
+
+                        <!-- ========================= -->
+                        <!-- MARKS HISTORY -->
+                        <!-- ========================= -->
+
+                        <div class="mt-4">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#history-{{ enrollment.id }}"
+                                aria-expanded="false"
+                                aria-controls="history-{{ enrollment.id }}"
+                            >
+                                View Marks History
+                            </button>
+
+
+                            <div
+                                class="collapse mt-3"
+                                id="history-{{ enrollment.id }}"
+                            >
+
+                                <div class="bg-light border rounded p-3">
+
+                                    <div class="mb-3">
+
+                                        <h6 class="mb-1">
+                                            Marks History
+                                        </h6>
+
+                                        <small class="text-muted">
+                                            {{ enrollment.course.course_name }}
+                                        </small>
+
+                                    </div>
+
+
+                                    {% if enrollment.mark_history.all %}
+
+                                        <div class="table-responsive">
+
+                                            <table
+                                                class="table table-sm table-bordered align-middle mb-0"
+                                            >
+
+                                                <thead class="table-secondary">
+
+                                                    <tr>
+
+                                                        <th>
+                                                            Date
+                                                        </th>
+
+                                                        <th>
+                                                            Previous
+                                                        </th>
+
+                                                        <th>
+                                                            New
+                                                        </th>
+
+                                                        <th>
+                                                            Reason
+                                                        </th>
+
+                                                        <th>
+                                                            Updated By
+                                                        </th>
+
+                                                    </tr>
+
+                                                </thead>
+
+
+                                                <tbody>
+
+                                                    {% for history in enrollment.mark_history.all %}
+
+                                                        <tr>
+
+                                                            <td>
+                                                                {{ history.updated_at|date:"d M Y, h:i A" }}
+                                                            </td>
+
+
+                                                            <td>
+
+                                                                {% if history.previous_marks != None %}
+
+                                                                    {{ history.previous_marks }}
+
+                                                                {% else %}
+
+                                                                    <span class="text-muted">
+                                                                        —
+                                                                    </span>
+
+                                                                {% endif %}
+
+                                                            </td>
+
+
+                                                            <td>
+
+                                                                <span class="badge bg-primary">
+                                                                    {{ history.new_marks }}
+                                                                </span>
+
+                                                            </td>
+
+
+                                                            <td>
+                                                                {{ history.reason }}
+                                                            </td>
+
+
+                                                            <td>
+                                                                {{ history.updated_by.username }}
+                                                            </td>
+
+                                                        </tr>
+
+                                                    {% endfor %}
+
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+
+                                    {% else %}
+
+                                        <div class="alert alert-info mb-0">
+
+                                            No marks history available for this course.
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
                 {% endfor %}
@@ -418,7 +624,9 @@
     </div>
 
 
-    <!-- Feedback -->
+    <!-- ========================= -->
+    <!-- FEEDBACK -->
+    <!-- ========================= -->
 
     <div class="card shadow-sm mb-4">
 

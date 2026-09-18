@@ -408,15 +408,10 @@
                             <tr>
 
                                 <th>Name</th>
-
                                 <th>Email</th>
-
                                 <th>Department</th>
-
                                 <th>Courses</th>
-
                                 <th>Account</th>
-
                                 <th>Actions</th>
 
                             </tr>
@@ -445,18 +440,14 @@
 
 
                                     <td>
-
                                         {{ student.department.name|default:"-" }}
-
                                     </td>
 
 
                                     <td>
 
                                         <span class="badge bg-light text-dark border">
-
                                             {{ student.course_count }}
-
                                         </span>
 
                                     </td>
@@ -512,6 +503,10 @@
                     </table>
 
                 </div>
+
+
+                {% include "includes/pagination.html" with page_obj=students page_param="student_page" %}
+
 
             {% else %}
 
@@ -573,15 +568,10 @@
                             <tr>
 
                                 <th>Trainer</th>
-
                                 <th>Email</th>
-
                                 <th>Requested Course</th>
-
                                 <th>Approval</th>
-
                                 <th>Account</th>
-
                                 <th>Actions</th>
 
                             </tr>
@@ -614,9 +604,7 @@
                                         {% if trainer.profile.requested_course %}
 
                                             <span class="badge bg-primary">
-
                                                 {{ trainer.profile.requested_course.course_name }}
-
                                             </span>
 
                                         {% else %}
@@ -679,6 +667,7 @@
                                         <div class="d-flex flex-wrap gap-2">
 
                                             <!-- View Trainer -->
+
                                             <a
                                                 href="{% url 'trainer_detail' trainer.id %}"
                                                 class="btn btn-sm btn-outline-primary"
@@ -688,14 +677,17 @@
 
 
                                             <!-- Pending Trainer Actions -->
+
                                             {% if trainer.profile.status == "PENDING" %}
 
                                                 <!-- Approve -->
+
                                                 <form
                                                     method="post"
                                                     action="{% url 'approve_trainer' trainer.profile.id %}"
                                                     class="d-inline"
                                                 >
+
                                                     {% csrf_token %}
 
                                                     <button
@@ -704,15 +696,18 @@
                                                     >
                                                         Approve
                                                     </button>
+
                                                 </form>
 
 
                                                 <!-- Reject -->
+
                                                 <form
                                                     method="post"
                                                     action="{% url 'reject_trainer' trainer.profile.id %}"
                                                     class="d-inline"
                                                 >
+
                                                     {% csrf_token %}
 
                                                     <button
@@ -721,17 +716,20 @@
                                                     >
                                                         Reject
                                                     </button>
+
                                                 </form>
 
                                             {% endif %}
 
 
                                             <!-- Delete Trainer -->
+
                                             <form
                                                 method="post"
                                                 action="{% url 'delete_trainer' trainer.id %}"
                                                 class="d-inline"
                                             >
+
                                                 {% csrf_token %}
 
                                                 <button
@@ -741,6 +739,7 @@
                                                 >
                                                     Delete
                                                 </button>
+
                                             </form>
 
                                         </div>
@@ -756,6 +755,10 @@
                     </table>
 
                 </div>
+
+
+                {% include "includes/pagination.html" with page_obj=trainers page_param="trainer_page" %}
+
 
             {% else %}
 
@@ -813,13 +816,9 @@
                             <tr>
 
                                 <th>Course</th>
-
                                 <th>Code</th>
-
                                 <th>Duration</th>
-
                                 <th>Status</th>
-
                                 <th>Actions</th>
 
                             </tr>
@@ -926,6 +925,10 @@
 
                 </div>
 
+
+                {% include "includes/pagination.html" with page_obj=courses page_param="course_page" %}
+
+
             {% else %}
 
                 <div class="text-center py-4 text-muted">
@@ -971,17 +974,11 @@
                             <tr>
 
                                 <th>User</th>
-
                                 <th>Role</th>
-
                                 <th>Account Status</th>
-
                                 <th>Login Security</th>
-
                                 <th>Created</th>
-
                                 <th>Last Login</th>
-
                                 <th>Action</th>
 
                             </tr>
@@ -1011,9 +1008,7 @@
                                     <td>
 
                                         <span class="badge bg-secondary">
-
                                             {{ account.profile.get_role_display }}
-
                                         </span>
 
                                     </td>
@@ -1058,9 +1053,7 @@
 
 
                                     <td>
-
                                         {{ account.date_joined|date:"d M Y" }}
-
                                     </td>
 
 
@@ -1144,6 +1137,10 @@
                     </table>
 
                 </div>
+
+
+                {% include "includes/pagination.html" with page_obj=users page_param="user_page" %}
+
 
             {% else %}
 
