@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block title %}Trainers{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 mt-4">
+
+    <!-- ================================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ================================================= -->
+
+    <div class="text-center py-4 mb-3"
+         style="background: linear-gradient(90deg, #1557a6, #1976d2);
+                border-radius: 12px;
+                color: white;">
+
+        <h2 class="fw-bold mb-1">
+            👨‍🏫 Trainer Management
+        </h2>
+
+        <p class="mb-0">
+            Manage trainers and their assigned courses
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- ADD TRAINER BUTTON -->
+    <!-- ================================================= -->
+
+    <div class="text-center mb-4">
+
+        <a href="{% url 'add_trainer' %}"
+           class="btn btn-success">
+
+            + Add Trainer
+
+        </a>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- TRAINER STATISTICS -->
+    <!-- ================================================= -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+
+            <div class="card shadow-sm text-center border-0">
+
+                <div class="card-body py-4">
+
+                    <div class="mb-2" style="font-size: 22px;">
+                        👨‍🏫
+                    </div>
+
+                    <h6 class="text-muted mb-2">
+                        Total Trainers
+                    </h6>
+
+                    <h2 class="fw-bold text-primary mb-0">
+                        {{ total_trainers }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <div class="card shadow-sm text-center border-0">
+
+                <div class="card-body py-4">
+
+                    <div class="mb-2" style="font-size: 22px;">
+                        📚
+                    </div>
+
+                    <h6 class="text-muted mb-2">
+                        Total Courses
+                    </h6>
+
+                    <h2 class="fw-bold text-primary mb-0">
+                        {{ total_courses }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- TRAINER RECORDS -->
+    <!-- ================================================= -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h5 class="fw-bold text-primary mb-0">
+                    👨‍🏫 Trainer Records
+                </h5>
+
+                <span class="badge bg-primary">
+                    {{ total_trainers }} Trainers
+                </span>
+
+            </div>
+
+
+            {% if trainers %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead style="background-color: #e8f1ff;">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Trainer</th>
+
+                            <th>Email</th>
+
+                            <th>Approval Status</th>
+
+                            <th>Assigned Courses</th>
+
+                            <th>Status</th>
+
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for trainer in trainers %}
+
+                        <tr>
+
+                            <!-- Serial Number -->
+
+                            <td>
+                                #{{ forloop.counter }}
+                            </td>
+
+
+                            <!-- Trainer -->
+
+                            <td>
+
+                                <strong>
+                                    {{ trainer.username }}
+                                </strong>
+
+                            </td>
+
+
+                            <!-- Email -->
+
+                            <td>
+
+                                {{ trainer.email|default:"—" }}
+
+                            </td>
+
+                            <!-- Approval -->
+
+                            <td>
+                                {% if trainer.profile.is_approved %}
+                                    <span class="status-badge status-active">
+                                        Approved
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+
+
+                            <!-- Assigned Courses -->
+
+                            <td>
+
+                                {% for course in trainer.assigned_courses.all %}
+
+                                    <span class="badge bg-primary me-1 mb-1">
+
+                                        {{ course.course_name }}
+
+                                    </span>
+
+                                {% empty %}
+
+                                    <span class="text-muted">
+                                        No course assigned
+                                    </span>
+
+                                {% endfor %}
+
+                            </td>
+
+                            <!-- Actions -->
+
+                            <td>
+
+                                <a href="{% url 'trainer_detail' trainer.id %}"
+                                   class="btn btn-sm btn-primary">
+
+                                    View
+
+                                </a>
+
+
+                                <a href="{% url 'edit_trainer' trainer.id %}"
+                                   class="btn btn-sm btn-warning">
+
+                                    Edit
+
+                                </a>
+
+
+                                <a href="{% url 'delete_trainer' trainer.id %}"
+                                   class="btn btn-sm btn-danger">
+
+                                    Delete
+
+                                </a>
+
+                                {% if not trainer.profile.is_approved %}
+                                    <a href="{% url 'approve_trainer' trainer.id %}"
+                                    class="btn btn-success btn-sm">
+                                        Approve
+                                    </a>
+                                {% endif %}
+
+                                {% if trainer.is_active %}
+                                    <a href="{% url 'toggle_trainer_status' trainer.id %}"
+                                    class="btn btn-warning btn-sm">
+                                        Deactivate
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'toggle_trainer_status' trainer.id %}"
+                                    class="btn btn-success btn-sm">
+                                        Activate
+                                    </a>
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <div class="alert alert-info mb-0">
+
+                    No trainers available.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- BACK BUTTON -->
+    <!-- ================================================= -->
+
+    <div class="mt-4 mb-4">
+
+        <a href="{% url 'admin_dashboard' %}"
+           class="btn btn-primary">
+
+            ← Back to Dashboard
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

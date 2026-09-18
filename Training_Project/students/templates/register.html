@@ -1,202 +1,190 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Register | Student Training Portal{% endblock %}
 
-    <title>Register | Student Management Dashboard</title>
+{% block content %}
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
 
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 30px 15px;
-        }
+            <div class="form-section">
 
-        /* Register Card */
-        .register-container {
-            width: 100%;
-            max-width: 450px;
-            background: white;
-            padding: 35px;
-            border-radius: 18px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-        }
+                <!-- Page Header -->
+                <div class="text-center mb-4">
+                    <div style="
+                        width: 65px;
+                        height: 65px;
+                        background: #e8f1ff;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 15px;
+                        font-size: 30px;
+                    ">
+                        👤
+                    </div>
 
-        /* Icon */
-        .icon {
-            width: 65px;
-            height: 65px;
-            background: #eef0ff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 30px;
-        }
+                    <h2 class="page-title" style="font-size: 28px;">
+                        Create Account
+                    </h2>
 
-        /* Heading */
-        .register-container h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 28px;
-        }
+                    <p class="page-subtitle">
+                        Register to access the Student Training Portal
+                    </p>
+                </div>
 
-        .subtitle {
-            text-align: center;
-            color: #777;
-            margin-bottom: 28px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
 
-        /* Form */
-        form p {
-            margin-bottom: 18px;
-        }
+                <!-- Registration Form -->
+                <form method="POST">
 
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: bold;
-            color: #444;
-        }
+                    {% csrf_token %}
 
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #d5d5d5;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: 0.3s;
-        }
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
 
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 6px rgba(102, 126, 234, 0.25);
-        }
 
-        /* Help Text */
-        .helptext {
-            display: block;
-            color: #777;
-            font-size: 12px;
-            margin-top: 5px;
-            line-height: 1.4;
-        }
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            Username
+                        </label>
 
-        /* Error Messages */
-        ul.errorlist {
-            color: #d9534f;
-            font-size: 13px;
-            margin-bottom: 8px;
-            padding-left: 18px;
-        }
+                        {{ form.username }}
 
-        /* Register Button */
-        button {
-            width: 100%;
-            padding: 13px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 5px;
-            transition: 0.3s;
-        }
+                        {% if form.username.errors %}
+                            <div class="field-error">
+                                {{ form.username.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
 
-        button:hover {
-            background: #5568d9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
 
-        /* Login Link */
-        .login-link {
-            text-align: center;
-            margin-top: 22px;
-            color: #666;
-            font-size: 14px;
-        }
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            Email
+                        </label>
 
-        .login-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
+                        {{ form.email }}
 
-        .login-link a:hover {
-            color: #5568d9;
-            text-decoration: underline;
-        }
+                        {% if form.email.errors %}
+                            <div class="field-error">
+                                {{ form.email.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
 
-        /* Mobile Responsive */
-        @media (max-width: 500px) {
-            body {
-                padding: 20px 12px;
-            }
 
-            .register-container {
-                padding: 25px 20px;
-            }
+                    <!-- Role -->
+                    <div class="mb-3">
+                        <label for="{{ form.role.id_for_label }}" class="form-label">
+                            Role
+                        </label>
 
-            .register-container h2 {
-                font-size: 24px;
-            }
-        }
-    </style>
-</head>
+                        {{ form.role }}
 
-<body>
+                        {% if form.role.errors %}
+                            <div class="field-error">
+                                {{ form.role.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
 
-    <div class="register-container">
 
-        <div class="icon">👤</div>
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            Password
+                        </label>
 
-        <h2>Create Account</h2>
+                        {{ form.password1 }}
 
-        <p class="subtitle">
-            Register to access the Student Management System
-        </p>
+                        {% if form.password1.errors %}
+                            <div class="field-error">
+                                {{ form.password1.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
 
-        <form method="POST">
 
-            {% csrf_token %}
+                    <!-- Password Rules -->
+                    <div class="info-box mb-3">
+                        <div class="info-box-title">
+                            🔐 Password Requirements
+                        </div>
 
-            {{ form.as_p }}
+                        <div class="info-item">
+                            ✓ At least 8 characters
+                        </div>
 
-            <button type="submit">
-                🚀 Create Account
-            </button>
+                        <div class="info-item">
+                            ✓ At least one uppercase letter (A-Z)
+                        </div>
 
-        </form>
+                        <div class="info-item">
+                            ✓ At least one lowercase letter (a-z)
+                        </div>
 
-        <p class="login-link">
-            Already have an account?
-            <a href="{% url 'login' %}">
-                Login
-            </a>
-        </p>
+                        <div class="info-item">
+                            ✓ At least one digit (0-9)
+                        </div>
 
+                        <div class="info-item">
+                            ✓ At least one special character
+                        </div>
+
+                        <div class="info-item">
+                            ✓ Password should not be similar to your username or email
+                        </div>
+                    </div>
+
+
+                    <!-- Confirm Password -->
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            Confirm Password
+                        </label>
+
+                        {{ form.password2 }}
+
+                        {% if form.password2.errors %}
+                            <div class="field-error">
+                                {{ form.password2.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        🚀 Create Account
+                    </button>
+
+                </form>
+
+
+                <!-- Login Link -->
+                <div class="text-center mt-4">
+                    <span class="text-muted">
+                        Already have an account?
+                    </span>
+
+                    <a href="{% url 'login' %}"
+                       class="fw-semibold text-decoration-none">
+                        Login
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
     </div>
+</div>
 
-</body>
-
-</html>
+{% endblock %}

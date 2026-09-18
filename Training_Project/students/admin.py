@@ -12,14 +12,14 @@ admin.site.register(StudentProfile)
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
+    list_display = ('course_name', 'code', 'duration', 'display_trainers', 'active')
 
-    list_display = (
-        'course_name',
-        'code',
-        'duration',
-        'trainer',
-        'active'
-    )
+    def display_trainers(self, obj):
+        return ", ".join(
+            trainer.username for trainer in obj.trainer.all()
+        )
+
+    display_trainers.short_description = "Trainer"
 
 
 @admin.register(UserProfile)

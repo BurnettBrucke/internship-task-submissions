@@ -4,62 +4,147 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Audit Logs</h2>
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
-            Back to Dashboard
-        </a>
+    <!-- Page Header -->
+    <div class="page-header">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+                <h2 class="page-title">
+                    Audit Logs
+                </h2>
+
+                <p class="page-subtitle">
+                    Track user activities and system actions
+                </p>
+            </div>
+
+            <a href="{% url 'admin_dashboard' %}"
+               class="btn btn-primary">
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
     </div>
+
 
     {% if logs %}
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle">
+        <!-- Audit Logs Table -->
+        <div class="table-card">
 
-            <thead class="table-dark">
-                <tr>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Description</th>
-                    <th>Date & Time</th>
-                </tr>
-            </thead>
+            <div class="table-responsive">
 
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>
-                        {% if log.user %}
-                            {{ log.user.username }}
-                        {% else %}
-                            System
-                        {% endif %}
-                    </td>
+                <table class="table portal-table align-middle">
 
-                    <td>{{ log.action }}</td>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
 
-                    <td>{{ log.description }}</td>
 
-                    <td>{{ log.timestamp|date:"d M Y, h:i A" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
+                    <tbody>
 
-        </table>
-    </div>
+                        {% for log in logs %}
+
+                        <tr>
+
+                            <!-- User -->
+                            <td>
+
+                                {% if log.user %}
+
+                                    <span class="user-name">
+                                        👤 {{ log.user.username }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        System
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- Action -->
+                            <td>
+
+                                <span class="action-badge">
+                                    {{ log.action }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- Description -->
+                            <td>
+
+                                <span>
+                                    {{ log.description }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- Date & Time -->
+                            <td>
+
+                                <span class="text-muted">
+                                    {{ log.timestamp|date:"d M Y, h:i A" }}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
 
     {% else %}
 
-        <div class="alert alert-info">
-            No audit logs available.
+        <!-- Empty State -->
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                📋
+            </div>
+
+            <h5>
+                No Audit Logs Available
+            </h5>
+
+            <p>
+                There are currently no activities recorded in the system.
+            </p>
+
         </div>
 
     {% endif %}
 
+
+    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
+
         {% include 'includes/pagination.html' %}
+
     {% endif %}
 
 </div>

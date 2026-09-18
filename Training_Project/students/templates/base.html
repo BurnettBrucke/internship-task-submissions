@@ -1,6 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -31,121 +32,580 @@
     >
 
 
-    <!-- Common Website CSS -->
+    <!-- =========================
+         COMMON WEBSITE CSS
+    ========================== -->
+
     <style>
 
         * {
             box-sizing: border-box;
         }
 
+
+        /* =========================
+           BODY
+        ========================== */
+
         body {
             margin: 0;
             padding: 0;
+
             font-family: 'Poppins', sans-serif;
+
             background: #eef5ff;
+
             color: #172b4d;
         }
 
 
         /* =========================
            NAVBAR
-        ========================= */
+        ========================== */
 
         .navbar-custom {
             background: #1455a0;
+
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
         }
 
+
         .navbar-brand {
             font-size: 28px;
+
             font-weight: 700;
+
             color: white !important;
         }
+
 
         .navbar-custom .nav-link {
             color: white !important;
+
             font-size: 16px;
+
             font-weight: 500;
+
             margin-left: 8px;
             margin-right: 8px;
+
             transition: 0.3s;
         }
 
+
         .navbar-custom .nav-link:hover {
             color: #d9ebff !important;
+
             transform: translateY(-1px);
         }
 
 
         /* =========================
            MAIN CONTENT
-        ========================= */
+        ========================== */
 
         .main-content {
             min-height: calc(100vh - 150px);
+
             padding-top: 30px;
             padding-bottom: 40px;
         }
 
 
         /* =========================
-           MESSAGES
-        ========================= */
+           COMMON PAGE HEADER
+        ========================== */
 
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        .page-header {
+            margin-bottom: 25px;
         }
 
 
-        /* =========================
-           BUTTONS
-        ========================= */
+        .page-title {
+            margin: 0;
 
-        .btn-primary {
-            background: #1455a0;
-            border-color: #1455a0;
+            font-size: 30px;
+
+            font-weight: 700;
+
+            color: #173f73;
         }
 
-        .btn-primary:hover {
-            background: #0d4383;
-            border-color: #0d4383;
+
+        .page-subtitle {
+            margin-top: 5px;
+
+            margin-bottom: 0;
+
+            color: #6c757d;
+
+            font-size: 14px;
         }
 
 
         /* =========================
            CARDS
-        ========================= */
+        ========================== */
 
         .card {
             border: none;
+
             border-radius: 15px;
-            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+
+            box-shadow:
+                0 6px 22px rgba(0, 0, 0, 0.08);
+
+            overflow: hidden;
+        }
+
+
+        .portal-card {
+            background: #ffffff;
+
+            border-radius: 14px;
+
+            border: 1px solid #e3e8ef;
+
+            box-shadow:
+                0 6px 22px rgba(0, 0, 0, 0.08);
+        }
+
+
+        /* =========================
+           CARD HEADER
+        ========================== */
+
+        .portal-card-header {
+            background: #1455a0;
+
+            color: white;
+
+            padding: 18px 22px;
+        }
+
+
+        .portal-card-header h4,
+        .portal-card-header h5 {
+            margin: 0;
+
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           BUTTONS
+        ========================== */
+
+        .btn {
+            border-radius: 8px;
+
+            font-weight: 500;
+
+            transition: all 0.2s ease;
+        }
+
+
+        .btn-primary {
+            background: #1455a0;
+
+            border-color: #1455a0;
+        }
+
+
+        .btn-primary:hover {
+            background: #0d4383;
+
+            border-color: #0d4383;
+
+            transform: translateY(-1px);
+        }
+
+
+        .btn-secondary {
+            border-radius: 8px;
+        }
+
+
+        .btn-danger {
+            border-radius: 8px;
+        }
+
+
+        .btn-success {
+            border-radius: 8px;
+        }
+
+
+        /* =========================
+           COMMON PAGE BUTTON
+        ========================== */
+
+        .page-action-btn {
+            background: #1455a0;
+
+            color: white;
+
+            border: none;
+
+            border-radius: 8px;
+
+            padding: 10px 18px;
+
+            font-weight: 600;
+
+            transition: 0.2s ease;
+        }
+
+
+        .page-action-btn:hover {
+            background: #0d4383;
+
+            color: white;
+
+            transform: translateY(-1px);
+        }
+
+
+        /* =========================
+           TABLE CARD
+        ========================== */
+
+        .table-card {
+            background: #ffffff;
+
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            border: 1px solid #e3e8ef;
+
+            box-shadow:
+                0 6px 22px rgba(0, 0, 0, 0.08);
+        }
+
+
+        /* =========================
+           COMMON TABLE
+        ========================== */
+
+        .portal-table {
+            margin-bottom: 0;
+        }
+
+
+        .portal-table thead th {
+            background: #212529;
+
+            color: white;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            padding: 14px 16px;
+
+            border: none;
+
+            white-space: nowrap;
+        }
+
+
+        .portal-table tbody td {
+            padding: 13px 16px;
+
+            font-size: 14px;
+
+            color: #333;
+
+            vertical-align: middle;
+        }
+
+
+        .portal-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+
+        .portal-table tbody tr:hover {
+            background-color: #f5f8fc;
+        }
+
+
+        /* =========================
+           USER NAME
+        ========================== */
+
+        .user-name {
+            font-weight: 600;
+
+            color: #173f73;
+        }
+
+
+        /* =========================
+           ACTION BADGE
+        ========================== */
+
+        .action-badge {
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 20px;
+
+            background: #e8f1ff;
+
+            color: #0d6efd;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================
+           STATUS BADGES
+        ========================== */
+
+        .status-badge {
+            display: inline-block;
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
+            font-weight: 600;
+        }
+
+
+        .status-active {
+            background: #d1e7dd;
+
+            color: #146c43;
+        }
+
+
+        .status-inactive {
+            background: #f8d7da;
+
+            color: #b02a37;
+        }
+
+
+        /* =========================
+           INFO BOX
+        ========================== */
+
+        .info-box {
+            background: #f5f8fc;
+
+            border-radius: 12px;
+
+            padding: 18px 20px;
+
+            border-left: 4px solid #0d6efd;
+        }
+
+
+        .info-box-title {
+            font-weight: 700;
+
+            color: #333;
+
+            margin-bottom: 10px;
+        }
+
+
+        .info-item {
+            color: #555;
+
+            font-size: 14px;
+
+            margin-bottom: 6px;
+        }
+
+
+        .info-item strong {
+            color: #333;
+        }
+
+
+        /* =========================
+           FORM SECTION
+        ========================== */
+
+        .form-section {
+            background: #ffffff;
+
+            border-radius: 14px;
+
+            padding: 25px;
+
+            border: 1px solid #e3e8ef;
+
+            box-shadow:
+                0 6px 22px rgba(0, 0, 0, 0.08);
+        }
+
+
+        .form-section-title {
+            font-size: 17px;
+
+            font-weight: 700;
+
+            color: #173f73;
+
+            margin-bottom: 20px;
+        }
+
+
+        .form-label {
+            font-weight: 600;
+
+            color: #333;
+        }
+
+
+        .form-control,
+        .form-select {
+            border-radius: 9px;
+
+            border: 1px solid #d6dce5;
+
+            padding: 10px 13px;
+
+            transition: all 0.2s ease;
+        }
+
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0d6efd;
+
+            box-shadow:
+                0 0 0 0.15rem rgba(13, 110, 253, 0.12);
+        }
+
+
+        textarea.form-control {
+            min-height: 120px;
+
+            resize: vertical;
+        }
+
+
+        /* =========================
+           FORM ERRORS
+        ========================== */
+
+        .field-error {
+            color: #dc3545;
+
+            font-size: 13px;
+
+            margin-top: 5px;
+        }
+
+
+        ul.errorlist {
+            color: #dc3545;
+
+            font-size: 13px;
+
+            margin-bottom: 8px;
+
+            padding-left: 18px;
+        }
+
+
+        /* =========================
+           MESSAGES
+        ========================== */
+
+        .alert {
+            border-radius: 12px;
+
+            border: none;
+
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+
+        /* =========================
+           EMPTY STATE
+        ========================== */
+
+        .empty-state {
+            text-align: center;
+
+            padding: 45px 20px;
+
+            background: #ffffff;
+
+            border-radius: 14px;
+
+            border: 1px solid #e3e8ef;
+
+            box-shadow:
+                0 6px 22px rgba(0, 0, 0, 0.06);
+        }
+
+
+        .empty-icon {
+            font-size: 42px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .empty-state h5 {
+            font-weight: 600;
+
+            color: #333;
+
+            margin-bottom: 5px;
+        }
+
+
+        .empty-state p {
+            color: #777;
+
+            margin-bottom: 0;
         }
 
 
         /* =========================
            FOOTER
-        ========================= */
+        ========================== */
 
         .footer {
             background: #123f78;
+
             color: white;
+
             text-align: center;
+
             padding: 18px 10px;
+
             margin-top: 30px;
         }
 
+
         .footer p {
             margin: 0;
+
             font-size: 14px;
         }
 
 
         /* =========================
            RESPONSIVE
-        ========================= */
+        ========================== */
 
         @media (max-width: 768px) {
 
@@ -153,13 +613,31 @@
                 font-size: 22px;
             }
 
+
             .navbar-custom .nav-link {
                 margin-left: 0;
+
                 margin-right: 0;
             }
 
+
             .main-content {
                 padding-top: 20px;
+            }
+
+
+            .page-title {
+                font-size: 25px;
+            }
+
+
+            .form-section {
+                padding: 20px;
+            }
+
+
+            .table-card {
+                border-radius: 10px;
             }
 
         }
@@ -179,13 +657,14 @@
 
     <!-- =========================
          NAVBAR
-    ========================= -->
+    ========================== -->
 
     {% include 'includes/navbar.html' %}
 
+
     <!-- =========================
          MESSAGES
-    ========================= -->
+    ========================== -->
 
     <div class="container mt-3">
 
@@ -196,7 +675,7 @@
 
     <!-- =========================
          MAIN CONTENT
-    ========================= -->
+    ========================== -->
 
     <main class="main-content">
 
@@ -209,7 +688,7 @@
 
     <!-- =========================
          FOOTER
-    ========================= -->
+    ========================== -->
 
     <footer class="footer">
 
@@ -223,7 +702,7 @@
 
     <!-- =========================
          BOOTSTRAP JS
-    ========================= -->
+    ========================== -->
 
     <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
@@ -233,6 +712,7 @@
     <!-- Page Specific JavaScript -->
 
     {% block extra_js %}
+
     {% endblock %}
 
 

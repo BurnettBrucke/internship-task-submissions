@@ -45,6 +45,30 @@ urlpatterns = [
     # Student CRUD URLs
     path('students/', views.student_list, name='student_list'),
 
+    # Trainer CRUD URLs
+
+    path('trainers/', views.trainer_list, name='trainer_list'),
+
+    path('trainers/<int:id>/', views.trainer_detail, name='trainer_detail'),
+
+    path('trainers/add/', views.add_trainer, name='add_trainer'),
+
+    path('trainers/<int:id>/edit/', views.edit_trainer, name='edit_trainer'),
+
+    path('trainers/<int:id>/delete/', views.delete_trainer, name='delete_trainer'),
+
+    path(
+        'trainers/<int:id>/approve/',
+        views.approve_trainer,
+        name='approve_trainer'
+    ),
+
+    path(
+        'trainers/<int:id>/toggle-status/',
+        views.toggle_trainer_status,
+        name='toggle_trainer_status'
+    ),
+
     path('students/<int:id>/', views.student_detail, name='student_detail'),
 
     path('students/add/', views.add_student, name='add_student'),
@@ -52,6 +76,38 @@ urlpatterns = [
     path('students/<int:id>/edit/', views.edit_student, name='edit_student'),
 
     path('students/<int:id>/delete/', views.delete_student, name='delete_student'),
+
+    path(
+        'password-reset/',
+        auth_views.PasswordResetView.as_view(
+            template_name='password_reset.html'
+        ),
+        name='password_reset'
+    ),
+
+    path(
+        'password-reset/done/',
+        auth_views.PasswordResetDoneView.as_view(
+            template_name='password_reset_done.html'
+        ),
+        name='password_reset_done'
+    ),
+
+    path(
+        'password-reset-confirm/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='password_reset_confirm.html'
+        ),
+        name='password_reset_confirm'
+    ),
+
+    path(
+        'password-reset-complete/',
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name='password_reset_complete.html'
+        ),
+        name='password_reset_complete'
+    ),
 
     path(
         'password-change/',

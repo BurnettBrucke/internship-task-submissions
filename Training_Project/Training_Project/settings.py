@@ -97,6 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'students.validators.StrongPasswordValidator',
+    },
 ]
 
 
@@ -122,3 +125,27 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/students/'
 
 LOGOUT_REDIRECT_URL = '/login/'
+
+# Email configuration for password reset testing
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+DEFAULT_FROM_EMAIL = 'noreply@studentportal.com'
+
+# ============================================================
+# SECURITY & SESSION SETTINGS
+# ============================================================
+
+# Prevent JavaScript from accessing the session cookie
+SESSION_COOKIE_HTTPONLY = True
+
+# Keep these False for local HTTP development.
+# Enable them in production when using HTTPS.
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+# Session expires when the browser is closed
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Maximum session age: 1 hour (3600 seconds)
+SESSION_COOKIE_AGE = 3600

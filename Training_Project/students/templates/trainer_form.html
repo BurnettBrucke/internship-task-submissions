@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- ================================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ================================================= -->
+
+    <div class="text-center py-4 mb-4"
+         style="background: linear-gradient(90deg, #1557a6, #1976d2);
+                border-radius: 12px;
+                color: white;">
+
+        <h2 class="fw-bold mb-1">
+            👨‍🏫 {{ title }}
+        </h2>
+
+        <p class="mb-0">
+            Create and manage trainer information and course assignments
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- TRAINER FORM -->
+    <!-- ================================================= -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4">
+
+            <h5 class="fw-bold text-primary mb-4">
+                Trainer Information
+            </h5>
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                <!-- Non-field Errors -->
+
+                {% if form.non_field_errors %}
+
+                    <div class="alert alert-danger">
+
+                        {{ form.non_field_errors }}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- Username -->
+
+                <div class="mb-3">
+
+                    <label for="{{ form.username.id_for_label }}"
+                           class="form-label fw-bold">
+
+                        Username
+
+                    </label>
+
+                    {{ form.username }}
+
+                    {% if form.username.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.username.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div class="mb-3">
+
+                    <label for="{{ form.email.id_for_label }}"
+                           class="form-label fw-bold">
+
+                        Email
+
+                    </label>
+
+                    {{ form.email }}
+
+                    {% if form.email.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.email.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+                <!-- Multiple Courses -->
+
+                <div class="mb-4">
+
+                    <label for="{{ form.courses.id_for_label }}"
+                           class="form-label fw-bold">
+
+                        Assign Courses
+
+                    </label>
+
+                    {{ form.courses }}
+
+                    {% if form.courses.help_text %}
+
+                        <div class="form-text">
+                            {{ form.courses.help_text }}
+                        </div>
+
+                    {% endif %}
+
+                    {% if form.courses.errors %}
+
+                        <div class="text-danger small mt-1">
+                            {{ form.courses.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Buttons -->
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        Save Trainer
+
+                    </button>
+
+                    <a href="{% url 'trainer_list' %}"
+                       class="btn btn-secondary">
+
+                        Cancel
+
+                    </a>
+
+                    <a href="{% url 'admin_dashboard' %}"
+                        class="btn btn-primary">
+
+                        ← Back to Dashboard
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

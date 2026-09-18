@@ -20,7 +20,7 @@
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 20px;
         margin-bottom: 30px;
     }
@@ -171,11 +171,6 @@
 
 </div>
 
-<a href="{% url 'audit_logs' %}" class="audit-btn">
-    View Audit Logs →
-</a>
-
-
 <!-- Statistics Cards -->
 
 <div class="stats-grid">
@@ -215,8 +210,16 @@
         </div>
     </div>
 
-</div>
 
+    <div class="stat-card">
+        <h3>Total Trainers</h3>
+
+        <div class="stat-number">
+            {{ total_trainers }}
+        </div>
+    </div>
+
+</div>
 
 <!-- Marks Information -->
 

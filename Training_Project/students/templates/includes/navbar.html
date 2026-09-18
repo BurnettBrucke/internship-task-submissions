@@ -38,6 +38,7 @@
                     </a>
                 </li>
 
+
                 <!-- About -->
                 <li class="nav-item">
                     <a
@@ -47,6 +48,7 @@
                         About
                     </a>
                 </li>
+
 
                 {% if user.is_authenticated %}
 
@@ -60,6 +62,7 @@
                         </a>
                     </li>
 
+
                     <!-- Students -->
                     <li class="nav-item">
                         <a
@@ -70,7 +73,29 @@
                         </a>
                     </li>
 
+
+                    <!-- Trainers - Admin Only -->
+                    {% if user.profile.role == 'admin' %}
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'trainer_list' %}"
+                            >
+                                Trainers
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <!-- View Audit Logs - Admin Only -->
+                    {% if user.profile.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'audit_logs' %}">Audit Logs</a>
+                        </li>
+                    {% endif %}
+
+
                     <!-- Role Badge -->
+
                     {% if user.profile.role == 'admin' %}
 
                         <li class="nav-item">
@@ -103,12 +128,16 @@
 
                     {% endif %}
 
+
                     <!-- User -->
                     <li class="nav-item">
                         <span class="nav-link">
                             Welcome, {{ user.username }}
                         </span>
                     </li>
+
+
+                    <!-- Change Password -->
                     <li class="nav-item">
                         <a
                             class="nav-link"
@@ -117,6 +146,7 @@
                             Change Password
                         </a>
                     </li>
+
 
                     <!-- Logout -->
                     <li class="nav-item">
@@ -151,6 +181,7 @@
                             Login
                         </a>
                     </li>
+
 
                     <!-- Register -->
                     <li class="nav-item">

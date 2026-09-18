@@ -69,12 +69,10 @@ class Course(models.Model):
         related_name='courses'
     )
 
-    trainer = models.ForeignKey(
+    trainer = models.ManyToManyField(
         User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='assigned_courses'
+        related_name='assigned_courses',
+        blank=True
     )
 
     def __str__(self):
@@ -98,6 +96,8 @@ class UserProfile(models.Model):
         choices=ROLE_CHOICES,
         default='student'
     )
+
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
