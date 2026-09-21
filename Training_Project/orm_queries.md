@@ -304,3 +304,344 @@ Student.objects.select_related(
 - prefetch_related() is useful for Many-to-Many and reverse relationships.
 
 - Here, department is a ForeignKey, so select_related() is used, while courses is a Many-to-Many relationship, so prefetch_related() is used.
+
+# Day 4 – Task 3 ORM Challenges
+
+## 21: Count Assigned Students for Each Trainer
+
+### ORM Query
+from django.db.models import Count
+
+trainer_student_count = User.objects.filter(
+    profile__role='trainer'
+).annotate(
+    assigned_student_count=Count(
+        'assigned_courses__students',
+        distinct=True
+    )
+).values(
+    'username',
+    'assigned_student_count'
+).order_by('username')
+
+list(trainer_student_count)
+
+### Output
+[
+    {'username': 'Trainer_1', 'assigned_student_count': 6},
+    {'username': 'Trainer_2', 'assigned_student_count': 13},
+    {'username': 'Trainer_3', 'assigned_student_count': 14},
+    {'username': 'Trainer_4', 'assigned_student_count': 7},
+    {'username': 'Trainer_5', 'assigned_student_count': 10},
+    {'username': 'Trainer_6', 'assigned_student_count': 13},
+    {'username': 'Trainer_7', 'assigned_student_count': 10}
+]
+
+### Explaination
+- profile__role='trainer' → only trainers are selected.
+- assigned_courses__students → follows the trainer → course → student relationship.
+- Count() → counts assigned students.
+- distinct=True → avoids duplicate students when a student is enrolled in multiple courses.
+- annotate() → adds the calculated count to each trainer.
+
+## 22: Find Students with No Visible Feedback
+
+### ORM Query
+students_without_visible_feedback = Student.objects.filter(
+    feedbacks__is_visible=False
+).values(
+    'name',
+    'email'
+).distinct()
+
+list(students_without_visible_feedback)
+
+### Output
+[
+    {'name': 'Rahul Sharma', 'email': 'rahul@gmail.com'},
+    {'name': 'Aman Singh', 'email': 'aman@gmail.com'},
+    {'name': 'Neha Patel', 'email': 'neha@gmail.com'},
+    {'name': 'Jaya Purohit', 'email': 'jaya@gmail.com'},
+    {'name': 'Sanjana Dhaker', 'email': 'sanjana@gmail.com'},
+    {'name': 'Ruchita Prajapat', 'email': 'ruchita@gmail.com'},
+    {'name': 'Himanshu Gepal', 'email': 'himanshu@gmail.com'},
+    {'name': 'Mahi Kushwah', 'email': 'mahii@gmail.com'},
+    {'name': 'Arjun Sharma', 'email': 'arjun@gmail.com'},
+    {'name': 'Sayyam Dhaker', 'email': 'sayyam@gmail.com'},
+    {'name': 'Ravi Dubey', 'email': 'ravi@gmail.com'},
+    {'name': 'Amit Yadav', 'email': 'amit@gmail.com'},
+    {'name': 'Gita Sharma', 'email': 'gita@gmail.com'},
+    {'name': 'Ritu Jat', 'email': 'ritu@gmail.com'}
+]
+
+### Explaination
+- feedbacks__is_visible=False → finds students having feedback marked invisible.
+- distinct() → prevents duplicate students.
+
+## 23: Find Trainers Who Have Not Submitted Feedback
+
+### ORM Query
+trainers_without_feedback = User.objects.filter(
+    profile__role='trainer',
+    given_feedbacks__isnull=True
+).values(
+    'username'
+)
+
+list(trainers_without_feedback)
+
+### Output
+[
+    {'username': 'Trainer_2'},
+    {'username': 'Trainer_3'},
+    {'username': 'Trainer_4'},
+    {'username': 'Trainer_5'},
+    {'username': 'Trainer_6'},
+    {'username': 'Trainer_7'}
+]
+
+### Explaination
+- profile__role='trainer' → selects trainers.
+- given_feedbacks__isnull=True → finds trainers who have not created any feedback.
+- given_feedbacks comes from the Feedback.trainer relationship.
+
+## 24: Get the Five Latest Audit Actions
+
+### ORM Query
+latest_audit_actions = AuditLog.objects.select_related(
+    'user'
+).order_by(
+    '-timestamp'
+).values(
+    'action',
+    'description',
+    'user__username',
+    'timestamp'
+)[:5]
+
+list(latest_audit_actions)
+
+### Output
+[
+    {
+        'action': 'Trainer Added',
+        'description': 'Trainer Trainer_7 was added successfully.',
+        'user__username': 'admin'
+    },
+    {
+        'action': 'Student Updated',
+        'description': 'Student Arjun Sharma was updated successfully.',
+        'user__username': 'admin'
+    },
+    {
+        'action': 'User Login',
+        'description': 'User admin logged in successfully.',
+        'user__username': 'admin'
+    },
+    {
+        'action': 'User Logout',
+        'description': 'User Trainer_1 logged out successfully.',
+        'user__username': 'Trainer_1'
+    },
+    {
+        'action': 'User Login',
+        'description': 'User Trainer_1 logged in successfully.',
+        'user__username': 'Trainer_1'
+    }
+]
+
+### Explaination
+- select_related('user') → fetches related user efficiently.
+- order_by('-timestamp') → newest records first.
+- [:5] → returns only five records.
+
+## 25: Find Users with More Than Three Failed Login Attempts
+
+### ORM Query
+from django.db.models import Count, Q
+
+users_with_failed_attempts = User.objects.annotate(
+    failed_attempt_count=Count(
+        'auditlog',
+        filter=Q(auditlog__action__icontains='Failed Login')
+    )
+).filter(
+    failed_attempt_count__gt=3
+).values(
+    'username',
+    'failed_attempt_count'
+)
+
+list(users_with_failed_attempts)
+
+### Output
+[]
+
+### Explaination
+The query checks the audit logs associated with users and counts records whose action contains "Failed Login".
+
+failed_attempt_count__gt=3 means:
+
+failed attempts > 3
+
+The current database returned an empty list, which means no user matched this condition based on the currently stored audit-log data.
+
+## 26: Find Marks Updated During the Current Week
+
+### ORM Query
+from django.utils import timezone
+from datetime import timedelta
+
+today = timezone.localdate()
+
+start_of_week = today - timedelta(days=today.weekday())
+
+marks_updated_this_week = CourseMark.objects.filter(
+    updated_at__date__gte=start_of_week,
+    updated_at__date__lte=today
+).values(
+    'student__name',
+    'course__course_name',
+    'marks',
+    'updated_by__username',
+    'updated_at'
+).order_by('-updated_at')
+
+list(marks_updated_this_week)
+
+### Output
+[
+    {
+        'student__name': 'Deepika Vishwakarma',
+        'course__course_name': 'Data Science',
+        'marks': 90,
+        'updated_by__username': 'Trainer_1'
+    }
+]
+
+### Explaination
+- timezone.localdate() → gets the current local date.
+- today.weekday() → determines the current day's position in the week.
+- start_of_week → calculates the beginning of the current week.
+- updated_at__date__gte → includes records from the start of the week.
+- updated_at__date__lte → includes records up to today.
+
+## 27: Calculate Average Feedback Rating by Trainer
+
+### ORM Query
+from django.db.models import Avg
+
+trainer_average_rating = User.objects.filter(
+    profile__role='trainer'
+).annotate(
+    average_rating=Avg('given_feedbacks__rating')
+).values(
+    'username',
+    'average_rating'
+).order_by('username')
+
+list(trainer_average_rating)
+
+### Output
+[
+    {'username': 'Trainer_1', 'average_rating': 5.0},
+    {'username': 'Trainer_2', 'average_rating': None},
+    {'username': 'Trainer_3', 'average_rating': None},
+    {'username': 'Trainer_4', 'average_rating': None},
+    {'username': 'Trainer_5', 'average_rating': None},
+    {'username': 'Trainer_6', 'average_rating': None},
+    {'username': 'Trainer_7', 'average_rating': None}
+]
+
+### Explaination
+- Avg() calculates the average feedback rating.
+- given_feedbacks is the reverse relationship from Feedback.trainer.
+- None means that the trainer currently has no feedback records.
+
+## 28: Find Courses with Average Marks Below 50
+
+### ORM Query
+course_average_marks = Course.objects.annotate(
+    average_marks=Avg('course_marks__marks')
+).filter(
+    average_marks__lt=50
+).values(
+    'course_name',
+    'average_marks'
+).order_by('course_name')
+
+list(course_average_marks)
+
+### Output
+[]
+
+### Explaination
+- Avg('course_marks__marks') calculates the average marks for each course.
+- average_marks__lt=50 filters courses whose average marks are below 50.
+- Empty result means no course currently has an average below 50.
+
+## 29: Find Inactive Users Who Previously Logged In
+
+### ORM Query
+inactive_users_previously_logged_in = User.objects.filter(
+    is_active=False,
+    last_login__isnull=False
+).values(
+    'username',
+    'last_login'
+)
+
+list(inactive_users_previously_logged_in)
+
+### Output
+[
+    {
+        'username': 'Trainer_2',
+        'last_login': '2026-09-17 09:26:25'
+    },
+    {
+        'username': 'Trainer_4',
+        'last_login': '2026-09-17 09:39:21'
+    }
+]
+
+### Explaination
+- is_active=False → user is currently inactive.
+- last_login__isnull=False → user has logged in at least once previously.
+- Therefore, the query identifies inactive accounts that have a previous login history.
+
+## 30: Find Enrolled Students with No Marks
+
+### ORM Query
+enrolled_students_no_marks = Student.objects.filter(
+    courses__isnull=False,
+    course_marks__isnull=True
+).distinct().values(
+    'name',
+    'email'
+)
+
+list(enrolled_students_no_marks)
+
+### Output
+[
+    {'name': 'Aman Singh', 'email': 'aman@gmail.com'},
+    {'name': 'Jaya Purohit', 'email': 'jaya@gmail.com'},
+    {'name': 'Rahul Sharma', 'email': 'rahul@gmail.com'},
+    {'name': 'Neha Patel', 'email': 'neha@gmail.com'},
+    {'name': 'Sanjana Dhaker', 'email': 'sanjana@gmail.com'},
+    {'name': 'Ruchita Prajapat', 'email': 'ruchita@gmail.com'},
+    {'name': 'Himanshu Gepal', 'email': 'himanshu@gmail.com'},
+    {'name': 'Mahi Kushwah', 'email': 'mahii@gmail.com'},
+    {'name': 'Sayyam Dhaker', 'email': 'sayyam@gmail.com'},
+    {'name': 'Ritu Jat', 'email': 'ritu@gmail.com'},
+    {'name': 'Gita Sharma', 'email': 'gita@gmail.com'},
+    {'name': 'Amit Yadav', 'email': 'amit@gmail.com'},
+    {'name': 'Arjun Sharma', 'email': 'arjun@gmail.com'}
+]
+
+### Explaination
+- courses__isnull=False → student is enrolled in at least one course.
+- course_marks__isnull=True → student has no CourseMark record.
+- distinct() → prevents duplicate students when multiple courses are involved.
+

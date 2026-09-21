@@ -1,0 +1,606 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Management{% endblock %}
+
+{% block extra_css %}
+
+<style>
+
+    /* =========================================================
+       COURSE PAGE HEADER
+    ========================================================= */
+
+    .course-page-header {
+        background: linear-gradient(135deg, #1f5da8, #2580d8);
+        color: white;
+        border-radius: 10px;
+        padding: 20px 25px;
+        text-align: center;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .course-page-header h2 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .course-page-header p {
+        margin: 4px 0 0;
+        font-size: 15px;
+    }
+
+
+    /* =========================================================
+       ADD COURSE BUTTON
+    ========================================================= */
+
+    .course-add-wrapper {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .course-add-btn {
+        border-radius: 7px;
+        font-weight: 600;
+        padding: 8px 16px;
+    }
+
+
+    /* =========================================================
+       SUMMARY CARDS
+    ========================================================= */
+
+    .course-summary-card {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+        text-align: center;
+        padding: 18px 10px;
+        height: 100%;
+    }
+
+    .course-summary-icon {
+        font-size: 25px;
+        margin-bottom: 5px;
+    }
+
+    .course-summary-title {
+        font-size: 15px;
+        margin-bottom: 3px;
+        color: #333;
+    }
+
+    .course-summary-number {
+        font-size: 29px;
+        font-weight: 700;
+        color: #1266e3;
+        margin: 0;
+    }
+
+
+    /* =========================================================
+       COURSE RECORDS CARD
+    ========================================================= */
+
+    .course-record-card {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+        margin-top: 20px;
+        overflow: hidden;
+    }
+
+    .course-record-header {
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .course-record-title {
+        color: #1266e3;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .course-count-badge {
+        background: #1266e3;
+        color: white;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+       TABLE
+    ========================================================= */
+
+    .course-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .course-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+    .course-table th {
+        font-size: 14px;
+        font-weight: 700;
+        padding: 11px 10px;
+        white-space: nowrap;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .course-table td {
+        padding: 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 14px;
+    }
+
+    .course-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .course-name {
+        font-weight: 700;
+    }
+
+
+    /* =========================================================
+       COURSE CODE
+    ========================================================= */
+
+    .course-code {
+        display: inline-block;
+        background: #f1f3f5;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+    /* =========================================================
+       TRAINER BADGES
+    ========================================================= */
+
+    .trainer-badge {
+        display: inline-block;
+        background: #087ff5;
+        color: white;
+        border-radius: 5px;
+        padding: 4px 7px;
+        margin: 2px 3px 2px 0;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+
+    /* =========================================================
+       STUDENT COUNT
+    ========================================================= */
+
+    .student-count-badge {
+        background: #1266e3;
+        color: white;
+        border-radius: 5px;
+        padding: 4px 8px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+
+    /* =========================================================
+       STATUS
+    ========================================================= */
+
+    .course-status-active {
+        background: #d1e7dd;
+        color: #087443;
+        border-radius: 12px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .course-status-inactive {
+        background: #f8d7da;
+        color: #b02a37;
+        border-radius: 12px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+       ACTION BUTTONS
+    ========================================================= */
+
+    .course-action-btn {
+        border-radius: 6px;
+        padding: 5px 9px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 3px;
+    }
+
+
+    /* =========================================================
+       EMPTY STATE
+    ========================================================= */
+
+    .course-empty-state {
+        text-align: center;
+        padding: 45px 20px;
+    }
+
+    .course-empty-state h5 {
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .course-empty-state p {
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 768px) {
+
+        .course-page-header h2 {
+            font-size: 24px;
+        }
+
+        .course-page-header p {
+            font-size: 13px;
+        }
+
+        .course-record-header {
+            padding: 12px;
+        }
+
+        .course-table th,
+        .course-table td {
+            white-space: nowrap;
+        }
+
+    }
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid px-2 px-md-3 mt-4">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="course-page-header">
+
+        <h2>📚 Course Management</h2>
+
+        <p>
+            Manage courses and their assigned trainers and students
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         ADD COURSE
+    ====================================================== -->
+
+    <div class="course-add-wrapper">
+
+        <a href="{% url 'add_course' %}"
+           class="btn btn-success course-add-btn">
+
+            + Add Course
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3">
+
+        <!-- Total Courses -->
+
+        <div class="col-md-4">
+
+            <div class="course-summary-card">
+
+                <div class="course-summary-icon">
+                    📚
+                </div>
+
+                <div class="course-summary-title">
+                    Total Courses
+                </div>
+
+                <p class="course-summary-number">
+                    {{ total_courses }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Active Courses -->
+
+        <div class="col-md-4">
+
+            <div class="course-summary-card">
+
+                <div class="course-summary-icon">
+                    ✅
+                </div>
+
+                <div class="course-summary-title">
+                    Active Courses
+                </div>
+
+                <p class="course-summary-number">
+                    {{ active_courses }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Inactive Courses -->
+
+        <div class="col-md-4">
+
+            <div class="course-summary-card">
+
+                <div class="course-summary-icon">
+                    📕
+                </div>
+
+                <div class="course-summary-title">
+                    Inactive Courses
+                </div>
+
+                <p class="course-summary-number">
+                    {{ inactive_courses }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         COURSE RECORDS
+    ====================================================== -->
+
+    <div class="course-record-card">
+
+        <div class="course-record-header">
+
+            <h5 class="course-record-title">
+                📚 Course Records
+            </h5>
+
+            <span class="course-count-badge">
+                {{ total_courses }} Courses
+            </span>
+
+        </div>
+
+
+        {% if courses %}
+
+        <div class="course-table-wrapper">
+
+            <table class="course-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Course</th>
+
+                        <th>Code</th>
+
+                        <th>Duration</th>
+
+                        <th>Trainers</th>
+
+                        <th>Students</th>
+
+                        <th>Status</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for course in courses %}
+
+                    <tr>
+
+                        <!-- Number -->
+
+                        <td>
+                            #{{ forloop.counter }}
+                        </td>
+
+
+                        <!-- Course Name -->
+
+                        <td>
+
+                            <span class="course-name">
+                                {{ course.course_name }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Code -->
+
+                        <td>
+
+                            <span class="course-code">
+                                {{ course.code }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Duration -->
+
+                        <td>
+                            {{ course.duration }}
+                        </td>
+
+
+                        <!-- Trainers -->
+
+                        <td>
+
+                            {% for trainer in course.trainer.all %}
+
+                                <span class="trainer-badge">
+                                    {{ trainer.username }}
+                                </span>
+
+                            {% empty %}
+
+                                <span class="text-muted">
+                                    No trainer
+                                </span>
+
+                            {% endfor %}
+
+                        </td>
+
+
+                        <!-- Students -->
+
+                        <td>
+
+                            <span class="student-count-badge">
+                                {{ course.students.count }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td>
+
+                            {% if course.active %}
+
+                                <span class="course-status-active">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="course-status-inactive">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Actions -->
+
+                        <td>
+
+                            <a href="{% url 'edit_course' course.id %}"
+                               class="btn btn-warning course-action-btn">
+
+                                Edit
+
+                            </a>
+
+                            <a href="{% url 'delete_course' course.id %}"
+                               class="btn btn-danger course-action-btn">
+
+                                Delete
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% else %}
+
+        <!-- Empty State -->
+
+        <div class="course-empty-state">
+
+            <h5>No Courses Found</h5>
+
+            <p>
+                No courses have been added to the training portal yet.
+            </p>
+
+            <a href="{% url 'add_course' %}"
+               class="btn btn-primary">
+
+                + Add First Course
+
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

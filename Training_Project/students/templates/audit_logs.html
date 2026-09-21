@@ -4,148 +4,484 @@
 
 {% block content %}
 
-<div class="container">
+<div class="container-fluid py-4">
 
     <!-- Page Header -->
-    <div class="page-header">
-
-        <div class="d-flex justify-content-between align-items-center">
-
-            <div>
-                <h2 class="page-title">
-                    Audit Logs
-                </h2>
-
-                <p class="page-subtitle">
-                    Track user activities and system actions
-                </p>
-            </div>
-
-            <a href="{% url 'admin_dashboard' %}"
-               class="btn btn-primary">
-                ← Back to Dashboard
-            </a>
-
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-shield-check me-2"></i>Audit Logs
+            </h2>
+            <p class="text-muted mb-0">
+                Monitor user activities and system events
+            </p>
         </div>
 
+        <div class="mt-3 mt-md-0">
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="bi bi-clock-history me-1"></i>
+                Activity History
+            </span>
+        </div>
     </div>
 
 
-    {% if logs %}
+    <!-- Filters Card -->
+    <div class="card border-0 shadow-sm mb-4">
 
-        <!-- Audit Logs Table -->
-        <div class="table-card">
-
-            <div class="table-responsive">
-
-                <table class="table portal-table align-middle">
-
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Description</th>
-                            <th>Date & Time</th>
-                        </tr>
-                    </thead>
-
-
-                    <tbody>
-
-                        {% for log in logs %}
-
-                        <tr>
-
-                            <!-- User -->
-                            <td>
-
-                                {% if log.user %}
-
-                                    <span class="user-name">
-                                        👤 {{ log.user.username }}
-                                    </span>
-
-                                {% else %}
-
-                                    <span class="text-muted">
-                                        System
-                                    </span>
-
-                                {% endif %}
-
-                            </td>
-
-
-                            <!-- Action -->
-                            <td>
-
-                                <span class="action-badge">
-                                    {{ log.action }}
-                                </span>
-
-                            </td>
-
-
-                            <!-- Description -->
-                            <td>
-
-                                <span>
-                                    {{ log.description }}
-                                </span>
-
-                            </td>
-
-
-                            <!-- Date & Time -->
-                            <td>
-
-                                <span class="text-muted">
-                                    {{ log.timestamp|date:"d M Y, h:i A" }}
-                                </span>
-
-                            </td>
-
-                        </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-
-    {% else %}
-
-        <!-- Empty State -->
-        <div class="empty-state">
-
-            <div class="empty-icon">
-                📋
-            </div>
-
-            <h5>
-                No Audit Logs Available
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-funnel me-2"></i>
+                Filter Audit Logs
             </h5>
-
-            <p>
-                There are currently no activities recorded in the system.
-            </p>
-
         </div>
 
-    {% endif %}
+        <div class="card-body">
+
+            <form method="GET">
+
+                <div class="row g-3">
+
+                    <!-- Search -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">
+                            Search
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ search }}"
+                                class="form-control"
+                                placeholder="Search logs..."
+                            >
+                        </div>
+                    </div>
 
 
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
+                    <!-- Action -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">
+                            Action
+                        </label>
 
-        {% include 'includes/pagination.html' %}
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-lightning"></i>
+                            </span>
 
-    {% endif %}
+                            <input
+                                type="text"
+                                name="action"
+                                value="{{ action }}"
+                                class="form-control"
+                                placeholder="e.g. Login, Logout"
+                            >
+                        </div>
+                    </div>
+
+
+                    <!-- Affected Object -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">
+                            Affected Object
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-box"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                name="affected_object"
+                                value="{{ affected_object }}"
+                                class="form-control"
+                                placeholder="Affected object"
+                            >
+                        </div>
+                    </div>
+
+
+                    <!-- IP Address -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">
+                            IP Address
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-globe"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                name="ip_address"
+                                value="{{ ip_address }}"
+                                class="form-control"
+                                placeholder="IP address"
+                            >
+                        </div>
+                    </div>
+
+
+                    <!-- Start Date -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">
+                            Start Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="start_date"
+                            value="{{ start_date }}"
+                            class="form-control"
+                        >
+                    </div>
+
+
+                    <!-- End Date -->
+                    <div class="col-md-6 col-lg-4">
+                        <label class="form-label fw-semibold">
+                            End Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="end_date"
+                            value="{{ end_date }}"
+                            class="form-control"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- Filter Buttons -->
+                <div class="d-flex flex-wrap gap-2 mt-4">
+
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-search me-1"></i>
+                        Search / Filter
+                    </button>
+
+                    <a
+                        href="{% url 'audit_logs' %}"
+                        class="btn btn-outline-secondary px-4"
+                    >
+                        <i class="bi bi-x-circle me-1"></i>
+                        Clear Filters
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- Audit Logs Card -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-bottom py-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+
+                <h5 class="mb-2 mb-md-0 fw-semibold">
+                    <i class="bi bi-list-check me-2"></i>
+                    Activity Records
+                </h5>
+
+                {% if logs %}
+                    <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                        {{ logs.paginator.count }} Record{{ logs.paginator.count|pluralize }}
+                    </span>
+                {% endif %}
+
+            </div>
+        </div>
+
+
+        {% if logs %}
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+                                <th class="px-3 py-3">User</th>
+                                <th class="py-3">Action</th>
+                                <th class="py-3">Affected Object</th>
+                                <th class="py-3">Description</th>
+                                <th class="py-3">IP Address</th>
+                                <th class="py-3">Timestamp</th>
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for log in logs %}
+
+                                <tr>
+
+                                    <!-- User -->
+                                    <td class="px-3">
+
+                                        {% if log.user %}
+
+                                            <div class="d-flex align-items-center">
+
+                                                <div
+                                                    class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center me-2"
+                                                    style="width: 36px; height: 36px;"
+                                                >
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+
+                                                <div>
+                                                    <span class="fw-semibold">
+                                                        {{ log.user.username }}
+                                                    </span>
+                                                </div>
+
+                                            </div>
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                <i class="bi bi-gear me-1"></i>
+                                                System
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- Action -->
+                                    <td>
+
+                                        {% if 'Failed' in log.action %}
+
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-2">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% elif 'Delete' in log.action %}
+
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-2">
+                                                <i class="bi bi-trash me-1"></i>
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% elif 'Update' in log.action %}
+
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-2">
+                                                <i class="bi bi-pencil-square me-1"></i>
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% elif 'Created' in log.action %}
+
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-2">
+                                                <i class="bi bi-plus-circle me-1"></i>
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% elif 'Login' in log.action %}
+
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-2">
+                                                <i class="bi bi-box-arrow-in-right me-1"></i>
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% elif 'Logout' in log.action %}
+
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-2">
+                                                <i class="bi bi-box-arrow-right me-1"></i>
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-2">
+                                                {{ log.action }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- Affected Object -->
+                                    <td>
+
+                                        {% if log.affected_object %}
+
+                                            <span class="text-dark">
+                                                {{ log.affected_object }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="text-muted">-</span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- Description -->
+                                    <td>
+
+                                        <span class="text-muted">
+                                            {{ log.description }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- IP -->
+                                    <td>
+
+                                        {% if log.ip_address %}
+
+                                            <code class="small">
+                                                {{ log.ip_address }}
+                                            </code>
+
+                                        {% else %}
+
+                                            <span class="text-muted">-</span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- Timestamp -->
+                                    <td>
+
+                                        <div class="small fw-semibold">
+                                            {{ log.timestamp|date:"d M Y" }}
+                                        </div>
+
+                                        <div class="small text-muted">
+                                            {{ log.timestamp|date:"h:i A" }}
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- Pagination -->
+            {% if logs.has_other_pages %}
+
+                <div class="card-footer bg-white border-top">
+
+                    <nav aria-label="Audit log pagination">
+
+                        <ul class="pagination justify-content-center mb-0">
+
+                            {% if logs.has_previous %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ logs.previous_page_number }}&search={{ search }}&action={{ action }}&affected_object={{ affected_object }}&ip_address={{ ip_address }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                                    >
+                                        <i class="bi bi-chevron-left"></i>
+                                        Previous
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+
+                            <li class="page-item active">
+
+                                <span class="page-link">
+                                    Page {{ logs.number }} of {{ logs.paginator.num_pages }}
+                                </span>
+
+                            </li>
+
+
+                            {% if logs.has_next %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ logs.next_page_number }}&search={{ search }}&action={{ action }}&affected_object={{ affected_object }}&ip_address={{ ip_address }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                                    >
+                                        Next
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+
+            {% endif %}
+
+
+        {% else %}
+
+            <!-- Empty State -->
+            <div class="card-body text-center py-5">
+
+                <div
+                    class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 70px; height: 70px;"
+                >
+                    <i class="bi bi-inbox fs-2 text-muted"></i>
+                </div>
+
+                <h5 class="fw-semibold">
+                    No Audit Logs Found
+                </h5>
+
+                <p class="text-muted mb-0">
+                    No records match the selected filters.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
 

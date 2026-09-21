@@ -125,8 +125,16 @@
                     </tr>
 
                     <tr>
-                        <th>Course</th>
-                        <td>{{ student.course }}</td>
+                        <th>Courses</th>
+                        <td>
+                            {% for course in student.courses.all %}
+                                <span class="badge bg-primary me-1">
+                                    {{ course.course_name }}
+                                </span>
+                            {% empty %}
+                                <span class="text-muted">No course assigned</span>
+                            {% endfor %}
+                        </td>
                     </tr>
 
                     <tr>

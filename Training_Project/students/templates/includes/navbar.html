@@ -86,10 +86,36 @@
                         </li>
                     {% endif %}
 
+                     <!-- Courses -->
+
+                    {% if user.is_authenticated and user.profile.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'course_list' %}">
+                                Courses
+                            </a>
+                        </li>
+                    {% endif %}
+
                     <!-- View Audit Logs - Admin Only -->
                     {% if user.profile.role == 'admin' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'audit_logs' %}">Audit Logs</a>
+                        </li>
+                    {% endif %}
+
+                    <!-- Feedback - Admin Only -->
+
+                    {% if user.profile.role == 'admin' or user.profile.role == 'trainer' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'feedback_list' %}">
+                                Feedback
+                            </a>
+                        </li>
+                    {% elif user.profile.role == 'student' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'my_feedback' %}">
+                                Feedback
+                            </a>
                         </li>
                     {% endif %}
 

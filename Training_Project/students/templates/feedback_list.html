@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Trainer Feedback</h2>
+            <p class="text-muted mb-0">
+                View feedback and performance evaluations
+            </p>
+        </div>
+
+        <span class="badge bg-primary px-3 py-2">
+            {{ feedbacks|length }} Feedback{{ feedbacks|length|pluralize }}
+        </span>
+    </div>
+
+    {% if feedbacks %}
+
+        <div class="row g-4">
+
+            {% for feedback in feedbacks %}
+
+                <div class="col-md-6 col-lg-6">
+
+                    <div class="card h-100 border-0 shadow-sm feedback-card">
+
+                        <!-- Card Header -->
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+
+                                <div>
+                                    <h4 class="fw-bold text-primary mb-1">
+                                        {{ feedback.course.course_name }}
+                                    </h4>
+
+                                    <small class="text-muted">
+                                        Course Feedback
+                                    </small>
+                                </div>
+
+                                <span class="badge bg-light text-dark border">
+                                    {{ feedback.created_at|date:"d M Y" }}
+                                </span>
+
+                            </div>
+
+                            <hr>
+
+                            <!-- Student -->
+                            <div class="mb-3">
+                                <div class="text-muted small">
+                                    STUDENT
+                                </div>
+
+                                <div class="fw-semibold">
+                                    👤 {{ feedback.student.name }}
+                                </div>
+                            </div>
+
+                            <!-- Trainer -->
+                            <div class="mb-3">
+                                <div class="text-muted small">
+                                    TRAINER
+                                </div>
+
+                                <div class="fw-semibold">
+                                    👨‍🏫 {{ feedback.trainer.username }}
+                                </div>
+                            </div>
+
+                            <!-- Rating -->
+                            <div class="mb-3">
+
+                                <div class="text-muted small mb-1">
+                                    RATING
+                                </div>
+
+                                <div>
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= feedback.rating %}
+                                            <span style="font-size: 22px;">★</span>
+                                        {% else %}
+                                            <span class="text-muted"
+                                                  style="font-size: 22px;">
+                                                ☆
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    <span class="ms-2 fw-semibold">
+                                        {{ feedback.rating }}/5
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <!-- Comment -->
+                            <div class="feedback-comment p-3 rounded mb-3">
+                                <div class="text-muted small mb-1">
+                                    COMMENT
+                                </div>
+
+                                <div>
+                                    {{ feedback.comment }}
+                                </div>
+                            </div>
+
+                            <!-- Visibility -->
+                            <div class="mb-3">
+
+                                {% if feedback.is_visible %}
+                                    <span class="badge bg-success">
+                                        ✓ Visible to Student
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        Hidden from Student
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
+                            <!-- Edit -->
+                            {% if request.user == feedback.trainer %}
+                                <a href="{% url 'edit_feedback' feedback.id %}"
+                                   class="btn btn-primary btn-sm px-3">
+                                    ✏️ Edit Feedback
+                                </a>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+
+                <div style="font-size: 50px;">
+                    💬
+                </div>
+
+                <h4 class="mt-3">
+                    No Feedback Available
+                </h4>
+
+                <p class="text-muted mb-0">
+                    There is no feedback available at the moment.
+                </p>
+
+            </div>
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+    .feedback-card {
+        border-radius: 15px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .feedback-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .feedback-comment {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+    }
+
+</style>
+
+{% endblock %}

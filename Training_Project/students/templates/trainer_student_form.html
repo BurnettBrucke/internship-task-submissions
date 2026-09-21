@@ -172,8 +172,15 @@
                     </div>
 
                     <div class="info-item mb-0">
-                        <strong>Course:</strong>
-                        {{ student.course }}
+                        <strong>Courses:</strong>
+
+                        {% for course in student.courses.all %}
+                            <span class="badge bg-primary me-1">
+                                {{ course.course_name }}
+                            </span>
+                        {% empty %}
+                            <span class="text-muted">No course assigned</span>
+                        {% endfor %}
                     </div>
 
                 </div>

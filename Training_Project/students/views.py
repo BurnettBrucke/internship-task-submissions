@@ -11,13 +11,22 @@ from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .forms import StudentForm, TrainerStudentForm, TrainerForm
+from .forms import (
+    StudentForm,
+    CourseForm,
+    TrainerForm,
+    FeedbackForm,
+    MarksUpdateForm,
+)
 from .models import (
     Student,
     Department,
     Course,
     UserProfile,
     AuditLog,
+    Feedback,
+    CourseMark,
+    MarksHistory,
 )
 
 
@@ -25,7 +34,13 @@ from .models import (
 # COMMON / HELPER FUNCTIONS
 # ============================================================
 
-def create_audit_log(request, action, description, user=None):
+def create_audit_log(
+    request,
+    action,
+    description,
+    user=None,
+    affected_object=""
+):
     """
     Create an audit log entry for important user actions.
     """
@@ -33,10 +48,15 @@ def create_audit_log(request, action, description, user=None):
     if user is None:
         user = request.user if request.user.is_authenticated else None
 
+    # Get client IP address
+    ip_address = request.META.get('REMOTE_ADDR')
+
     AuditLog.objects.create(
         user=user,
         action=action,
-        description=description
+        description=description,
+        affected_object=affected_object,
+        ip_address=ip_address
     )
 
 
@@ -545,6 +565,146 @@ def admin_dashboard(request):
         }
     )
 
+# ============================================================
+# ADMIN - COURSE LIST
+# ============================================================
+
+@role_required('admin')
+def course_list(request):
+    courses = Course.objects.prefetch_related(
+        'students',
+        'trainer'
+    ).order_by('course_name')
+
+    total_courses = courses.count()
+    active_courses = courses.filter(active=True).count()
+    inactive_courses = courses.filter(active=False).count()
+
+    return render(
+        request,
+        'course_list.html',
+        {
+            'courses': courses,
+            'total_courses': total_courses,
+            'active_courses': active_courses,
+            'inactive_courses': inactive_courses,
+        }
+    )
+
+# ============================================================
+# ADMIN - ADD COURSE
+# ============================================================
+
+@role_required('admin')
+def add_course(request):
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+
+        if form.is_valid():
+            course = form.save()
+
+            create_audit_log(
+                request,
+                "Course Created",
+                f"Admin {request.user.username} created course {course.course_name}.",
+                affected_object=f"Course ID: {course.id}"
+            )
+
+            messages.success(
+                request,
+                "Course created successfully!"
+            )
+
+            return redirect('course_list')
+
+    else:
+        form = CourseForm()
+
+    return render(
+        request,
+        'course_form.html',
+        {
+            'form': form,
+            'title': 'Add Course',
+        }
+    )
+
+# ============================================================
+# ADMIN - EDIT COURSE
+# ============================================================
+
+@role_required('admin')
+def edit_course(request, id):
+    course = get_object_or_404(Course, id=id)
+
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+
+        if form.is_valid():
+            course = form.save()
+
+            create_audit_log(
+                request,
+                "Course Updated",
+                f"Admin {request.user.username} updated course {course.course_name}.",
+                affected_object=f"Course ID: {course.id}"
+            )
+
+            messages.success(
+                request,
+                "Course updated successfully!"
+            )
+
+            return redirect('course_list')
+
+    else:
+        form = CourseForm(instance=course)
+
+    return render(
+        request,
+        'course_form.html',
+        {
+            'form': form,
+            'title': 'Edit Course',
+            'course': course,
+        }
+    )
+
+# ============================================================
+# ADMIN - DELETE COURSE
+# ============================================================
+
+@role_required('admin')
+def delete_course(request, id):
+    course = get_object_or_404(Course, id=id)
+
+    if request.method == 'POST':
+        course_name = course.course_name
+        course_id = course.id
+
+        create_audit_log(
+            request,
+            "Course Deleted",
+            f"Admin {request.user.username} deleted course {course_name}.",
+            affected_object=f"Course ID: {course_id}"
+        )
+
+        course.delete()
+
+        messages.success(
+            request,
+            "Course deleted successfully!"
+        )
+
+        return redirect('course_list')
+
+    return render(
+        request,
+        'course_confirm_delete.html',
+        {
+            'course': course,
+        }
+    )
 
 # ============================================================
 # TRAINER DASHBOARD
@@ -623,7 +783,7 @@ def student_dashboard(request):
             if student.age:
                 completed_fields += 1
 
-            if student.course:
+            if student.courses.exists():
                 completed_fields += 1
 
             if profile.phone:
@@ -948,17 +1108,71 @@ def student_detail(request, id):
     # --------------------------------------------------------
 
     elif role != 'admin':
-
         raise PermissionDenied
+
+    # --------------------------------------------------------
+    # Course-wise marks
+    # --------------------------------------------------------
+
+    course_marks = CourseMark.objects.filter(
+        student=student
+    ).select_related(
+        'course',
+        'updated_by'
+    ).order_by(
+        'course__course_name'
+    )
+
+    # --------------------------------------------------------
+    # Feedback
+    # --------------------------------------------------------
+
+    if role == 'student':
+
+        feedbacks = Feedback.objects.filter(
+            student=student,
+            is_visible=True
+        ).select_related(
+            'trainer',
+            'course'
+        ).order_by(
+            '-created_at'
+        )
+
+    else:
+
+        feedbacks = Feedback.objects.filter(
+            student=student
+        ).select_related(
+            'trainer',
+            'course'
+        ).order_by(
+            '-created_at'
+        )
+
+    # --------------------------------------------------------
+    # Marks History
+    # --------------------------------------------------------
+
+    marks_history = MarksHistory.objects.filter(
+        student=student
+    ).select_related(
+        'course',
+        'updated_by'
+    ).order_by(
+        '-updated_at'
+    )
 
     return render(
         request,
         'student_detail.html',
         {
-            'student': student
+            'student': student,
+            'course_marks': course_marks,
+            'feedbacks': feedbacks,
+            'marks_history': marks_history,
         }
     )
-
 
 # ============================================================
 # ADD STUDENT
@@ -1225,88 +1439,6 @@ def delete_student(request, id):
             'student': student
         }
     )
-
-
-# ============================================================
-# TRAINER - UPDATE STUDENT
-# ============================================================
-
-@role_required('trainer')
-def trainer_update_student(request, id):
-    """
-    Trainer can update only:
-    - Marks
-    - Feedback
-
-    Trainer can update a student only when that
-    student is assigned to one of the trainer's courses.
-    """
-
-    student = get_object_or_404(
-        Student,
-        id=id
-    )
-
-    # --------------------------------------------------------
-    # Ownership check
-    # --------------------------------------------------------
-
-    if not student.courses.filter(
-        trainer=request.user
-    ).exists():
-
-        raise PermissionDenied
-
-    if request.method == 'POST':
-
-        form = TrainerStudentForm(
-            request.POST,
-            instance=student
-        )
-
-        if form.is_valid():
-
-            student = form.save()
-
-            create_audit_log(
-                request,
-                "Student Marks/Feedback Updated",
-                (
-                    f"Trainer {request.user.username} updated "
-                    f"marks/feedback for student {student.name}."
-                )
-            )
-
-            messages.success(
-                request,
-                "Student marks and feedback updated successfully!"
-            )
-
-            return redirect(
-                'student_detail',
-                id=student.id
-            )
-
-    else:
-
-        form = TrainerStudentForm(
-            instance=student
-        )
-
-    return render(
-        request,
-        'trainer_student_form.html',
-        {
-            'form': form,
-            'student': student,
-        }
-    )
-
-
-# ============================================================
-# TRAINER MANAGEMENT
-# ============================================================
-
 
 # ============================================================
 # TRAINER LIST
@@ -1626,6 +1758,340 @@ def delete_trainer(request, id):
         }
     )
 
+# ============================================================
+# TASK 3 - FEEDBACK
+# ============================================================
+
+@role_required('trainer', 'admin')
+def feedback_list(request):
+    """
+    Display feedback according to user's role.
+
+    Admin:
+        Can see all feedback.
+
+    Trainer:
+        Can see only feedback given by themselves.
+    """
+
+    if request.user.profile.role == 'admin':
+        feedbacks = Feedback.objects.select_related(
+            'student',
+            'trainer',
+            'course'
+        ).order_by('-created_at')
+
+    else:
+        feedbacks = Feedback.objects.filter(
+            trainer=request.user
+        ).select_related(
+            'student',
+            'trainer',
+            'course'
+        ).order_by('-created_at')
+
+    return render(
+        request,
+        'feedback_list.html',
+        {
+            'feedbacks': feedbacks
+        }
+    )
+
+
+@role_required('trainer')
+def add_feedback(request, student_id, course_id):
+    """
+    Trainer can give feedback only to a student
+    assigned to one of the trainer's courses.
+    """
+
+    student = get_object_or_404(
+        Student,
+        id=student_id
+    )
+
+    course = get_object_or_404(
+        Course,
+        id=course_id
+    )
+
+    # --------------------------------------------------------
+    # Trainer must be assigned to this course
+    # --------------------------------------------------------
+
+    if not course.trainer.filter(
+        id=request.user.id
+    ).exists():
+        raise PermissionDenied
+
+    # --------------------------------------------------------
+    # Student must belong to this course
+    # --------------------------------------------------------
+
+    if not student.courses.filter(
+        id=course.id
+    ).exists():
+        raise PermissionDenied
+
+    if request.method == 'POST':
+
+        form = FeedbackForm(request.POST)
+
+        if form.is_valid():
+
+            feedback = form.save(commit=False)
+
+            feedback.student = student
+            feedback.trainer = request.user
+            feedback.course = course
+
+            feedback.save()
+
+            create_audit_log(
+                request,
+                "Feedback Created",
+                (
+                    f"Trainer {request.user.username} created feedback "
+                    f"for student {student.name} in course "
+                    f"{course.course_name}."
+                ),
+                affected_object=f"Feedback #{feedback.id}"
+            )
+
+            messages.success(
+                request,
+                "Feedback added successfully!"
+            )
+
+            return redirect(
+                'student_detail',
+                id=student.id
+            )
+
+    else:
+        form = FeedbackForm()
+
+    return render(
+        request,
+        'feedback_form.html',
+        {
+            'form': form,
+            'student': student,
+            'course': course,
+            'title': 'Add Feedback',
+        }
+    )
+
+
+@role_required('trainer')
+def edit_feedback(request, id):
+    """
+    Trainer can edit only their own feedback.
+    """
+
+    feedback = get_object_or_404(
+        Feedback,
+        id=id
+    )
+
+    # --------------------------------------------------------
+    # Ownership check
+    # --------------------------------------------------------
+
+    if feedback.trainer != request.user:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+
+        form = FeedbackForm(
+            request.POST,
+            instance=feedback
+        )
+
+        if form.is_valid():
+
+            feedback = form.save()
+
+            create_audit_log(
+                request,
+                "Feedback Updated",
+                (
+                    f"Trainer {request.user.username} updated "
+                    f"feedback #{feedback.id} for "
+                    f"student {feedback.student.name}."
+                ),
+                affected_object=f"Feedback #{feedback.id}"
+            )
+
+            messages.success(
+                request,
+                "Feedback updated successfully!"
+            )
+
+            return redirect(
+                'student_detail',
+                id=feedback.student.id
+            )
+
+    else:
+
+        form = FeedbackForm(
+            instance=feedback
+        )
+
+    return render(
+        request,
+        'feedback_form.html',
+        {
+            'form': form,
+            'feedback': feedback,
+            'student': feedback.student,
+            'course': feedback.course,
+            'title': 'Edit Feedback',
+        }
+    )
+
+
+@role_required('admin', 'student')
+def my_feedback(request):
+    """
+    Admin can view all feedback.
+    Student can view only visible feedback belonging to themselves.
+    """
+
+    role = request.user.profile.role
+
+    if role == 'admin':
+
+        feedbacks = Feedback.objects.select_related(
+            'student',
+            'trainer',
+            'course'
+        ).order_by('-created_at')
+
+    else:
+
+        student = get_object_or_404(
+            Student,
+            user=request.user
+        )
+
+        feedbacks = Feedback.objects.filter(
+            student=student,
+            is_visible=True
+        ).select_related(
+            'student',
+            'trainer',
+            'course'
+        ).order_by('-created_at')
+
+    return render(
+        request,
+        'feedback_list.html',
+        {
+            'feedbacks': feedbacks
+        }
+    )
+
+# ============================================================
+# MARKS
+# ============================================================
+
+@role_required('trainer')
+def update_marks(request, student_id, course_id):
+    student = get_object_or_404(Student, id=student_id)
+    course = get_object_or_404(Course, id=course_id)
+
+    # Trainer must be assigned to this course
+    if not course.trainer.filter(id=request.user.id).exists():
+        raise PermissionDenied
+
+    # Student must be enrolled in this course
+    if not student.courses.filter(id=course.id).exists():
+        raise PermissionDenied
+
+    course_mark = CourseMark.objects.filter(
+        student=student,
+        course=course
+    ).first()
+
+    if request.method == 'POST':
+        form = MarksUpdateForm(request.POST, instance=course_mark)
+
+        if form.is_valid():
+            new_marks = form.cleaned_data['marks']
+            reason = form.cleaned_data['reason']
+
+            previous_marks = (
+                course_mark.marks if course_mark else 0
+            )
+
+            if course_mark:
+                course_mark.marks = new_marks
+                course_mark.updated_by = request.user
+                course_mark.save()
+            else:
+                course_mark = CourseMark.objects.create(
+                    student=student,
+                    course=course,
+                    marks=new_marks,
+                    updated_by=request.user
+                )
+
+            MarksHistory.objects.create(
+                student=student,
+                course=course,
+                previous_marks=previous_marks,
+                new_marks=new_marks,
+                updated_by=request.user,
+                reason=reason
+            )
+
+            create_audit_log(
+                request,
+                "Marks Updated",
+                (
+                    f"Trainer {request.user.username} updated marks "
+                    f"for student {student.name} in "
+                    f"{course.course_name}: "
+                    f"{previous_marks} → {new_marks}. "
+                    f"Reason: {reason}"
+                ),
+                affected_object=(
+                    f"{student.name} - {course.course_name}"
+                )
+            )
+
+            messages.success(
+                request,
+                "Marks updated successfully!"
+            )
+
+            return redirect(
+                'student_detail',
+                id=student.id
+            )
+
+    else:
+        form = MarksUpdateForm(instance=course_mark)
+
+    history = MarksHistory.objects.filter(
+        student=student,
+        course=course
+    ).select_related('updated_by').order_by('-updated_at')
+
+    return render(
+        request,
+        'marks_update.html',
+        {
+            'form': form,
+            'student': student,
+            'course': course,
+            'course_mark': course_mark,
+            'history': history,
+        }
+    )
 
 # ============================================================
 # AUDIT LOGS
@@ -1633,60 +2099,68 @@ def delete_trainer(request, id):
 
 @role_required('admin')
 def audit_logs(request):
-    """
-    Display audit logs.
+    logs = AuditLog.objects.select_related('user').all().order_by('-timestamp')
 
-    Only Admin can access audit logs.
-    """
-
-    logs = AuditLog.objects.select_related(
-        'user'
-    ).order_by(
-        '-timestamp'
-    )
-
-    # --------------------------------------------------------
     # Search
-    # --------------------------------------------------------
-
-    search = request.GET.get(
-        'search',
-        ''
-    )
-
+    search = request.GET.get('search', '').strip()
     if search:
-
         logs = logs.filter(
             Q(action__icontains=search) |
             Q(description__icontains=search) |
-            Q(user__username__icontains=search)
+            Q(affected_object__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(ip_address__icontains=search)
         )
 
-    # --------------------------------------------------------
+    # Action filter
+    action = request.GET.get('action', '').strip()
+    if action:
+        logs = logs.filter(action__icontains=action)
+
+    # Affected object filter
+    affected_object = request.GET.get('affected_object', '').strip()
+    if affected_object:
+        logs = logs.filter(
+            affected_object__icontains=affected_object
+        )
+
+    # IP address filter
+    ip_address = request.GET.get('ip_address', '').strip()
+    if ip_address:
+        logs = logs.filter(
+            ip_address__icontains=ip_address
+        )
+
+    # Date range filter
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
+
+    if start_date:
+        logs = logs.filter(timestamp__date__gte=start_date)
+
+    if end_date:
+        logs = logs.filter(timestamp__date__lte=end_date)
+
     # Pagination
-    # --------------------------------------------------------
+    paginator = Paginator(logs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-    paginator = Paginator(
-        logs,
-        10
-    )
-
-    page_number = request.GET.get(
-        'page'
-    )
-
-    page_obj = paginator.get_page(
-        page_number
-    )
+    context = {
+        'page_obj': page_obj,
+        'logs': page_obj,
+        'search': search,
+        'action': action,
+        'affected_object': affected_object,
+        'ip_address': ip_address,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
 
     return render(
         request,
         'audit_logs.html',
-        {
-            'logs': page_obj,
-            'page_obj': page_obj,
-            'search': search,
-        }
+        context
     )
 
 # ============================================================

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Marks{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Update Marks</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="mb-3">
+                <strong>Student:</strong> {{ student.name }}
+            </div>
+
+            <div class="mb-3">
+                <strong>Course:</strong> {{ course.course_name }}
+            </div>
+
+            {% if course_mark %}
+                <div class="mb-3">
+                    <strong>Current Marks:</strong>
+                    {{ course_mark.marks }}
+                </div>
+            {% else %}
+                <div class="mb-3">
+                    <strong>Current Marks:</strong> Not Updated
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary">
+                    Update Marks
+                </button>
+
+                <a href="{% url 'student_detail' student.id %}"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+
+    {% if history %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-body">
+
+                <h4 class="mb-3">Marks History</h4>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+
+                        <thead>
+                            <tr>
+                                <th>Previous Marks</th>
+                                <th>New Marks</th>
+                                <th>Updated By</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for record in history %}
+                                <tr>
+                                    <td>{{ record.previous_marks }}</td>
+                                    <td>{{ record.new_marks }}</td>
+                                    <td>{{ record.updated_by.username }}</td>
+                                    <td>{{ record.reason }}</td>
+                                    <td>{{ record.updated_at|date:"d M Y, h:i A" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4">
+            No marks history available.
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

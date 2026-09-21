@@ -34,9 +34,7 @@
 
         <a href="{% url 'add_trainer' %}"
            class="btn btn-success">
-
             + Add Trainer
-
         </a>
 
     </div>
@@ -177,23 +175,28 @@
                             <!-- Email -->
 
                             <td>
-
                                 {{ trainer.email|default:"—" }}
-
                             </td>
 
-                            <!-- Approval -->
+
+                            <!-- Approval Status -->
 
                             <td>
+
                                 {% if trainer.profile.is_approved %}
+
                                     <span class="status-badge status-active">
                                         Approved
                                     </span>
+
                                 {% else %}
+
                                     <span class="status-badge status-inactive">
                                         Pending
                                     </span>
+
                                 {% endif %}
+
                             </td>
 
 
@@ -204,9 +207,7 @@
                                 {% for course in trainer.assigned_courses.all %}
 
                                     <span class="badge bg-primary me-1 mb-1">
-
                                         {{ course.course_name }}
-
                                     </span>
 
                                 {% empty %}
@@ -219,50 +220,74 @@
 
                             </td>
 
+
+                            <!-- Status -->
+
+                            <td>
+
+                                {% if trainer.is_active %}
+
+                                    <span class="status-badge status-active">
+                                        Active
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status-badge status-inactive">
+                                        Inactive
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
                             <!-- Actions -->
 
                             <td>
 
                                 <a href="{% url 'trainer_detail' trainer.id %}"
                                    class="btn btn-sm btn-primary">
-
                                     View
-
                                 </a>
 
 
                                 <a href="{% url 'edit_trainer' trainer.id %}"
                                    class="btn btn-sm btn-warning">
-
                                     Edit
-
                                 </a>
 
 
                                 <a href="{% url 'delete_trainer' trainer.id %}"
                                    class="btn btn-sm btn-danger">
-
                                     Delete
-
                                 </a>
 
+
                                 {% if not trainer.profile.is_approved %}
+
                                     <a href="{% url 'approve_trainer' trainer.id %}"
-                                    class="btn btn-success btn-sm">
+                                       class="btn btn-success btn-sm">
                                         Approve
                                     </a>
+
                                 {% endif %}
 
+
                                 {% if trainer.is_active %}
+
                                     <a href="{% url 'toggle_trainer_status' trainer.id %}"
-                                    class="btn btn-warning btn-sm">
+                                       class="btn btn-warning btn-sm">
                                         Deactivate
                                     </a>
+
                                 {% else %}
+
                                     <a href="{% url 'toggle_trainer_status' trainer.id %}"
-                                    class="btn btn-success btn-sm">
+                                       class="btn btn-success btn-sm">
                                         Activate
                                     </a>
+
                                 {% endif %}
 
                             </td>
@@ -280,9 +305,7 @@
             {% else %}
 
                 <div class="alert alert-info mb-0">
-
                     No trainers available.
-
                 </div>
 
             {% endif %}
@@ -300,9 +323,7 @@
 
         <a href="{% url 'admin_dashboard' %}"
            class="btn btn-primary">
-
             ← Back to Dashboard
-
         </a>
 
     </div>

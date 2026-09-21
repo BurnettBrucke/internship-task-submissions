@@ -121,47 +121,81 @@
         color: #991b1b;
     }
 
-    .action-buttons {
-        display: flex;
-        gap: 12px;
-        margin-top: 30px;
-        flex-wrap: wrap;
-    }
-
-    .btn {
-        text-decoration: none;
-        padding: 11px 20px;
-        border-radius: 10px;
-        font-weight: 600;
-        display: inline-block;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .btn-back {
-        background: #e2e8f0;
-        color: #334155;
-    }
-
-    .btn-edit {
-        background: #2563eb;
-        color: white;
-    }
-
-    .btn-delete {
-        background: #dc2626;
-        color: white;
-    }
-
-    .btn:hover {
-        opacity: 0.9;
-    }
-
     .section-title {
         color: #1e3a8a;
         margin-bottom: 20px;
         font-size: 22px;
+    }
+
+    .section-subtitle {
+        color: #64748b;
+        margin-bottom: 20px;
+    }
+
+    .course-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    .course-card h5 {
+        color: #1e3a8a;
+        margin-bottom: 12px;
+    }
+
+    .course-info {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .marks-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2563eb;
+    }
+
+    .feedback-card {
+        background: #f8fafc;
+        border-left: 4px solid #60a5fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    .feedback-card h5 {
+        color: #1e3a8a;
+        margin-bottom: 8px;
+    }
+
+    .rating {
+        color: #f59e0b;
+        font-weight: 600;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+    }
+
+    .history-table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 13px;
+    }
+
+    .history-table td {
+        color: #334155;
+        font-size: 14px;
     }
 
     .no-data {
@@ -172,7 +206,15 @@
         text-align: center;
     }
 
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
     @media (max-width: 700px) {
+
         .details-grid {
             grid-template-columns: 1fr;
         }
@@ -189,18 +231,35 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .history-table {
+            min-width: 700px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
     }
 </style>
+
 
 <div class="detail-container">
 
     <!-- Page Header -->
+
     <div class="detail-header">
+
         <h1>Student Details</h1>
-        <p>View complete information about the student</p>
+
+        <p>
+            View complete information, marks, feedback and history
+        </p>
+
     </div>
 
+
     <!-- Student Information -->
+
     <div class="student-card">
 
         <div class="student-title">
@@ -210,205 +269,558 @@
             </div>
 
             <div>
+
                 <h2>{{ student.name }}</h2>
+
                 <p>{{ student.email }}</p>
+
             </div>
 
         </div>
+
 
         <div class="details-grid">
 
             <!-- Name -->
+
             <div class="detail-item">
-                <div class="detail-label">Full Name</div>
+
+                <div class="detail-label">
+                    Full Name
+                </div>
+
                 <div class="detail-value">
                     {{ student.name }}
                 </div>
+
             </div>
 
+
             <!-- Email -->
+
             <div class="detail-item">
-                <div class="detail-label">Email</div>
+
+                <div class="detail-label">
+                    Email
+                </div>
+
                 <div class="detail-value">
                     {{ student.email }}
                 </div>
+
             </div>
 
+
             <!-- Age -->
+
             <div class="detail-item">
-                <div class="detail-label">Age</div>
+
+                <div class="detail-label">
+                    Age
+                </div>
+
                 <div class="detail-value">
                     {{ student.age }} years
                 </div>
+
             </div>
 
+
             <!-- Department -->
+
             <div class="detail-item">
-                <div class="detail-label">Department</div>
+
+                <div class="detail-label">
+                    Department
+                </div>
+
                 <div class="detail-value">
 
                     {% if student.department %}
+
                         {{ student.department.name }}
+
                     {% else %}
+
                         Not Assigned
+
                     {% endif %}
 
                 </div>
+
             </div>
 
-            <!-- Marks -->
+
+            <!-- Legacy Overall Marks -->
+
             <div class="detail-item">
-                <div class="detail-label">Marks</div>
+
+                <div class="detail-label">
+                    Overall Marks
+                </div>
+
                 <div class="detail-value">
+
                     {{ student.marks }} / 100
+
                 </div>
+
             </div>
 
-            <!-- Feedback -->
-            <div class="col-md-6">
-                <div class="p-3 bg-light border-start border-primary border-4 rounded">
-                    <h6 class="text-muted">Trainer Feedback</h6>
-
-                    {% if student.feedback %}
-                        <p class="mb-0">{{ student.feedback }}</p>
-                    {% else %}
-                        <p class="text-muted mb-0">
-                            No feedback provided yet.
-                        </p>
-                    {% endif %}
-                </div>
-            </div>
 
             <!-- Result -->
+
             <div class="detail-item">
-                <div class="detail-label">Result</div>
+
+                <div class="detail-label">
+                    Result
+                </div>
+
                 <div class="detail-value">
 
                     {% if student.marks >= 40 %}
+
                         <span class="status-badge pass">
                             Pass
                         </span>
+
                     {% else %}
+
                         <span class="status-badge fail">
                             Fail
                         </span>
+
                     {% endif %}
 
                 </div>
+
             </div>
 
+
             <!-- Active Status -->
+
             <div class="detail-item">
-                <div class="detail-label">Status</div>
+
+                <div class="detail-label">
+                    Status
+                </div>
+
                 <div class="detail-value">
 
                     {% if student.active %}
+
                         <span class="status-badge active">
                             Active
                         </span>
+
                     {% else %}
+
                         <span class="status-badge inactive">
                             Inactive
                         </span>
+
                     {% endif %}
 
                 </div>
+
             </div>
 
+
             <!-- Joined Date -->
+
             <div class="detail-item">
-                <div class="detail-label">Joined Date</div>
+
+                <div class="detail-label">
+                    Joined Date
+                </div>
+
                 <div class="detail-value">
                     {{ student.joined_date }}
                 </div>
+
             </div>
 
+
             <!-- Course Count -->
+
             <div class="detail-item">
-                <div class="detail-label">Total Courses</div>
+
+                <div class="detail-label">
+                    Total Courses
+                </div>
+
                 <div class="detail-value">
                     {{ student.courses.count }}
                 </div>
+
             </div>
 
         </div>
 
-        <!-- Action Buttons -->
-            <div class="mt-4 d-flex gap-2 flex-wrap">
 
-                <a href="{% url 'student_list' %}"
-                   class="btn btn-secondary">
-                    ← Back to Students
+        <!-- Action Buttons -->
+
+        <div class="action-buttons">
+
+            <a href="{% url 'student_list' %}"
+               class="btn btn-secondary">
+
+                ← Back to Students
+
+            </a>
+
+
+            {% if request.user.profile.role == 'admin' %}
+
+                <a href="{% url 'edit_student' student.id %}"
+                   class="btn btn-primary">
+
+                    Edit Student
+
                 </a>
 
-                <!-- Only Admin can Edit and Delete -->
-                {% if request.user.profile.role == 'admin' %}
+                <a href="{% url 'delete_student' student.id %}"
+                   class="btn btn-danger">
 
-                    <a href="{% url 'edit_student' student.id %}" class="btn btn-primary">
-                        Edit Student
-                    </a>
+                    Delete Student
 
-                    <a href="{% url 'delete_student' student.id %}" class="btn btn-danger">
-                        Delete Student
-                    </a>
+                </a>
 
-                {% elif request.user.profile.role == 'trainer' %}
+            {% endif %}
 
-                    <a href="{% url 'trainer_update_student' student.id %}" class="btn btn-primary">
-                        Update Marks & Feedback
-                    </a>
+        </div>
+
+    </div>
+
+
+    <!-- Enrolled Courses -->
+
+    <div class="student-card">
+
+        <h2 class="section-title">
+            Enrolled Courses
+        </h2>
+
+        <p class="section-subtitle">
+            Courses currently assigned to this student.
+        </p>
+
+
+        {% for course in student.courses.all %}
+
+            <div class="course-card">
+
+                <h5>
+                    {{ course.course_name }}
+                </h5>
+
+                <div class="course-info">
+
+                    <strong>Code:</strong>
+                    {{ course.code }}
+
+                </div>
+
+                <div class="course-info">
+
+                    <strong>Duration:</strong>
+                    {{ course.duration }}
+
+                </div>
+
+
+                <!-- Course Marks -->
+
+                {% for mark in course_marks %}
+
+                    {% if mark.course.id == course.id %}
+
+                        <div class="mt-3">
+
+                            <div class="detail-label">
+                                Course Marks
+                            </div>
+
+                            <div class="marks-value">
+                                {{ mark.marks }} / 100
+                            </div>
+
+                            {% if mark.marks >= 40 %}
+
+                                <span class="badge bg-success">
+                                    Pass
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    Fail
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if mark.updated_by %}
+
+                                <div class="course-info mt-2">
+
+                                    Last updated by:
+                                    <strong>
+                                        {{ mark.updated_by.username }}
+                                    </strong>
+
+                                    on {{ mark.updated_at|date:"d M Y, h:i A" }}
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
+                {% empty %}
+
+                    <div class="no-data">
+
+                        No course-wise marks available yet.
+
+                    </div>
+
+                {% endfor %}
+
+
+                <!-- Trainer Actions -->
+
+                {% if request.user.profile.role == 'trainer' %}
+
+                    {% if course.trainer.all %}
+
+                        {% if request.user in course.trainer.all %}
+
+                            <div class="mt-3">
+
+                                <a href="{% url 'update_marks' student.id course.id %}"
+                                   class="btn btn-primary btn-sm">
+
+                                    <i class="bi bi-pencil-square"></i>
+                                    Update Marks
+
+                                </a>
+
+                                <a href="{% url 'add_feedback' student.id course.id %}"
+                                   class="btn btn-outline-primary btn-sm">
+
+                                    <i class="bi bi-chat-left-text"></i>
+                                    Add Feedback
+
+                                </a>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
 
                 {% endif %}
 
             </div>
 
+        {% empty %}
+
+            <div class="no-data">
+
+                No courses assigned to this student.
+
+            </div>
+
+        {% endfor %}
+
     </div>
 
-    <!-- Enrolled Courses -->
+
+    <!-- Trainer Feedback -->
+
     <div class="student-card">
 
-        <h2 class="section-title">Enrolled Courses</h2>
+        <h2 class="section-title">
+            Trainer Feedback
+        </h2>
 
-        {% if student.courses.all %}
+        {% for feedback in feedbacks %}
 
-            <div class="details-grid">
+            <div class="feedback-card">
 
-                {% for course in student.courses.all %}
+                <h5>
+                    {{ feedback.course.course_name }}
+                </h5>
 
-                    <div class="detail-item">
+                <div class="course-info">
 
-                        <div class="detail-label">
-                            Course Name
+                    <strong>Trainer:</strong>
+                    {{ feedback.trainer.username }}
+
+                </div>
+
+                <div class="rating">
+
+                    Rating:
+                    {{ feedback.rating }}/5
+
+                </div>
+
+                <p class="mt-2 mb-2">
+                    {{ feedback.comment }}
+                </p>
+
+                <div class="course-info">
+
+                    {{ feedback.created_at|date:"d M Y, h:i A" }}
+
+                    {% if feedback.is_visible %}
+
+                        <span class="badge bg-success ms-2">
+                            Visible
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-secondary ms-2">
+                            Hidden
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if request.user.profile.role == 'trainer' %}
+
+                    {% if feedback.trainer == request.user %}
+
+                        <div class="mt-3">
+
+                            <a href="{% url 'edit_feedback' feedback.id %}"
+                               class="btn btn-outline-primary btn-sm">
+
+                                <i class="bi bi-pencil"></i>
+                                Edit Feedback
+
+                            </a>
+
                         </div>
 
-                        <div class="detail-value">
-                            {{ course.course_name }}
-                        </div>
+                    {% endif %}
 
-                        <div style="margin-top: 8px; color: #64748b;">
-                            <strong>Code:</strong> {{ course.code }}
-                        </div>
+                {% endif %}
 
-                        <div style="margin-top: 5px; color: #64748b;">
-                            <strong>Duration:</strong> {{ course.duration }}
-                        </div>
+            </div>
 
-                    </div>
+        {% empty %}
 
-                {% empty %}
+            <div class="no-data">
 
-                    <div class="no-data">
-                        No courses assigned to this student.
-                    </div>
+                No feedback available for this student.
 
-                {% endfor %}
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- Marks History -->
+
+    <div class="student-card">
+
+        <h2 class="section-title">
+            Marks Update History
+        </h2>
+
+        <p class="section-subtitle">
+            Previous marks, updated marks, updater and reason.
+        </p>
+
+
+        {% if marks_history %}
+
+            <div class="table-wrapper">
+
+                <table class="history-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Course</th>
+                            <th>Previous</th>
+                            <th>New Marks</th>
+                            <th>Updated By</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for history in marks_history %}
+
+                            <tr>
+
+                                <td>
+                                    {{ history.course.course_name }}
+                                </td>
+
+                                <td>
+                                    {{ history.previous_marks }}
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        {{ history.new_marks }}
+                                    </strong>
+                                </td>
+
+                                <td>
+
+                                    {% if history.updated_by %}
+
+                                        {{ history.updated_by.username }}
+
+                                    {% else %}
+
+                                        Unknown
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ history.reason }}
+                                </td>
+
+                                <td>
+                                    {{ history.updated_at|date:"d M Y, h:i A" }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
 
             </div>
 
         {% else %}
 
             <div class="no-data">
-                No courses assigned to this student.
+
+                No marks update history available yet.
+
             </div>
 
         {% endif %}

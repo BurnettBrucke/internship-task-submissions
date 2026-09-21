@@ -16,7 +16,10 @@ from .views import (
     add_student,
     edit_student,
     delete_student,
-    trainer_update_student,
+    course_list,
+    add_course,
+    edit_course,
+    delete_course,
 )
 
 
@@ -77,6 +80,14 @@ urlpatterns = [
 
     path('students/<int:id>/delete/', views.delete_student, name='delete_student'),
 
+    path('courses/', course_list, name='course_list'),
+
+    path('courses/add/', add_course, name='add_course'),
+
+    path('courses/<int:id>/edit/', edit_course, name='edit_course'),
+    
+    path('courses/<int:id>/delete/', delete_course, name='delete_course'),
+
     path(
         'password-reset/',
         auth_views.PasswordResetView.as_view(
@@ -119,9 +130,33 @@ urlpatterns = [
     ),
 
     path(
-        'students/<int:id>/trainer-update/',
-        trainer_update_student,
-        name='trainer_update_student'
+        'feedback/',
+        views.feedback_list,
+        name='feedback_list'
+    ),
+
+    path(
+        'feedback/my/',
+        views.my_feedback,
+        name='my_feedback'
+    ),
+
+    path(
+        'feedback/add/<int:student_id>/<int:course_id>/',
+        views.add_feedback,
+        name='add_feedback'
+    ),
+
+    path(
+        'feedback/<int:id>/edit/',
+        views.edit_feedback,
+        name='edit_feedback'
+    ),
+
+    path(
+        'marks/update/<int:student_id>/<int:course_id>/',
+        views.update_marks,
+        name='update_marks'
     ),
 
 ]

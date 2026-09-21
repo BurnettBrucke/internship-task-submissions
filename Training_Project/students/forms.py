@@ -1,8 +1,12 @@
 from django import forms
-from .models import Student, Course
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-
+from .models import (
+    Student,
+    Course,
+    Feedback,
+    CourseMark,
+)
 # ============================================================
 # STUDENT FORM
 # ============================================================
@@ -88,36 +92,6 @@ class StudentForm(forms.ModelForm):
             )
 
         return age
-
-    def clean_marks(self):
-        marks = self.cleaned_data['marks']
-
-        if marks < 0 or marks > 100:
-            raise forms.ValidationError(
-                "Marks must be between 0 and 100."
-            )
-
-        return marks
-
-
-# ============================================================
-# TRAINER STUDENT FORM
-# ============================================================
-
-class TrainerStudentForm(forms.ModelForm):
-    """
-    Form used by Trainer to update only:
-    - Marks
-    - Feedback
-    """
-
-    class Meta:
-        model = Student
-
-        fields = [
-            'marks',
-            'feedback',
-        ]
 
     def clean_marks(self):
         marks = self.cleaned_data['marks']
@@ -220,6 +194,51 @@ class TrainerForm(forms.ModelForm):
 
         return trainer
 
+# ============================================================
+# COURSE FORM
+# ============================================================
+
+class CourseForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['trainer'].queryset = User.objects.filter(
+            profile__role='trainer'
+        ).order_by('username')
+    class Meta:
+        model = Course
+        fields = [
+            'course_name',
+            'code',
+            'duration',
+            'active',
+            'students',
+            'trainer',
+        ]
+        widgets = {
+            'course_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter course name'
+            }),
+            'code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter course code'
+            }),
+            'duration': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g. 3 Months'
+            }),
+            'active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'students': forms.SelectMultiple(attrs={
+                'class': 'form-select'
+            }),
+            'trainer': forms.SelectMultiple(attrs={
+                'class': 'form-select'
+            }),
+        }
+
 
 # ============================================================
 # REGISTRATION FORM
@@ -287,3 +306,109 @@ class RegistrationForm(UserCreationForm):
             )
 
         return email
+
+# ============================================================
+# TASK 3 - FEEDBACK FORMS
+# ============================================================
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = [
+            'rating',
+            'comment',
+            'is_visible',
+        ]
+
+        widgets = {
+            'rating': forms.Select(
+                choices=[
+                    (1, '1 - Very Poor'),
+                    (2, '2 - Poor'),
+                    (3, '3 - Average'),
+                    (4, '4 - Good'),
+                    (5, '5 - Excellent'),
+                ],
+                attrs={
+                    'class': 'form-select'
+                }
+            ),
+
+            'comment': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'rows': 4,
+                    'placeholder': 'Enter feedback...'
+                }
+            ),
+
+            'is_visible': forms.CheckboxInput(
+                attrs={
+                    'class': 'form-check-input'
+                }
+            ),
+        }
+
+    def clean_rating(self):
+        rating = self.cleaned_data.get('rating')
+
+        if rating is None:
+            raise forms.ValidationError(
+                "Rating is required."
+            )
+
+        if rating < 1 or rating > 5:
+            raise forms.ValidationError(
+                "Rating must be between 1 and 5."
+            )
+
+        return rating
+
+
+# ============================================================
+# TASK 3 - MARKS UPDATE FORM
+# ============================================================
+
+class MarksUpdateForm(forms.ModelForm):
+    reason = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter reason for marks update...'
+            }
+        ),
+        required=True
+    )
+
+    class Meta:
+        model = CourseMark
+        fields = [
+            'marks',
+        ]
+
+        widgets = {
+            'marks': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Enter marks',
+                    'min': 0,
+                    'max': 100
+                }
+            ),
+        }
+
+    def clean_marks(self):
+        marks = self.cleaned_data.get('marks')
+
+        if marks is None:
+            raise forms.ValidationError(
+                "Marks are required."
+            )
+
+        if marks < 0 or marks > 100:
+            raise forms.ValidationError(
+                "Marks must be between 0 and 100."
+            )
+
+        return marks

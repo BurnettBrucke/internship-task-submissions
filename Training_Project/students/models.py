@@ -15,7 +15,6 @@ class Student(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
     age = models.IntegerField()
-    course = models.CharField(max_length=100)
     marks = models.IntegerField()
     feedback = models.TextField(blank=True, default='')
     joined_date = models.DateField()
@@ -111,7 +110,146 @@ class AuditLog(models.Model):
     )
     action = models.CharField(max_length=100)
     description = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+
+    affected_object = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True
+    )
+
+    timestamp = models.DateTimeField(
+        auto_now_add=True
+    )
 
     def __str__(self):
-        return f"{self.user} - {self.action} - {self.timestamp}"
+        return (
+            f"{self.user} - "
+            f"{self.action} - "
+            f"{self.timestamp}"
+        )
+
+class CourseMark(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='course_marks'
+    )
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='course_marks'
+    )
+
+    marks = models.IntegerField()
+
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='course_marks_updated'
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'course'],
+                name='unique_student_course_mark'
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.student.name} - "
+            f"{self.course.course_name} - "
+            f"{self.marks}"
+        )
+
+class MarksHistory(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='marks_history'
+    )
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='marks_history'
+    )
+
+    previous_marks = models.IntegerField()
+
+    new_marks = models.IntegerField()
+
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='marks_history_updates'
+    )
+
+    reason = models.TextField()
+
+    updated_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return (
+            f"{self.student.name} - "
+            f"{self.previous_marks} → "
+            f"{self.new_marks}"
+        )
+
+class Feedback(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='feedbacks'
+    )
+
+    trainer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='given_feedbacks'
+    )
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='feedbacks'
+    )
+
+    rating = models.PositiveIntegerField()
+
+    comment = models.TextField()
+
+    is_visible = models.BooleanField(
+        default=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+        return (
+            f"{self.student.name} - "
+            f"{self.course.course_name} - "
+            f"{self.rating}/5"
+        )
