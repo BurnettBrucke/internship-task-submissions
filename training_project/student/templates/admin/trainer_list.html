@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h2 class="mb-4">
+        Trainer Management
+    </h2>
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover">
+
+                    <thead>
+
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Approval</th>
+                            <th>Account</th>
+                            <th>Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for trainer in trainers %}
+
+                            <tr>
+
+                                <td>
+                                    {{ trainer.user.username }}
+                                </td>
+
+                                <td>
+                                    {{ trainer.user.email }}
+                                </td>
+
+                                <td>
+
+                                    {% if trainer.is_approved %}
+
+                                        <span class="badge bg-success">
+                                            Approved
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if trainer.user.is_active %}
+
+                                        <span class="badge bg-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-danger">
+                                            Inactive
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    <form method="post" action="{% url 'approve_trainer' trainer.id %}">
+                                        {% csrf_token %}
+                                    
+                                        <button type="submit" class="btn btn-success">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    {% if trainer.user.is_active %}
+
+                                        <a
+                                            href="{% url 'deactivate_account' trainer.user.id %}"
+                                            class="btn btn-sm btn-danger"
+                                        >
+                                            Deactivate
+                                        </a>
+
+                                    {% else %}
+
+                                        <a
+                                            href="{% url 'activate_account' trainer.user.id %}"
+                                            class="btn btn-sm btn-primary"
+                                        >
+                                            Activate
+                                        </a>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    No trainers found.
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

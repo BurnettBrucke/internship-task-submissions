@@ -1,0 +1,23 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.dashboard-card {
+    min-height: 140px;
+}
+
+.card {
+    border: none;
+}
+
+.table th {
+    white-space: nowrap;
+}
+
+.progress {
+    height: 22px;
+}
+
+footer {
+    background-color: #ffffff;
+}

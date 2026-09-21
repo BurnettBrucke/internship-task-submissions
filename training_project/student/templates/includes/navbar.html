@@ -1,0 +1,206 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+
+        <a
+            class="navbar-brand"
+            href="{% if user.is_authenticated %}{% if user.userprofile.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.userprofile.role == 'trainer' %}{% url 'trainer_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}{% else %}{% url 'login' %}{% endif %}"
+        >
+            Training Portal
+        </a>
+        
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div
+            class="collapse navbar-collapse"
+            id="mainNavbar"
+        >
+            <ul class="navbar-nav me-auto">
+
+                {% if user.is_authenticated %}
+
+                    {% if user.userprofile.role == "admin" %}
+
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'admin_dashboard' %}"
+                            >
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'student_list' %}"
+                            >
+                                Students
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'audit_log_list' %}"
+                            >
+                                Audit Logs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'feedback_list' %}"
+                            >
+                                Feedback
+                            </a>
+                        </li>
+
+                    {% elif user.userprofile.role == "trainer" %}
+
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'trainer_dashboard' %}"
+                            >
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'student_list' %}"
+                            >
+                                Students
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'feedback_list' %}"
+                            >
+                                Feedback
+                            </a>
+                        </li>
+
+                    {% elif user.userprofile.role == "student" %}
+
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'student_dashboard' %}"
+                            >
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="{% url 'feedback_list' %}"
+                            >
+                                Feedback
+                            </a>
+                        </li>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </ul>
+
+            {% if user.is_authenticated %}
+
+                <div class="dropdown">
+
+                    <button
+                        class="btn btn-outline-light dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                    >
+                        {{ user.username }}
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+
+                        <li>
+                            <span class="dropdown-item-text">
+
+                                {% if user.userprofile.role == "admin" %}
+
+                                    <span class="badge bg-danger">
+                                        Administrator
+                                    </span>
+
+                                {% elif user.userprofile.role == "trainer" %}
+
+                                    <span class="badge bg-primary">
+                                        Trainer
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-success">
+                                        Student
+                                    </span>
+
+                                {% endif %}
+
+                            </span>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{% url 'password_change' %}"
+                            >
+                                Change Password
+                            </a>
+                        </li>
+
+                        <li> <a 
+                            class="dropdown-item"
+                            href="{% url 'account_information' %}"
+                             >
+                             Account Information 
+                            </a> 
+                        </li>
+
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{% url 'logout' %}"
+                            >
+                                Logout
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            {% else %}
+
+                <a
+                    class="btn btn-outline-light"
+                    href="{% url 'login' %}"
+                >
+                    Login
+                </a>
+
+            {% endif %}
+
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}
+Feedback
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+
+        <h2>
+            Feedback
+        </h2>
+
+        <p class="text-muted">
+            {% if user.userprofile.role == "student" %}
+                Feedback provided by your trainers.
+            {% elif user.userprofile.role == "trainer" %}
+                Feedback provided by you.
+            {% else %}
+                All student feedback.
+            {% endif %}
+        </p>
+
+    </div>
+
+
+    {% if feedback_list %}
+
+        <div class="row g-4">
+
+            {% for feedback in feedback_list %}
+
+                <div class="col-lg-6">
+
+                    <div class="card shadow-sm h-100">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+                                <div>
+
+                                    <h5 class="card-title mb-1">
+                                        {{ feedback.course.course_name }}
+                                    </h5>
+
+                                    <p class="text-muted mb-3">
+
+                                        Student:
+                                        <strong>
+                                            {{ feedback.student.name }}
+                                        </strong>
+
+                                    </p>
+
+                                </div>
+
+
+                                <span class="badge bg-warning text-dark">
+
+                                    {{ feedback.rating }}/5
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                {% if feedback.rating == 5 %}
+
+                                    <span class="text-warning">
+                                        ★★★★★
+                                    </span>
+
+                                {% elif feedback.rating == 4 %}
+
+                                    <span class="text-warning">
+                                        ★★★★☆
+                                    </span>
+
+                                {% elif feedback.rating == 3 %}
+
+                                    <span class="text-warning">
+                                        ★★★☆☆
+                                    </span>
+
+                                {% elif feedback.rating == 2 %}
+
+                                    <span class="text-warning">
+                                        ★★☆☆☆
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-warning">
+                                        ★☆☆☆☆
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <p class="card-text">
+                                {{ feedback.comment }}
+                            </p>
+
+
+                            <hr>
+
+
+                            <div class="small text-muted">
+
+                                <div>
+
+                                    Trainer:
+                                    <strong>
+                                        {{ feedback.trainer.username }}
+                                    </strong>
+
+                                </div>
+
+                                <div>
+                                    Date:
+                                    {{ feedback.created_at|date:"d M Y, h:i A" }}
+                                </div>
+
+                            </div>
+
+
+                            {% if user.userprofile.role == "trainer" and feedback.trainer_id == user.id %}
+
+                                <div class="mt-3">
+
+                                    <a
+                                        href="{% url 'feedback_edit' feedback.id %}"
+                                        class="btn btn-sm btn-outline-primary"
+                                    >
+                                        Edit Feedback
+                                    </a>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="card shadow-sm">
+
+            <div class="card-body text-center py-5">
+
+                <h5 class="text-muted">
+                    No feedback available.
+                </h5>
+
+                <p class="text-muted mb-0">
+                    There is no feedback to display at this time.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

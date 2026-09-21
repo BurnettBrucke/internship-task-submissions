@@ -1,9 +1,24 @@
 from django.contrib import admin
-from .models import student,department,StudentProfile,Course
+from .models import UserProfile, student,department,StudentProfile,Course
 
 # Register your models here.
 
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
 
+    list_display = (
+        "user",
+        "role",
+    )
+
+    list_filter = (
+        "role",
+    )
+
+    search_fields = (
+        "user__username",
+        "user__email",
+    )
 
 @admin.register(student)
 class StudentAdmin(admin.ModelAdmin):

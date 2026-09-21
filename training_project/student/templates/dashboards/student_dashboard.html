@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Dashboard
+{% endblock %}
+
+
+{% block content %}
+
+<div class="mb-4">
+
+    <h1>
+        Welcome, {{ student.name }}
+    </h1>
+
+    <p class="text-muted">
+        View your profile, courses and performance.
+    </p>
+
+</div>
+
+
+<div class="row g-4">
+
+    <div class="col-md-6 col-lg-4">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <h5>
+                    Profile
+                </h5>
+
+                <p class="text-muted">
+                    Profile completion
+                </p>
+
+                <div class="progress mb-2">
+
+                    <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ profile_completion }}%"
+                    >
+                        {{ profile_completion }}%
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-md-6 col-lg-4">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <h5>
+                    Performance
+                </h5>
+
+                <p class="text-muted">
+                    Current marks
+                </p>
+
+                <div class="progress">
+
+                    <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ marks }}%"
+                    >
+                        {{ marks }}%
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+            <div class="card shadow-sm mt-4">
+
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        Course Marks
+                    </h5>
+                </div>
+            
+                <div class="card-body">
+            
+                    {% if course_marks %}
+            
+                        <div class="table-responsive">
+            
+                            <table class="table table-hover align-middle">
+            
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Marks</th>
+                                        <th>Last Updated By</th>
+                                        <th>Last Updated</th>
+                                        <th>History</th>
+                                    </tr>
+                                </thead>
+            
+                                <tbody>
+            
+                                    {% for mark in course_marks %}
+            
+                                        <tr>
+            
+                                            <td>
+                                                {{ mark.course.course_name }}
+                                            </td>
+            
+                                            <td>
+                                                <strong>
+                                                    {{ mark.marks }}/100
+                                                </strong>
+            
+                                                {% if mark.marks >= 40 %}
+                                                    <span class="badge bg-success ms-2">
+                                                        Pass
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger ms-2">
+                                                        Fail
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+            
+                                            <td>
+                                                {% if mark.updated_by %}
+                                                    {{ mark.updated_by.username }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+            
+                                            <td>
+                                                {{ mark.updated_at|date:"d M Y, h:i A" }}
+                                            </td>
+            
+                                            <td>
+                                                <a
+                                                    href="{% url 'marks_history' mark.course.id student.id %}"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                >
+                                                    View History
+                                                </a>
+                                            </td>
+            
+                                        </tr>
+            
+                                    {% endfor %}
+            
+                                </tbody>
+            
+                            </table>
+            
+                        </div>
+            
+                    {% else %}
+            
+                        <div class="text-center py-4">
+            
+                            <h6 class="text-muted">
+                                No course marks available.
+                            </h6>
+            
+                            <p class="text-muted mb-0">
+                                Your course marks will appear here.
+                            </p>
+            
+                        </div>
+            
+                    {% endif %}
+            
+                </div>
+            
+            </div>
+            <div class="card shadow-sm mt-4">
+
+                <div class="card-header">
+            
+                    <h5 class="mb-0">
+                        Trainer Feedback
+                    </h5>
+            
+                </div>
+            
+                <div class="card-body">
+            
+                    {% if feedback %}
+            
+                        <div class="row g-4">
+            
+                            {% for item in feedback %}
+            
+                                <div class="col-lg-6">
+            
+                                    <div class="card border h-100">
+            
+                                        <div class="card-body">
+            
+                                            <div class="d-flex justify-content-between">
+            
+                                                <h6>
+                                                    {{ item.course.course_name }}
+                                                </h6>
+            
+                                                <span class="badge bg-warning text-dark">
+                                                    {{ item.rating }}/5
+                                                </span>
+            
+                                            </div>
+            
+                                            <p class="text-muted small mb-3">
+            
+                                                Trainer:
+                                                {{ item.trainer.username }}
+            
+                                            </p>
+            
+                                            <p class="mb-3">
+                                                {{ item.comment }}
+                                            </p>
+            
+                                            <small class="text-muted">
+            
+                                                {{ item.created_at|date:"d M Y, h:i A" }}
+            
+                                            </small>
+            
+                                        </div>
+            
+                                    </div>
+            
+                                </div>
+            
+                            {% endfor %}
+            
+                        </div>
+            
+                    {% else %}
+            
+                        <div class="text-center py-4">
+            
+                            <h6 class="text-muted">
+                                No feedback available.
+                            </h6>
+            
+                            <p class="text-muted mb-0">
+                                Visible trainer feedback will appear here.
+                            </p>
+            
+                        </div>
+            
+                    {% endif %}
+            
+                </div>
+            
+            </div>
+            
+        
+
+
+    <div class="col-md-6 col-lg-4">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body">
+
+                <h5>
+                    Result
+                </h5>
+
+                {% if marks >= 40 %}
+
+                    <span class="badge bg-success fs-6">
+                        Pass
+                    </span>
+
+                {% else %}
+
+                    <span class="badge bg-danger fs-6">
+                        Fail
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm mt-4">
+
+    <div class="card-header">
+        My Profile
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-md-6">
+
+                <p>
+                    <strong>Name:</strong>
+                    {{ student.name }}
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    {{ student.email }}
+                </p>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <p>
+                    <strong>Age:</strong>
+                    {{ student.age }}
+                </p>
+
+                <p>
+                    <strong>Marks:</strong>
+                    {{ student.marks }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
