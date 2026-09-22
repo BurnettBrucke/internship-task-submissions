@@ -3,7 +3,16 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from students.models import Course, Department, Student, UserProfile
+from students.models import (
+    AuditLog,
+    Course,
+    CourseMark,
+    Department,
+    Feedback,
+    MarksHistory,
+    Student,
+    UserProfile,
+)
 
 
 class Command(BaseCommand):
@@ -54,7 +63,63 @@ class Command(BaseCommand):
             courses[course_name] = course
 
         # -------------------------
-        # Demo Users + Students
+        # Demo Admin
+        # -------------------------
+        admin_user, admin_created = User.objects.get_or_create(
+            username="demo_admin",
+            defaults={
+                "email": "demo_admin@example.com",
+                "first_name": "Demo",
+                "last_name": "Admin",
+                "is_staff": True,
+                "is_superuser": True,
+                "is_active": True,
+            },
+        )
+
+        if admin_created:
+            admin_user.set_password("DemoAdmin@123")
+            admin_user.save()
+
+        UserProfile.objects.update_or_create(
+            user=admin_user,
+            defaults={
+                "role": "admin",
+                "is_approved": True,
+            },
+        )
+
+        # -------------------------
+        # Demo Trainer
+        # -------------------------
+        trainer_user, trainer_created = User.objects.get_or_create(
+            username="demo_trainer",
+            defaults={
+                "email": "demo_trainer@example.com",
+                "first_name": "Demo",
+                "last_name": "Trainer",
+                "is_active": True,
+            },
+        )
+
+        if trainer_created:
+            trainer_user.set_password("DemoTrainer@123")
+            trainer_user.save()
+
+        UserProfile.objects.update_or_create(
+            user=trainer_user,
+            defaults={
+                "role": "trainer",
+                "is_approved": True,
+            },
+        )
+
+        # Assign trainer to all demo courses
+        for course in courses.values():
+            course.trainer.add(trainer_user)
+
+        # -------------------------
+        # Demo Students
         # -------------------------
         students_data = [
             ("Aarav Sharma", "aarav.demo@example.com", 22, 85, "Computer Science"),
@@ -67,7 +132,19 @@ class Command(BaseCommand):
             ("Neha Sharma", "neha.demo@example.com", 22, 84, "Information Technology"),
             ("Karan Malhotra", "karan.demo@example.com", 23, 73, "Data Science"),
             ("Pooja Verma", "pooja.demo@example.com", 21, 89, "Computer Science"),
+            ("Aditya Joshi", "aditya.demo@example.com", 22, 81, "Information Technology"),
+            ("Kavya Mishra", "kavya.demo@example.com", 21, 94, "Data Science"),
+            ("Arjun Yadav", "arjun.demo@example.com", 23, 72, "Computer Science"),
+            ("Simran Kaur", "simran.demo@example.com", 22, 87, "Information Technology"),
+            ("Mohit Agarwal", "mohit.demo@example.com", 24, 79, "Data Science"),
+            ("Isha Tiwari", "isha.demo@example.com", 21, 90, "Computer Science"),
+            ("Nikhil Soni", "nikhil.demo@example.com", 23, 68, "Information Technology"),
+            ("Riya Kapoor", "riya.demo@example.com", 22, 86, "Data Science"),
+            ("Yash Dubey", "yash.demo@example.com", 24, 74, "Computer Science"),
+            ("Muskan Khan", "muskan.demo@example.com", 21, 93, "Information Technology"),
         ]
+
+        created_students = []
 
         for name, email, age, marks, department_name in students_data:
 
@@ -87,18 +164,13 @@ class Command(BaseCommand):
                 user.set_password("DemoStudent@123")
                 user.save()
 
-            profile, profile_created = UserProfile.objects.get_or_create(
+            UserProfile.objects.update_or_create(
                 user=user,
                 defaults={
                     "role": "student",
                     "is_approved": True,
                 },
             )
-
-            if not profile_created:
-                profile.role = "student"
-                profile.is_approved = True
-                profile.save()
 
             student, student_created = Student.objects.get_or_create(
                 email=email,
@@ -114,9 +186,141 @@ class Command(BaseCommand):
                 },
             )
 
+            # Update important fields if student already exists
+            student.name = name
+            student.age = age
+            student.marks = marks
+            student.feedback = "Good performance"
+            student.active = True
+            student.department = departments[department_name]
+            student.user = user
+            student.save()
+
+            created_students.append(student)
+
+        # -------------------------
+        # Assign Courses to Students
+        # -------------------------
+        course_list = list(courses.values())
+
+        for index, student in enumerate(created_students):
+
+            first_course = course_list[index % len(course_list)]
+            second_course = course_list[(index + 1) % len(course_list)]
+
             student.courses.add(
-                courses["Python Programming"],
-                courses["Django Development"],
+                first_course,
+                second_course,
+            )
+
+        # -------------------------
+        # Course Marks
+        # -------------------------
+        for index, student in enumerate(created_students):
+
+            assigned_courses = list(student.courses.all())
+
+            for course_index, course in enumerate(assigned_courses):
+
+                course_marks = min(
+                    100,
+                    max(
+                        40,
+                        student.marks + ((course_index * 3) - 2),
+                    ),
+                )
+
+                course_mark, created = CourseMark.objects.update_or_create(
+                    student=student,
+                    course=course,
+                    defaults={
+                        "marks": course_marks,
+                        "updated_by": trainer_user,
+                    },
+                )
+
+                # -------------------------
+                # Marks History
+                # -------------------------
+                if created:
+                    MarksHistory.objects.create(
+                        student=student,
+                        course=course,
+                        previous_marks=0,
+                        new_marks=course_marks,
+                        updated_by=trainer_user,
+                        reason="Initial demo marks entry",
+                    )
+
+        # -------------------------
+        # Feedback
+        # -------------------------
+        feedback_comments = [
+            "Good understanding of the concepts.",
+            "Shows consistent progress.",
+            "Good practical performance.",
+            "Needs more practice but improving well.",
+            "Excellent participation and performance.",
+        ]
+
+        for index, student in enumerate(created_students):
+
+            assigned_courses = list(student.courses.all())
+
+            if assigned_courses:
+                course = assigned_courses[0]
+
+                Feedback.objects.get_or_create(
+                    student=student,
+                    trainer=trainer_user,
+                    course=course,
+                    defaults={
+                        "rating": (index % 5) + 1,
+                        "comment": feedback_comments[index % len(feedback_comments)],
+                        "is_visible": True,
+                    },
+                )
+
+        # -------------------------
+        # Audit Logs
+        # -------------------------
+        audit_events = [
+            (
+                "SEED_DATA",
+                "Demo departments and courses created/verified.",
+                "Department/Course",
+            ),
+            (
+                "SEED_USERS",
+                "Demo admin and trainer accounts created/verified.",
+                "demo_admin, demo_trainer",
+            ),
+            (
+                "SEED_STUDENTS",
+                "Demo student records created/verified.",
+                "20 students",
+            ),
+            (
+                "SEED_MARKS",
+                "Demo course marks and marks history created/verified.",
+                "CourseMark/MarksHistory",
+            ),
+            (
+                "SEED_FEEDBACK",
+                "Demo trainer feedback created/verified.",
+                "Feedback",
+            ),
+        ]
+
+        for action, description, affected_object in audit_events:
+            AuditLog.objects.get_or_create(
+                user=admin_user,
+                action=action,
+                description=description,
+                affected_object=affected_object,
+                defaults={
+                    "ip_address": None,
+                },
             )
 
         self.stdout.write(
