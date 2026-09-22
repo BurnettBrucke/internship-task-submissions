@@ -53,9 +53,21 @@
                 <!-- Buttons -->
                 <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
 
-                    <button type="submit" class="btn btn-success">
-                        Save Student
-                    </button>
+                    <button type="submit"
+        class="btn btn-success"
+        id="submitBtn">
+
+    <span id="submitText">
+        Save Student
+    </span>
+
+    <span id="submitSpinner"
+          class="spinner-border spinner-border-sm d-none"
+          role="status"
+          aria-hidden="true">
+    </span>
+
+</button>
 
                     <a href="{% url 'student_list' %}"
                        class="btn btn-secondary">
@@ -73,5 +85,20 @@
 </div>
 
 </div>
+{% block extra_js %}
+<script>
+document.querySelector('form').addEventListener('submit', function () {
+
+    const button = document.getElementById('submitBtn');
+    const text = document.getElementById('submitText');
+    const spinner = document.getElementById('submitSpinner');
+
+    button.disabled = true;
+    text.textContent = 'Saving...';
+    spinner.classList.remove('d-none');
+
+});
+</script>
+{% endblock %}
 
 {% endblock %}

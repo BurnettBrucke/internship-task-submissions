@@ -1,7 +1,12 @@
 from django.db.models import Avg, Max, Q
-
-from .models import Student, Department, Course
-
+from .models import (
+    Student,
+    Department,
+    Course,
+    MarksUpdateHistory,
+    Feedback,
+)
+from django.contrib.auth.models import User
 
 def get_dashboard_data():
 
@@ -14,6 +19,8 @@ def get_dashboard_data():
     total_departments = Department.objects.count()
 
     total_courses = Course.objects.count()
+
+    total_users = User.objects.count()
 
     average_marks = Student.objects.aggregate(
         average=Avg('marks')
@@ -39,6 +46,7 @@ def get_dashboard_data():
         'active_students': active_students,
         'total_departments': total_departments,
         'total_courses': total_courses,
+        'total_users': total_users,
         'average_marks': average_marks,
         'highest_marks': highest_marks,
         'highest_student': highest_student,
@@ -103,3 +111,37 @@ def get_filtered_students(params):
         )
 
     return students.distinct()
+
+def update_student_marks(student, trainer, previous_marks, new_marks, reason):
+    student.marks = new_marks
+    student.save()
+
+    MarksUpdateHistory.objects.create(
+        student=student,
+        trainer=trainer,
+        previous_marks=previous_marks,
+        new_marks=new_marks,
+        reason=reason
+    )
+
+    return student
+
+def create_student_feedback(student, trainer, course, feedback_text, rating, is_visible):
+    feedback = Feedback.objects.create(
+        student=student,
+        trainer=trainer,
+        course=course,
+        feedback=feedback_text,
+        rating=rating,
+        is_visible=is_visible
+    )
+
+    return feedback
+
+def trainer_can_access_student(trainer_profile, student):
+    return student.courses.filter(
+        id__in=trainer_profile.courses.values_list(
+            'id',
+            flat=True
+        )
+    ).exists()

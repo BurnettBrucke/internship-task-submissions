@@ -59,9 +59,16 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">
-                        Create User
-                    </button>
+                    <button type="submit"
+        class="btn btn-primary"
+        id="userSubmitBtn">
+    <span id="userSubmitText">Create User</span>
+    <span id="userSubmitSpinner"
+          class="spinner-border spinner-border-sm d-none"
+          role="status"
+          aria-hidden="true">
+    </span>
+</button>
 
                     <a href="{% url 'user_list' %}" class="btn btn-secondary">
                         Cancel
@@ -73,6 +80,22 @@
         </div>
 
     </div>
+
 </div>
 
+{% block extra_js %}
+<script>
+document.querySelector('form').addEventListener('submit', function () {
+
+    const button = document.getElementById('userSubmitBtn');
+    const text = document.getElementById('userSubmitText');
+    const spinner = document.getElementById('userSubmitSpinner');
+
+    button.disabled = true;
+    text.textContent = 'Creating...';
+    spinner.classList.remove('d-none');
+
+});
+</script>
+{% endblock %}
 {% endblock %}

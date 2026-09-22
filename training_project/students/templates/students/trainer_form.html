@@ -43,9 +43,15 @@
                     <div class="d-flex gap-2">
 
                         <button type="submit"
-                                class="btn btn-primary">
-                            Create Trainer
-                        </button>
+        class="btn btn-primary"
+        id="trainerSubmitBtn">
+    <span id="trainerSubmitText">Create Trainer</span>
+    <span id="trainerSubmitSpinner"
+          class="spinner-border spinner-border-sm d-none"
+          role="status"
+          aria-hidden="true">
+    </span>
+</button>
 
                         <a href="{% url 'trainer_list' %}"
                            class="btn btn-secondary">
@@ -63,5 +69,19 @@
     </div>
 
 </div>
+{% block extra_js %}
+<script>
+document.querySelector('form').addEventListener('submit', function () {
 
+    const button = document.getElementById('trainerSubmitBtn');
+    const text = document.getElementById('trainerSubmitText');
+    const spinner = document.getElementById('trainerSubmitSpinner');
+
+    button.disabled = true;
+    text.textContent = 'Creating...';
+    spinner.classList.remove('d-none');
+
+});
+</script>
+{% endblock %}
 {% endblock %}

@@ -10,7 +10,6 @@ from .models import (
 )
 
 
-
 class StudentPortalTests(TestCase):
 
     def setUp(self):
@@ -133,10 +132,15 @@ class StudentPortalTests(TestCase):
         )
 
         response = self.client.get(
-            reverse('dashboard')
+           reverse('dashboard')
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+
+        self.assertRedirects(
+            response,
+            reverse('admin_dashboard')
+        )
 
 
     # -------------------------------------------------
@@ -567,6 +571,273 @@ class StudentPortalTests(TestCase):
             reverse('dashboard')
         )
 
+        self.assertEqual(response.status_code, 302)
+
+        self.assertRedirects(
+            response,
+            reverse('admin_dashboard')
+        )
+
+        response = self.client.get(
+            reverse('admin_dashboard')
+        )
+
         self.assertEqual(response.status_code, 200)
 
         self.assertContains(response, '2')
+
+        # -------------------------------------------------
+    # 21. Admin Dashboard Direct Access
+    # -------------------------------------------------
+
+    def test_admin_dashboard_access(self):
+
+        self.client.login(
+            username='testuser',
+            password='testpassword123'
+        )
+
+        response = self.client.get(
+            reverse('admin_dashboard')
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+
+    # -------------------------------------------------
+    # 22. Student Form Invalid Age
+    # -------------------------------------------------
+
+    def test_student_form_invalid_age(self):
+
+        from .forms import StudentForm
+
+        form = StudentForm(data={
+            'name': 'Test Student',
+            'email': 'teststudent@gmail.com',
+            'age': 10,
+            'department': self.department.pk,
+            'courses': [self.course.pk],
+            'marks': 75,
+            'joined_date': '2026-09-05',
+            'active_status': True,
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('age', form.errors)
+
+
+    # -------------------------------------------------
+    # 23. Student Form Invalid Marks
+    # -------------------------------------------------
+
+    def test_student_form_invalid_marks(self):
+
+        from .forms import StudentForm
+
+        form = StudentForm(data={
+            'name': 'Test Student',
+            'email': 'teststudent2@gmail.com',
+            'age': 21,
+            'department': self.department.pk,
+            'courses': [self.course.pk],
+            'marks': 150,
+            'joined_date': '2026-09-05',
+            'active_status': True,
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('marks', form.errors)
+
+
+    # -------------------------------------------------
+    # 24. Student Cannot Access Admin Dashboard
+    # -------------------------------------------------
+
+    def test_student_cannot_access_admin_dashboard(self):
+
+        student_user = User.objects.create_user(
+            username='studentuser',
+            email='studentuser@gmail.com',
+            password='studentpassword123'
+        )
+
+        UserProfile.objects.create(
+            user=student_user,
+            role='student',
+            student=self.student,
+            is_approved=True
+        )
+
+        self.client.login(
+            username='studentuser',
+            password='studentpassword123'
+        )
+
+        response = self.client.get(
+            reverse('admin_dashboard')
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    # -------------------------------------------------
+    # 25. Student Dashboard Access
+    # -------------------------------------------------
+
+    def test_student_dashboard_access(self):
+
+        student_user = User.objects.create_user(
+            username='studentdashboard',
+            email='studentdashboard@gmail.com',
+            password='studentpassword123'
+        )
+
+        UserProfile.objects.create(
+            user=student_user,
+            role='student',
+            student=self.student,
+            is_approved=True
+        )
+
+        self.client.login(
+            username='studentdashboard',
+            password='studentpassword123'
+        )
+
+        response = self.client.get(
+            reverse('student_dashboard')
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Kalyani')
+
+        # -------------------------------------------------
+    # 26. Logout
+    # -------------------------------------------------
+
+    def test_logout(self):
+
+        self.client.login(
+            username='testuser',
+            password='testpassword123'
+        )
+
+        response = self.client.get(
+            reverse('logout')
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('login')
+        )
+
+
+    # -------------------------------------------------
+    # 27. Failed Login Increments Attempt Count
+    # -------------------------------------------------
+
+    def test_failed_login_increments_attempt_count(self):
+
+        response = self.client.post(
+            reverse('login'),
+            {
+                'email': 'testuser@gmail.com',
+                'password': 'wrongpassword'
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.user.profile.refresh_from_db()
+
+        self.assertEqual(
+            self.user.profile.failed_login_attempts,
+            1
+        )
+
+
+    # -------------------------------------------------
+    # 28. Search With Department Filter
+    # -------------------------------------------------
+
+    def test_search_with_department_filter(self):
+
+        self.client.login(
+            username='testuser',
+            password='testpassword123'
+        )
+
+        response = self.client.get(
+            reverse('student_list'),
+            {
+                'search': 'Kalyani',
+                'department': self.department.pk
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Kalyani')
+        self.assertNotContains(response, 'Riya')
+
+
+    # -------------------------------------------------
+    # 29. Trainer Cannot Access Admin Dashboard
+    # -------------------------------------------------
+
+    def test_trainer_cannot_access_admin_dashboard(self):
+
+        trainer_user = User.objects.create_user(
+            username='traineruser',
+            email='traineruser@gmail.com',
+            password='trainerpassword123'
+        )
+
+        UserProfile.objects.create(
+            user=trainer_user,
+            role='trainer',
+            is_approved=True
+        )
+
+        self.client.login(
+            username='traineruser',
+            password='trainerpassword123'
+        )
+
+        response = self.client.get(
+            reverse('admin_dashboard')
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    # -------------------------------------------------
+    # 30. Student Cannot Create Student
+    # -------------------------------------------------
+
+    def test_student_cannot_create_student(self):
+
+        student_user = User.objects.create_user(
+            username='studentcreate',
+            email='studentcreate@gmail.com',
+            password='studentpassword123'
+        )
+
+        UserProfile.objects.create(
+            user=student_user,
+            role='student',
+            student=self.student,
+            is_approved=True
+        )
+
+        self.client.login(
+            username='studentcreate',
+            password='studentpassword123'
+        )
+
+        response = self.client.get(
+            reverse('add_student')
+        )
+
+        self.assertEqual(response.status_code, 403)

@@ -9,11 +9,17 @@ from django.contrib.auth.models import User
 from .models import MarksUpdateHistory
 from django.core.paginator import Paginator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q , Prefetch
 from .decorators import role_required
 
 from django.contrib.auth.forms import PasswordChangeForm
-from .services import get_dashboard_data, get_filtered_students
+from .services import (
+    get_dashboard_data,
+    get_filtered_students,
+    update_student_marks,
+    create_student_feedback,
+    trainer_can_access_student,
+)
 
 def create_audit_log(
     user,
@@ -192,7 +198,6 @@ def user_login(request):
         'registration/login.html'
     )
 
-
 @login_required(login_url='login')
 def user_logout(request):
 
@@ -272,53 +277,28 @@ def about(request):
 @login_required(login_url='login')
 def dashboard(request):
 
-    dashboard_data = get_dashboard_data()
+    role = request.user.profile.role
 
-    return render(
-        request,
-        'dashboards/student_dashboard.html',
-        dashboard_data
-    )
+    if role == 'admin':
+        return redirect('admin_dashboard')
+
+    elif role == 'trainer':
+        return redirect('trainer_dashboard')
+
+    elif role == 'student':
+        return redirect('student_dashboard')
+
+    return redirect('login')
 
 @login_required(login_url='login')
 @role_required(['admin'])
 def admin_dashboard(request):
-
-    total_students = Student.objects.count()
-    active_students = Student.objects.filter(
-        active_status=True
-    ).count()
-
-    total_departments = Department.objects.count()
-    total_courses = Course.objects.count()
-
-    total_users = User.objects.count()
-
-    average_marks = Student.objects.aggregate(
-        average=models.Avg('marks')
-    )['average']
-
-    highest_student = Student.objects.order_by(
-        '-marks'
-    ).first()
-
-    recent_students = Student.objects.order_by(
-        '-joined_date'
-    )[:5]
+    dashboard_data = get_dashboard_data()
 
     return render(
         request,
         'dashboards/admin_dashboard.html',
-        {
-            'total_students': total_students,
-            'active_students': active_students,
-            'total_departments': total_departments,
-            'total_courses': total_courses,
-            'total_users': total_users,
-            'average_marks': average_marks,
-            'highest_student': highest_student,
-            'recent_students': recent_students,
-        }
+        dashboard_data
     )
     
 @login_required(login_url='login')
@@ -342,10 +322,8 @@ def admin_feedback_list(request):
 @login_required(login_url='login')
 @role_required(['trainer'])
 def trainer_dashboard(request):
-
     trainer_profile = request.user.trainer_profile
 
-    # Check trainer approval
     if not trainer_profile.user.profile.is_approved:
         messages.warning(
             request,
@@ -357,12 +335,22 @@ def trainer_dashboard(request):
 
     students = Student.objects.filter(
         courses__in=courses
-    ).distinct()
-    
+    ).distinct().prefetch_related(
+        Prefetch(
+            'marks_history',
+            queryset=MarksUpdateHistory.objects.select_related(
+                'trainer'
+            ).order_by('-updated_at'),
+            to_attr='all_marks_history'
+        )
+    )
+
     for student in students:
-        student.latest_marks_update = student.marks_history.select_related(
-           'trainer'
-        ).order_by('-updated_at').first()
+        student.latest_marks_update = (
+            student.all_marks_history[0]
+            if student.all_marks_history
+            else None
+        )
 
     feedbacks = Feedback.objects.filter(
         trainer=request.user
@@ -622,27 +610,19 @@ def delete_student(request, pk):
 @login_required(login_url='login')
 @role_required(['trainer'])
 def update_marks(request, pk):
-
     trainer_profile = request.user.trainer_profile
 
-    student = get_object_or_404(
-        Student,
-        pk=pk
-    )
+    student = get_object_or_404(Student, pk=pk)
 
-    if not student.courses.filter(
-        id__in=trainer_profile.courses.values_list(
-            'id',
-            flat=True
-        )
-    ).exists():
-
+    if not trainer_can_access_student(
+        trainer_profile,
+        student
+    ):
         return HttpResponseForbidden(
             "You do not have permission to update this student."
         )
 
     if request.method == 'POST':
-
         previous_marks = student.marks
 
         form = MarksUpdateForm(
@@ -651,13 +631,10 @@ def update_marks(request, pk):
         )
 
         if form.is_valid():
-
             new_marks = form.cleaned_data['marks']
             reason = form.cleaned_data['reason']
 
-            student = form.save()
-
-            MarksUpdateHistory.objects.create(
+            student = update_student_marks(
                 student=student,
                 trainer=request.user,
                 previous_marks=previous_marks,
@@ -670,9 +647,8 @@ def update_marks(request, pk):
                 "UPDATE",
                 affected_object=f"Student {student.name}",
                 description=(
-                    f"Marks updated from "
-                    f"{previous_marks} to {new_marks}. "
-                    f"Reason: {reason}"
+                    f"Marks updated from {previous_marks} "
+                    f"to {new_marks}. Reason: {reason}"
                 ),
                 request=request
             )
@@ -685,17 +661,14 @@ def update_marks(request, pk):
             return redirect('trainer_dashboard')
 
     else:
-
-        form = MarksUpdateForm(
-            instance=student
-        )
+        form = MarksUpdateForm(instance=student)
 
     return render(
         request,
         'students/trainer_update_marks.html',
         {
             'form': form,
-            'student': student,
+            'student': student
         }
     )
     
@@ -712,15 +685,12 @@ def marks_history(request, pk):
 
     # Check whether this student belongs
     # to any course assigned to this trainer
-    if not student.courses.filter(
-        id__in=trainer_profile.courses.values_list(
-            'id',
-            flat=True
-        )
-    ).exists():
-
+    if not trainer_can_access_student(
+        trainer_profile,
+        student
+    ):
         return HttpResponseForbidden(
-            "You do not have permission to view this student's marks history."
+           "You do not have permission to view this student's marks history."
         )
 
     history = MarksUpdateHistory.objects.filter(
@@ -743,7 +713,6 @@ def marks_history(request, pk):
 @login_required(login_url='login')
 @role_required(['trainer'])
 def add_feedback(request, pk):
-
     trainer_profile = request.user.trainer_profile
 
     student = get_object_or_404(Student, pk=pk)
@@ -758,20 +727,25 @@ def add_feedback(request, pk):
         )
 
     if request.method == 'POST':
-
         form = FeedbackForm(
             request.POST,
             courses=trainer_courses
         )
 
         if form.is_valid():
+            feedback_text = form.cleaned_data['feedback']
+            rating = form.cleaned_data['rating']
+            course = form.cleaned_data['course']
+            is_visible = form.cleaned_data['is_visible']
 
-            feedback = form.save(commit=False)
-
-            feedback.student = student
-            feedback.trainer = request.user
-
-            feedback.save()
+            feedback = create_student_feedback(
+                student=student,
+                trainer=request.user,
+                course=course,
+                feedback_text=feedback_text,
+                rating=rating,
+                is_visible=is_visible
+            )
 
             create_audit_log(
                 request.user,
@@ -789,7 +763,6 @@ def add_feedback(request, pk):
             return redirect('trainer_dashboard')
 
     else:
-
         form = FeedbackForm(
             courses=trainer_courses
         )
@@ -799,7 +772,7 @@ def add_feedback(request, pk):
         'students/add_feedback.html',
         {
             'form': form,
-            'student': student,
+            'student': student
         }
     )
 

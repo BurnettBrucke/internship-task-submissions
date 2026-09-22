@@ -24,17 +24,42 @@
 
                 <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-                    <a href="{% url 'login' %}"
-                       class="btn btn-primary px-4">
-                        Login
-                    </a>
+    {% if request.user.is_authenticated %}
 
-                    <a href="{% url 'about' %}"
-                       class="btn btn-outline-secondary px-4">
-                        About
-                    </a>
+        {% if request.user.profile.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}"
+               class="btn btn-primary px-4">
+                Go to Dashboard
+            </a>
 
-                </div>
+        {% elif request.user.profile.role == 'trainer' %}
+            <a href="{% url 'trainer_dashboard' %}"
+               class="btn btn-primary px-4">
+                Go to Dashboard
+            </a>
+
+        {% elif request.user.profile.role == 'student' %}
+            <a href="{% url 'student_dashboard' %}"
+               class="btn btn-primary px-4">
+                Go to Dashboard
+            </a>
+        {% endif %}
+
+    {% else %}
+
+        <a href="{% url 'login' %}"
+           class="btn btn-primary px-4">
+            Login
+        </a>
+
+    {% endif %}
+
+    <a href="{% url 'about' %}"
+       class="btn btn-outline-secondary px-4">
+        About
+    </a>
+
+</div>
 
             </div>
 

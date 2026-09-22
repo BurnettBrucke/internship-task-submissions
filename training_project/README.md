@@ -1,48 +1,42 @@
 # Student Training Portal
 
-A Django-based Student Training Portal developed as part of the training project. The application provides authentication, student CRUD operations, dashboard statistics, search, filtering, Django ORM queries, and automated testing.
+A Django-based Student Training Portal developed as part of the training project. The application provides role-based authentication, student and course management, marks, feedback, audit logs, dashboards, search, filtering, pagination, and automated testing.
 
 ## Technologies
 
 * Python
 * Django 5.2.10
 * SQLite
-* HTML/CSS
+* HTML, CSS, Bootstrap 5
 * Django ORM
-* Django ModelForm
+* Django ModelForms
 * Django Authentication
+
+## Features
+
+* Role-based access for Admin, Trainer, and Student
+* User registration, login, logout, password reset and password change
+* Trainer approval and account management
+* Student, Course, Trainer and User management
+* Student-course assignments
+* Marks management with update history
+* Trainer feedback with ratings and visibility control
+* Audit logs for important activities
+* Search, filtering and pagination
+* Dashboard statistics
+* Form validation and Django messages
+* Custom 403, 404 and 500 error pages
+* Responsive Bootstrap UI
+* Demo data management command
+* Production settings and static file configuration
 
 ## Setup
 
-Create and activate a virtual environment:
+Install Python and Django, then run:
 
 ```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-Install Django:
-
-```bash
-pip install django
-```
-
-Run migrations:
-
-```bash
-python manage.py makemigrations
 python manage.py migrate
-```
-
-Create superuser:
-
-```bash
-python manage.py createsuperuser
-```
-
-Run server:
-
-```bash
+python manage.py seed_demo_data
 python manage.py runserver
 ```
 
@@ -58,79 +52,29 @@ Admin:
 http://127.0.0.1:8000/admin/
 ```
 
-## URLs
+## Environment Configuration
 
-* `/` - Home
-* `/about/` - About
-* `/register/` - Registration
-* `/login/` - Login
-* `/logout/` - Logout
-* `/dashboard/` - Dashboard
-* `/students/` - Student List
-* `/students/add/` - Add Student
-* `/students/<id>/` - Student Details
-* `/students/<id>/edit/` - Edit Student
-* `/students/<id>/delete/` - Delete Student
+Create a `.env` file in the project root:
 
-## Authentication
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+DB_ENGINE=django.db.backends.sqlite3
+DB_NAME=db.sqlite3
+```
 
-Django built-in authentication is used for registration, login and logout.
-
-Dashboard and student management pages are protected using `login_required`.
-
-## Models & Relationships
-
-The project contains:
-
-* **Department**
-* **Course**
-* **Student**
-* **StudentProfile**
-
-Relationships:
-
-* Department → Student: `ForeignKey`
-* Student ↔ Course: `ManyToManyField`
-* Student → StudentProfile: `OneToOneField`
-
-## Features
-
-* Student CRUD operations
-* Dashboard statistics
-* Search by name, email and course
-* Department and course filtering
-* Active/Inactive filtering
-* Pass/Fail filtering
-* Student form validation
-* Django messages
-* Template inheritance
-* Business logic separated into `services.py`
-
-## ORM Queries
-
-Django ORM is used for:
-
-* CRUD operations
-* Filtering and searching
-* `Q` queries
-* `Avg()` and `Max()`
-* Counting records
-* Relationship queries
-* Recently joined students
-
-Detailed queries are available in `orm_queries.md`.
+The `.env` file should not be committed to the repository.
 
 ## Testing
 
-The project contains **20 automated tests** covering CRUD, authentication, dashboard, search, filters, relationships and form validation.
-
-Run tests:
+Run the complete test suite:
 
 ```bash
-python manage.py test students
+python manage.py test
 ```
 
-Result:
+Current result:
 
 ```text
 Ran 20 tests
@@ -138,14 +82,48 @@ Ran 20 tests
 OK
 ```
 
-## Problems Faced & Topics Learned
+## Demo Data
 
-Practiced Django models, relationships, migrations, ORM, ModelForms, authentication, CRUD, search/filtering, template inheritance, service layer, Django messages and automated testing.
+Demo data can be created using:
 
-## Git Commit ID
+```bash
+python manage.py seed_demo_data
+```
 
-Final commit ID will be added after the final changes are committed and pushed.
+The command creates departments, courses, students, profiles, course assignments and other sample data for testing and demonstration.
 
-## Pending Work
+## Production Preparation
 
-* Add final commit ID to README
+Production configuration is available in `training_project/production.py`.
+
+Static files can be collected using:
+
+```bash
+python manage.py collectstatic
+```
+
+Migration status can be verified using:
+
+```bash
+python manage.py makemigrations --check
+python manage.py migrate --plan
+```
+
+## Project Structure
+
+```text
+training_project/
+├── students/
+├── templates/
+├── training_project/
+├── manage.py
+└── README.md
+```
+
+## Learning & Practice
+
+This project covers Django models and relationships, authentication and authorization, CRUD operations, ORM queries, ModelForms, service-layer logic, role-based access, validation, audit logging, testing and deployment preparation.
+
+## Git
+
+The project is maintained using Git with a dedicated internship branch.

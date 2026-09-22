@@ -82,15 +82,24 @@
                     </div>
 
                     <button type="submit"
-                            class="btn btn-primary">
+        class="btn btn-primary"
+        id="courseSubmitBtn">
 
-                        {% if edit_mode %}
-                            Update Course
-                        {% else %}
-                            Add Course
-                        {% endif %}
+    <span id="courseSubmitText">
+        {% if edit_mode %}
+            Update Course
+        {% else %}
+            Add Course
+        {% endif %}
+    </span>
 
-                    </button>
+    <span id="courseSubmitSpinner"
+          class="spinner-border spinner-border-sm d-none"
+          role="status"
+          aria-hidden="true">
+    </span>
+
+</button>
 
                     <a href="{% url 'course_list' %}"
                        class="btn btn-secondary">
@@ -106,5 +115,20 @@
     </div>
 
 </div>
+{% block extra_js %}
+<script>
+document.querySelector('form').addEventListener('submit', function () {
+
+    const button = document.getElementById('courseSubmitBtn');
+    const text = document.getElementById('courseSubmitText');
+    const spinner = document.getElementById('courseSubmitSpinner');
+
+    button.disabled = true;
+    text.textContent = 'Saving...';
+    spinner.classList.remove('d-none');
+
+});
+</script>
+{% endblock %}
 
 {% endblock %}

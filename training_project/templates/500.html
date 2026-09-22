@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center">
+        <h1 class="display-1 fw-bold">500</h1>
+        <h2 class="mb-3">Server Error</h2>
+        <p class="text-muted mb-4">
+            Something went wrong on the server. Please try again later.
+        </p>
+
+        <a href="{% url 'home' %}" class="btn btn-primary">
+            Go to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

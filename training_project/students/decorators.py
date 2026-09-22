@@ -1,7 +1,6 @@
 from functools import wraps
 
-from django.http import HttpResponseForbidden
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from .models import UserProfile
 
 
@@ -19,13 +18,17 @@ def role_required(allowed_roles):
                 profile = request.user.profile
 
             except UserProfile.DoesNotExist:
-                return HttpResponseForbidden(
-                    "You do not have permission to access this page."
+                return render(
+                    request,
+                    '403.html',
+                    status=403
                 )
 
             if profile.role not in allowed_roles:
-                return HttpResponseForbidden(
-                    "You do not have permission to access this page."
+                return render(
+                    request,
+                    '403.html',
+                    status=403
                 )
 
             return view_func(request, *args, **kwargs)
