@@ -4,15 +4,17 @@
 {% block title %}
 
     {% if student %}
-        Edit Student
+        Edit Student | Student Management
     {% else %}
-        Add Student
+        Add Student | Student Management
     {% endif %}
 
 {% endblock %}
 
 
 {% block content %}
+
+{% include "includes/breadcrumbs.html" %}
 
 <div class="container mt-5">
 

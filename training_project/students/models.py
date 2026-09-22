@@ -138,7 +138,7 @@ class Enrollment(models.Model):
 
     student = models.ForeignKey(
         Student,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="enrollments"
     )
 
@@ -194,11 +194,11 @@ class Enrollment(models.Model):
     
 class TrainerCourse(models.Model):
     trainer = models.ForeignKey(
-        User , on_delete=models.CASCADE , related_name="trainer_courses"
+        User , on_delete=models.PROTECT , related_name="trainer_courses"
     )
 
     course = models.ForeignKey(
-        Course , on_delete = models.CASCADE, related_name = "trainer_assignments"
+        Course , on_delete = models.PROTECT, related_name = "trainer_assignments"
     )
 
     assigned_at = models.DateTimeField(auto_now_add=True)
@@ -216,7 +216,7 @@ class TrainerCourse(models.Model):
 class MarkHistory(models.Model):
     enrollment = models.ForeignKey(
         Enrollment,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="mark_history"
     )
 

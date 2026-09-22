@@ -1,34 +1,110 @@
-from django.http import HttpResponse , HttpResponseForbidden
+from datetime import datetime
+
 from django.contrib import messages
-from django.db.models import Avg , Max , Q , Count
-from django.core.paginator import Paginator
-
-from django.shortcuts import render , redirect , get_object_or_404
-from django.views.decorators.http import require_POST
-
-from django.contrib.auth import login , authenticate , logout
+from django.contrib.auth import (
+    authenticate,
+    login,
+    logout,
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
-
-
-from .services import create_student_account
-from .decorators import role_required
-from .form import StudentForm, TrainerRegistrationForm , LoginForm, MarkForm , FeedbackForm , FeedbackForm , StudentProfileForm , CourseForm 
-from .models import Student , Department , Course , StudentProfile , UserProfile , Enrollment , MarkHistory , TrainerCourse , Feedback , AuditLog
 from django.contrib.auth.models import User
-from .form import LoginForm
-
-from .audit import (audit_login,audit_logout,audit_failed_login,audit_account_blocked,audit_blocked_login,audit_student_created,audit_student_updated,
-                    audit_student_deleted,audit_course_created,audit_course_updated,audit_course_status_changed,audit_trainer_approved,
-                    audit_trainer_rejected,audit_user_activated,audit_user_deactivated,audit_marks_updated,audit_feedback_created,audit_feedback_updated,
-                    audit_trainer_deleted)
-
-from datetime import datetime
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db.models import Q, Count
+from django.http import HttpResponseForbidden
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.http import require_POST
 
 
+from .services.audit_service import (
+    audit_login,
+    audit_logout,
+    audit_failed_login,
+    audit_account_blocked,
+    audit_blocked_login,
+    audit_student_created,
+    audit_student_updated,
+    audit_student_deleted,
+    audit_course_created,
+    audit_course_updated,
+    audit_course_status_changed,
+    audit_trainer_approved,
+    audit_trainer_rejected,
+    audit_user_activated,
+    audit_user_deactivated,
+    audit_marks_updated,
+    audit_feedback_created,
+    audit_feedback_updated,
+    audit_trainer_deleted,
+)
+
+from .decorators import role_required
+
+from .form import (
+    StudentForm,
+    TrainerRegistrationForm,
+    LoginForm,
+    MarkForm,
+    FeedbackForm,
+    StudentProfileForm,
+    CourseForm,
+)
+
+from .models import (
+    Student,
+    Department,
+    Course,
+    StudentProfile,
+    UserProfile,
+    Enrollment,
+    MarkHistory,
+    TrainerCourse,
+    Feedback,
+    AuditLog,
+)
+
+# Service layer
+from .services.student_service import (
+    create_student_account,
+    enroll_student_in_courses,
+    update_student_courses,
+)
+
+from .services.marks_service import (
+    trainer_can_update_marks,
+    update_enrollment_marks,
+)
+
+from .services.feedback_service import (
+    trainer_can_manage_feedback,
+    create_feedback as create_feedback_service,
+    update_feedback as update_feedback_service,
+    trainer_owns_feedback,
+)
+
+
+from .services.dashboard_service import (
+    get_admin_dashboard_data,
+    get_trainer_dashboard_data,
+    get_student_dashboard_data,
+    get_trainer_detail_data,
+)
+
+from .services.permission_service import (
+    is_admin,
+    is_student,
+    is_approved_trainer,
+    student_owns_record,
+)
 # Create your views here.
 
 def home(request):
@@ -38,10 +114,15 @@ def home(request):
 def about(request):
     return render(request , "about.html")
 
+
 @login_required
 def student_list(request):
 
-    students = Student.objects.all()
+    students = (
+        Student.objects
+        .select_related("department")
+        .prefetch_related("enrollments__course")
+    )
 
     # Search
     search = request.GET.get("search", "").strip()
@@ -91,16 +172,16 @@ def student_list(request):
             enrollments__marks__lt=40
         )
 
-    # Remove duplicates caused by Enrollment joins
+    # Enrollment joins can create duplicate students
     students = students.distinct()
 
-    # Course count
+    # Number of courses for each student
     students = students.annotate(
         course_count=Count(
             "enrollments__course",
             distinct=True
         )
-    )
+    ).order_by("name")
 
     # Statistics
     total_students = students.count()
@@ -110,8 +191,8 @@ def student_list(request):
     ).count()
 
     # Dropdown data
-    departments = Department.objects.all()
-    courses = Course.objects.all()
+    departments = Department.objects.all().order_by("name")
+    courses = Course.objects.all().order_by("course_name")
 
     return render(
         request,
@@ -133,6 +214,8 @@ def student_list(request):
         }
     )
 
+
+
 @role_required(UserProfile.Role.ADMIN)
 def add_student(request):
 
@@ -151,17 +234,15 @@ def add_student(request):
                 request=request,
             )
 
-            courses = form.cleaned_data["courses"]
+            enroll_student_in_courses(
+                student,
+                form.cleaned_data["courses"],
+            )
 
-            Enrollment.objects.bulk_create([
-                Enrollment(
-                    student=student,
-                    course=course
-                )
-                for course in courses
-            ])
-
-            audit_student_created(request, student)
+            audit_student_created(
+                request,
+                student
+            )
 
             messages.success(
                 request,
@@ -177,52 +258,70 @@ def add_student(request):
     return render(
         request,
         "students/student_form.html",
-        {"form": form}
+        {
+            "form": form,
+            "breadcrumbs": [
+                {
+                    "name": "Home",
+                    "url": reverse("home"),
+                },
+                {
+                    "name": "Students",
+                    "url": reverse("students_list"),
+                },
+                {
+                    "name": "Add Student",
+                },
+            ],
+        },
     )
-
 @login_required
 def student_detail(request, id):
-    profile = get_object_or_404(UserProfile,user=request.user)
 
-    student = get_object_or_404(Student.objects.select_related(    "department",    "profile"),id=id)
-    if profile.role == UserProfile.Role.ADMIN:
+    student = get_object_or_404(
+        Student.objects.select_related(
+            "department",
+            "profile",
+        ),
+        id=id,
+    )
 
-        enrollments = Enrollment.objects.filter(
-            student=student
-        ).select_related(
-            "course"
+    profile = get_object_or_404(
+        UserProfile,
+        user=request.user,
+    )
+
+    if is_admin(request.user):
+
+        enrollments = (
+            Enrollment.objects
+            .filter(student=student)
+            .select_related("course")
         )
 
+    elif student_owns_record(
+        request.user,
+        student,
+    ):
 
-    elif profile.role == UserProfile.Role.STUDENT:
-
-        if student.user != request.user:
-            return HttpResponseForbidden(
-                "You are not authorized to view this student."
-            )
-
-        enrollments = Enrollment.objects.filter(
-            student=student
-        ).select_related(
-            "course"
+        enrollments = (
+            Enrollment.objects
+            .filter(student=student)
+            .select_related("course")
         )
 
+    elif is_approved_trainer(request.user):
 
-    elif profile.role == UserProfile.Role.TRAINER:
-
-        if profile.status != UserProfile.Status.APPROVED:
-            return HttpResponseForbidden(
-                "Your trainer account is not approved."
+        enrollments = (
+            Enrollment.objects
+            .filter(
+                student=student,
+                course__trainer_assignments__trainer=request.user,
             )
+            .select_related("course")
+            .distinct()
+        )
 
-        enrollments = Enrollment.objects.filter(
-            student=student,
-            course__trainer_assignments__trainer=request.user
-        ).select_related(
-            "course"
-        ).distinct()
-
-        # Student is not assigned to this trainer.
         if not enrollments.exists():
             return HttpResponseForbidden(
                 "You are not authorized to view this student."
@@ -240,9 +339,22 @@ def student_detail(request, id):
         {
             "student": student,
             "enrollments": enrollments,
+
+            "breadcrumbs": [
+                {
+                    "name": "Home",
+                    "url": reverse("home"),
+                },
+                {
+                    "name": "Students",
+                    "url": reverse("students_list"),
+                },
+                {
+                    "name": student.name,
+                },
+            ],
         }
     )
-
 @role_required(UserProfile.Role.ADMIN)
 def edit_student(request, id):
 
@@ -262,46 +374,22 @@ def edit_student(request, id):
 
             form.save()
 
-            selected_courses = form.cleaned_data["courses"]
-
-            Enrollment.objects.filter(
-                student=student
-            ).exclude(
-                course__in=selected_courses
-            ).delete()
-
-            existing_courses = set(
-                Enrollment.objects.filter(
-                    student=student,
-                    course__in=selected_courses
-                ).values_list(
-                    "course_id",
-                    flat=True
-                )
+            update_student_courses(
+                student,
+                form.cleaned_data["courses"],
             )
 
-            new_enrollments = [
-                Enrollment(
-                    student=student,
-                    course=course
-                )
-                for course in selected_courses
-                if course.id not in existing_courses
-            ]
-
-            Enrollment.objects.bulk_create(
-                new_enrollments
+            audit_student_updated(
+                request,
+                student
             )
-            audit_student_updated(request , student)
 
             messages.success(
                 request,
                 "Student updated successfully."
             )
 
-            return redirect(
-                "admin_dashboard"
-            )
+            return redirect("admin_dashboard")
 
     else:
 
@@ -321,9 +409,28 @@ def edit_student(request, id):
         {
             "form": form,
             "student": student,
+            "breadcrumbs": [
+                {
+                    "name": "Home",
+                    "url": reverse("home"),
+                },
+                {
+                    "name": "Students",
+                    "url": reverse("students_list"),
+                },
+                {
+                    "name": student.name,
+                    "url": reverse(
+                        "student_detail",
+                        args=[student.id]
+                    ),
+                },
+                {
+                    "name": "Edit",
+                },
+            ],
         }
     )
-
 @role_required(UserProfile.Role.ADMIN)
 def delete_student(request, id):
 
@@ -434,20 +541,6 @@ def trainer_register(request):
         {"form": form}
     )
 
-"""from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from django.utils import timezone
-
-from .form import LoginForm
-from .models import UserProfile
-from .audit import (
-    audit_login,
-    audit_failed_login,
-    audit_account_blocked,
-    audit_blocked_login,
-)
-"""
 
 def login_backend(request):
 
@@ -733,237 +826,13 @@ def dashboard(request):
 @role_required(UserProfile.Role.ADMIN)
 def admin_dashboard(request):
 
-    # =========================================================
-    # STUDENTS
-    # =========================================================
-
-    students = Student.objects.select_related(
-        "department",
-        "user",
-    ).prefetch_related(
-        "enrollments__course"
-    ).annotate(
-        course_count=Count(
-            "enrollments__course",
-            distinct=True
-        )
-    ).order_by("name")
-
-
-    # Student search
-    search = request.GET.get("search", "").strip()
-
-    if search:
-        students = students.filter(
-            Q(name__icontains=search) |
-            Q(email__icontains=search) |
-            Q(enrollments__course__course_name__icontains=search)
-        )
-
-
-    # Student department filter
-    department = request.GET.get("department", "").strip()
-
-    if department:
-        students = students.filter(
-            department_id=department
-        )
-
-
-    # Student course filter
-    course = request.GET.get("course", "").strip()
-
-    if course:
-        students = students.filter(
-            enrollments__course_id=course
-        )
-
-
-    # Student status filter
-    status = request.GET.get("status", "").strip()
-
-    if status == "active":
-        students = students.filter(
-            active=True
-        )
-
-    elif status == "inactive":
-        students = students.filter(
-            active=False
-        )
-
-
-    # Remove duplicates caused by enrollment joins
-    students = students.distinct()
-
-
-    # Student pagination
-    student_paginator = Paginator(
-        students,
-        10
-    )
-
-    students = student_paginator.get_page(
-        request.GET.get("student_page")
-    )
-
-
-    # =========================================================
-    # TRAINERS
-    # =========================================================
-
-    trainers = User.objects.filter(
-        profile__role=UserProfile.Role.TRAINER
-    ).select_related(
-        "profile",
-        "profile__requested_course",
-    ).order_by(
-        "username"
-    )
-
-
-    # =========================================================
-    # COURSES
-    # =========================================================
-
-    courses = Course.objects.all().order_by(
-        "course_name"
-    )
-
-
-    # =========================================================
-    # COUNTS
-    # =========================================================
-
-    total_students = Student.objects.count()
-
-    active_students = Student.objects.filter(
-        active=True
-    ).count()
-
-
-    total_trainers = trainers.count()
-
-    active_trainers = trainers.filter(
-        is_active=True
-    ).count()
-
-    pending_trainers = trainers.filter(
-        profile__status=UserProfile.Status.PENDING
-    ).count()
-
-
-    total_courses = courses.count()
-
-    active_courses = courses.filter(
-        active_status=True
-    ).count()
-
-
-    # =========================================================
-    # TRAINER PAGINATION
-    # =========================================================
-
-    trainer_paginator = Paginator(
-        trainers,
-        10
-    )
-
-    trainers = trainer_paginator.get_page(
-        request.GET.get("trainer_page")
-    )
-
-
-    # =========================================================
-    # COURSE PAGINATION
-    # =========================================================
-
-    course_paginator = Paginator(
-        courses,
-        10
-    )
-
-    courses = course_paginator.get_page(
-        request.GET.get("course_page")
-    )
-
-
-    # =========================================================
-    # USER ACCOUNT MANAGEMENT
-    # =========================================================
-
-    users = User.objects.filter(
-        profile__isnull=False,
-        is_superuser=False,
-    ).select_related(
-        "profile",
-    ).order_by(
-        "-date_joined"
-    )
-
-
-    # User pagination
-    user_paginator = Paginator(
-        users,
-        10
-    )
-
-    users = user_paginator.get_page(
-        request.GET.get("user_page")
-    )
-
-
-    # =========================================================
-    # DROPDOWN DATA
-    # =========================================================
-
-    departments = Department.objects.all().order_by(
-        "name"
-    )
-
-    all_courses = Course.objects.all().order_by(
-        "course_name"
-    )
-
-
-    # =========================================================
-    # RENDER
-    # =========================================================
+    context = get_admin_dashboard_data()
 
     return render(
         request,
         "dashboards/admin_dashboard.html",
-        {
-            # Tables
-            "students": students,
-            "trainers": trainers,
-            "courses": courses,
-            "users": users,
-
-            # Dropdowns
-            "departments": departments,
-            "all_courses": all_courses,
-
-            # Student filters
-            "search": search,
-            "department": department,
-            "course": course,
-            "status": status,
-
-            # Dashboard counts
-            "total_students": total_students,
-            "active_students": active_students,
-
-            "total_trainers": total_trainers,
-            "active_trainers": active_trainers,
-            "pending_trainers": pending_trainers,
-
-            "total_courses": total_courses,
-            "active_courses": active_courses,
-        }
+        context,
     )
-
-
 @role_required(UserProfile.Role.ADMIN)
 def trainer_detail(request, id):
 
@@ -976,80 +845,16 @@ def trainer_detail(request, id):
         profile__role=UserProfile.Role.TRAINER,
     )
 
-    # Courses assigned to this trainer
-    assigned_courses = Course.objects.filter(
-        trainer_assignments__trainer=trainer
-    ).distinct().order_by("course_name")
-
-    # Enrollments/students handled by this trainer
-    assigned_enrollments = Enrollment.objects.filter(
-        course__trainer_assignments__trainer=trainer
-    ).select_related(
-        "student",
-        "course",
-    ).distinct().order_by(
-        "student__name",
-        "course__course_name",
+    context = get_trainer_detail_data(
+        trainer
     )
-
-    # Unique students
-    assigned_students = Student.objects.filter(
-        enrollments__course__trainer_assignments__trainer=trainer
-    ).distinct().order_by("name")
-
-    # Feedback given by this trainer
-    feedback_given = Feedback.objects.filter(
-        trainer=trainer
-    ).select_related(
-        "student",
-        "course",
-    ).order_by("-created_at")
-
-    # Marks updated by this trainer
-    marks_history = MarkHistory.objects.filter(
-        updated_by=trainer
-    ).select_related(
-        "enrollment__student",
-        "enrollment__course",
-    ).order_by("-updated_at")
-
-    # Statistics
-    total_courses = assigned_courses.count()
-    total_students = assigned_students.count()
-    total_feedback = feedback_given.count()
-    total_marks_updates = marks_history.count()
-
-    average_rating = feedback_given.aggregate(
-        average=Avg("rating")
-    )["average"]
-    available_courses = Course.objects.filter(active_status=True).exclude(
-                                    trainer_assignments__trainer=trainer
-                                    ).distinct().order_by("course_name")
-
-    context = {
-        "trainer": trainer,
-        "profile": trainer.profile,
-
-        "assigned_courses": assigned_courses,
-        "assigned_enrollments": assigned_enrollments,
-        "assigned_students": assigned_students,
-
-        "feedback_given": feedback_given,
-        "marks_history": marks_history,
-
-        "total_courses": total_courses,
-        "total_students": total_students,
-        "total_feedback": total_feedback,
-        "total_marks_updates": total_marks_updates,
-        "average_rating": average_rating,
-        "available_courses": available_courses,
-    }
 
     return render(
         request,
         "trainers/trainer_detail.html",
         context,
     )
+
 
 @role_required(UserProfile.Role.ADMIN)
 @require_POST
@@ -1107,56 +912,28 @@ def trainer_dashboard(request):
 
     profile = request.user.profile
 
-    # Trainer must be approved
     if profile.status != UserProfile.Status.APPROVED:
+
         messages.warning(
             request,
             "Your trainer account is waiting for admin approval."
         )
-    
+
         return render(
             request,
             "trainer_pending.html"
         )
 
-    # Courses assigned to this trainer
-    assigned_courses = Course.objects.filter(
-        trainer_assignments__trainer=request.user,
-        active_status=True
-    ).distinct()
-
-    # Students enrolled in those courses
-    assigned_enrollments = Enrollment.objects.filter(
-        course__in=assigned_courses,
-        student__active=True
-    ).select_related(
-        "student",
-        "course"
+    context = get_trainer_dashboard_data(
+        request.user
     )
-
-    # Unique students
-    assigned_students = Student.objects.filter(
-        enrollments__course__in=assigned_courses,
-        active=True
-    ).distinct()
-
-    total_courses = assigned_courses.count()
-    total_students = assigned_students.count()
-    feedback_given = Feedback.objects.filter(
-    trainer=request.user).select_related("student","course").order_by("-created_at")
 
     return render(
         request,
         "dashboards/trainer_dashboard.html",
-        {
-            "assigned_courses": assigned_courses,
-            "assigned_enrollments": assigned_enrollments,
-            "assigned_students": assigned_students,
-            "total_courses": total_courses,
-            "total_students": total_students,
-            "feedback_given": feedback_given,
-        }
+        context,
     )
+
 
 @role_required(UserProfile.Role.STUDENT)
 def edit_student_profile(request):
@@ -1210,44 +987,19 @@ def student_dashboard(request):
     student = get_object_or_404(
         Student.objects.select_related(
             "department",
-            "profile"
+            "profile",
         ),
-        user=request.user
-    )
-    enrollments = Enrollment.objects.filter(
-        student=student
-    ).select_related(
-        "course"
-    ).prefetch_related(
-        "mark_history"
+        user=request.user,
     )
 
-    feedback = Feedback.objects.filter(
-        student=student,
-        visible=True
-    ).select_related(
-        "trainer",
-        "course"
-    ).order_by("-created_at")
-
-    total_courses = enrollments.count()
-
-    average_marks = enrollments.filter(
-        marks__isnull=False
-    ).aggregate(
-        average=Avg("marks")
-    )["average"]
+    context = get_student_dashboard_data(
+        student
+    )
 
     return render(
         request,
         "dashboards/student_dashboard.html",
-        {
-            "student": student,
-            "enrollments": enrollments,
-            "feedback": feedback,
-            "total_courses": total_courses,
-            "average_marks": average_marks,
-        }
+        context,
     )
 
 @role_required(UserProfile.Role.ADMIN)
@@ -1398,38 +1150,20 @@ def delete_trainer(request, id):
 @login_required
 def update_marks(request, id):
 
-    profile = get_object_or_404(
-        UserProfile,
-        user=request.user
-    )
-
-    if profile.role != UserProfile.Role.TRAINER:
-        return HttpResponseForbidden(
-            "Only trainers can update marks."
-        )
-
-    if profile.status != UserProfile.Status.APPROVED:
-        return HttpResponseForbidden(
-            "Your trainer account is not approved."
-        )
-
     enrollment = get_object_or_404(
         Enrollment.objects.select_related(
             "student",
-            "course"
+            "course",
         ),
-        id=id
+        id=id,
     )
 
-    # Check that this trainer is assigned to this course.
-    assigned = TrainerCourse.objects.filter(
-        trainer=request.user,
-        course=enrollment.course
-    ).exists()
-
-    if not assigned:
+    if not trainer_can_update_marks(
+        request.user,
+        enrollment,
+    ):
         return HttpResponseForbidden(
-            "You are not assigned to this course."
+            "You are not authorized to update marks."
         )
 
     if request.method == "POST":
@@ -1439,21 +1173,27 @@ def update_marks(request, id):
         if form.is_valid():
 
             previous_marks = enrollment.marks
+
             new_marks = form.cleaned_data["marks"]
+
             reason = form.cleaned_data["reason"]
 
-            enrollment.marks = new_marks
-            enrollment.save(update_fields=["marks"])
-
-            MarkHistory.objects.create(
-                enrollment=enrollment,
-                previous_marks=previous_marks,
-                new_marks=new_marks,
-                updated_by=request.user,
-                reason=reason
+            updated_enrollment, history = (
+                update_enrollment_marks(
+                    enrollment=enrollment,
+                    new_marks=new_marks,
+                    reason=reason,
+                    updated_by=request.user,
+                )
             )
 
-            audit_marks_updated(request , enrollment , previous_marks  , new_marks , reason)
+            audit_marks_updated(
+                request,
+                enrollment,
+                previous_marks,
+                new_marks,
+                reason,
+            )
 
             messages.success(
                 request,
@@ -1462,7 +1202,7 @@ def update_marks(request, id):
 
             return redirect(
                 "student_detail",
-                id=enrollment.student.id
+                id=enrollment.student.id,
             )
 
     else:
@@ -1472,7 +1212,9 @@ def update_marks(request, id):
         if enrollment.marks is not None:
             initial_marks["marks"] = enrollment.marks
 
-        form = MarkForm(initial=initial_marks)
+        form = MarkForm(
+            initial=initial_marks
+        )
 
     return render(
         request,
@@ -1486,37 +1228,20 @@ def update_marks(request, id):
 @login_required
 def create_feedback(request, id):
 
-    profile = get_object_or_404(
-        UserProfile,
-        user=request.user
-    )
-
-    if profile.role != UserProfile.Role.TRAINER:
-        return HttpResponseForbidden(
-            "Only trainers can create feedback."
-        )
-
-    if profile.status != UserProfile.Status.APPROVED:
-        return HttpResponseForbidden(
-            "Your trainer account is not approved."
-        )
-
     enrollment = get_object_or_404(
         Enrollment.objects.select_related(
             "student",
-            "course"
+            "course",
         ),
-        id=id
+        id=id,
     )
 
-    assigned = TrainerCourse.objects.filter(
-        trainer=request.user,
-        course=enrollment.course
-    ).exists()
-
-    if not assigned:
+    if not trainer_can_manage_feedback(
+        request.user,
+        enrollment,
+    ):
         return HttpResponseForbidden(
-            "You are not assigned to this course."
+            "You are not authorized to create feedback."
         )
 
     if request.method == "POST":
@@ -1525,15 +1250,21 @@ def create_feedback(request, id):
 
         if form.is_valid():
 
-            feedback = form.save(commit=False)
+            feedback = create_feedback_service(
+                enrollment=enrollment,
+                trainer=request.user,
+                rating=form.cleaned_data["rating"],
+                comment=form.cleaned_data["comment"],
+                visible=form.cleaned_data.get(
+                    "visible",
+                    True,
+                ),
+            )
 
-            feedback.student = enrollment.student
-            feedback.course = enrollment.course
-            feedback.trainer = request.user
-
-            feedback.save()
-
-            audit_feedback_created(request , feedback)
+            audit_feedback_created(
+                request,
+                feedback,
+            )
 
             messages.success(
                 request,
@@ -1542,10 +1273,11 @@ def create_feedback(request, id):
 
             return redirect(
                 "student_detail",
-                id=enrollment.student.id
+                id=enrollment.student.id,
             )
 
     else:
+
         form = FeedbackForm()
 
     return render(
@@ -1556,30 +1288,22 @@ def create_feedback(request, id):
             "enrollment": enrollment,
         }
     )
-
 @login_required
 def edit_feedback(request, id):
-
-    profile = get_object_or_404(
-        UserProfile,
-        user=request.user
-    )
-
-    if profile.role != UserProfile.Role.TRAINER:
-        return HttpResponseForbidden(
-            "Only trainers can edit feedback."
-        )
 
     feedback = get_object_or_404(
         Feedback.objects.select_related(
             "student",
             "course",
-            "trainer"
+            "trainer",
         ),
-        id=id
+        id=id,
     )
 
-    if feedback.trainer != request.user:
+    if not trainer_owns_feedback(
+        feedback,
+        request.user,
+    ):
         return HttpResponseForbidden(
             "You can only edit your own feedback."
         )
@@ -1588,13 +1312,25 @@ def edit_feedback(request, id):
 
         form = FeedbackForm(
             request.POST,
-            instance=feedback
+            instance=feedback,
         )
 
         if form.is_valid():
 
-            form.save()
-            audit_feedback_updated(request , feedback)
+            feedback = update_feedback_service(
+                feedback=feedback,
+                rating=form.cleaned_data["rating"],
+                comment=form.cleaned_data["comment"],
+                visible=form.cleaned_data.get(
+                    "visible",
+                    feedback.visible,
+                ),
+            )
+
+            audit_feedback_updated(
+                request,
+                feedback,
+            )
 
             messages.success(
                 request,
@@ -1603,7 +1339,7 @@ def edit_feedback(request, id):
 
             return redirect(
                 "student_detail",
-                id=feedback.student.id
+                id=feedback.student.id,
             )
 
     else:
@@ -1621,7 +1357,6 @@ def edit_feedback(request, id):
             "enrollment": None,
         }
     )
-
 @role_required(UserProfile.Role.ADMIN)
 def add_course(request):
 
@@ -1653,7 +1388,20 @@ def add_course(request):
         "courses/course_form.html",
         {
             "form": form,
-            "title": "Add Course"
+            "title": "Add Course",
+            "breadcrumbs": [
+    {
+        "name": "Home",
+        "url": reverse("home"),
+    },
+    {
+        "name": "Courses",
+        "url": reverse("course_list"),
+    },
+    {
+        "name": "Add Course",
+    },
+],
         }
     )
 
@@ -1699,7 +1447,24 @@ def edit_course(request, id):
         {
             "form": form,
             "course": course,
-            "title": "Edit Course"
+            "title": "Edit Course",
+            "breadcrumbs": [
+    {
+        "name": "Home",
+        "url": reverse("home"),
+    },
+    {
+        "name": "Courses",
+        "url": reverse("course_list"),
+    },
+    {
+        "name": course.course_name,
+        "url": reverse("course_detail", args=[course.id]),
+    },
+    {
+        "name": "Edit",
+    },
+],
         }
     )
 
@@ -1900,3 +1665,29 @@ def audit_logs(request):
         "audit_logs.html",
         context
     )
+
+
+def error_403(request, exception):
+    return render(
+        request,
+        "errors/403.html",
+        status=403,
+    )
+
+
+def error_404(request, exception):
+    return render(
+        request,
+        "errors/404.html",
+        status=404,
+    )
+
+
+def error_500(request):
+    return render(
+        request,
+        "errors/500.html",
+        status=500,
+    )
+
+

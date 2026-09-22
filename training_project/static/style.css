@@ -42,14 +42,35 @@ nav a:hover {
 /* ================================
    MAIN CONTENT
 ================================ */
+/* =========================================================
+   MAIN APPLICATION LAYOUT
+   ========================================================= */
 
 main {
-    width: 85%;
-    max-width: 1100px;
-    margin: 40px auto;
+    width: 94%;
+    max-width: 1500px;
+    margin: 30px auto;
+    min-height: calc(100vh - 150px);
 }
 
+/*
+   Let pages inside main use the available application width.
+   Bootstrap's default .container is intentionally overridden.
+*/
 
+main > .container {
+    width: 100%;
+    max-width: none !important;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+main > .container-fluid {
+    width: 100%;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+}
 /* ================================
    COMMON CARD
 ================================ */
@@ -627,4 +648,231 @@ body {
 
 .role-badge {
     background-color: var(--accent-color);
+}
+
+/* Modern Breadcrumbs */
+.breadcrumb-modern {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.breadcrumb-modern .breadcrumb-item {
+    color: #6c757d;
+}
+
+.breadcrumb-modern .breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-modern .breadcrumb-item a:hover {
+    color: #0d6efd;
+}
+
+.breadcrumb-modern .breadcrumb-item.active {
+    color: #343a40;
+    font-weight: 500;
+}
+
+.breadcrumb-modern .breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    color: #adb5bd;
+    padding-right: 0.5rem;
+}
+
+/* =========================================================
+   POLISHED APPLICATION NAVBAR
+   ========================================================= */
+
+.navbar {
+    background: var(--primary-color) !important;
+    min-height: 64px;
+
+    padding: 0 !important;
+
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+}
+
+
+/* Main navbar container */
+
+.navbar .container,
+.navbar .container-fluid {
+    width: 94%;
+    max-width: 1500px;
+
+    margin: 0 auto;
+
+    padding-left: 0;
+    padding-right: 0;
+}
+
+
+/* Brand */
+
+.navbar-brand {
+    color: #ffffff !important;
+
+    font-size: 1.08rem;
+    font-weight: 600;
+
+    letter-spacing: -0.01em;
+
+    padding: 0 !important;
+
+    margin-right: 28px;
+
+    white-space: nowrap;
+}
+
+.navbar-brand:hover {
+    color: #ffffff !important;
+}
+
+
+/* Navigation links */
+
+.navbar .nav-link {
+    color: rgba(255, 255, 255, 0.78) !important;
+
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    padding: 8px 11px !important;
+
+    margin: 0 2px;
+
+    border-radius: 7px;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+    color: #ffffff !important;
+
+    background-color: rgba(255, 255, 255, 0.09);
+}
+
+.navbar .nav-link.active {
+    color: #ffffff !important;
+
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+
+/* User information */
+
+.navbar .navbar-text {
+    color: rgba(255, 255, 255, 0.82) !important;
+
+    font-size: 0.88rem;
+
+    padding: 8px 0;
+
+    white-space: nowrap;
+}
+
+
+/* Role badge */
+
+.navbar .badge {
+    font-size: 0.68rem;
+
+    font-weight: 600;
+
+    padding: 4px 7px;
+
+    border-radius: 5px;
+
+    vertical-align: middle;
+}
+
+
+/* Logout button */
+
+.navbar form {
+    margin: 0;
+}
+
+.navbar form .nav-link {
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    font-family: inherit;
+}
+
+
+/* Mobile menu button */
+
+.navbar-toggler {
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+
+    padding: 6px 9px;
+
+    border-radius: 7px;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   NAVBAR RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .navbar-brand {
+        margin-right: 12px;
+
+        font-size: 1rem;
+    }
+
+    .navbar .nav-link {
+        font-size: 0.84rem;
+
+        padding: 7px 8px !important;
+    }
+
+    .navbar .navbar-text {
+        font-size: 0.95rem;
+    }
+}
+
+
+@media (max-width: 991px) {
+
+    .navbar .container,
+    .navbar .container-fluid {
+        width: 94%;
+    }
+
+    .navbar-collapse {
+        padding: 12px 0 15px;
+    }
+
+    .navbar .nav-link {
+        margin: 2px 0;
+
+        padding: 10px 12px !important;
+    }
+
+    .navbar .navbar-text {
+        display: block;
+
+        padding: 10px 12px;
+    }
+
+    .navbar form .nav-link {
+        width: 100%;
+
+        text-align: left;
+    }
 }

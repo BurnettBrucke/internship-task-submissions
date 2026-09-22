@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from django.urls import path, include, reverse_lazy
+from django.urls import path,  reverse_lazy
 from students import views
 
 admin.site.site_header = "Student Management Admin"
@@ -9,8 +8,6 @@ admin.site.site_title = "Student Management Admin portal"
 admin.site.index_title = "Welcome to the admin"
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-
     path("", views.home, name="home"),
     path("about", views.about, name="about"),
     path("students", views.student_list, name="students_list"),

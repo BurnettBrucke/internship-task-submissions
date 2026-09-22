@@ -13,21 +13,41 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=csj34tp@(p-j_p3y58kxgzod!b=!aqgnfd76me(f+5*r&n2#0'
+#SECRET_KEY = 'django-insecure-=csj34tp@(p-j_p3y58kxgzod!b=!aqgnfd76me(f+5*r&n2#0'
 
+# SECURITY / ENVIRONMENT
+
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "b8o8(um+*t&45w26poqemj!utxh$9@l-94^2$mo+q3uqg0y63l",
+)
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
 
-ALLOWED_HOSTS = []
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 
+
+#ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS",
+        "127.0.0.1,localhost",
+    ).split(",")
+    if host.strip()
+]
 
 # Application definition
 
@@ -52,7 +72,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# URL / APPLICATION CONFIGURATION
+
 ROOT_URLCONF = 'training_project.urls'
+
+WSGI_APPLICATION = "training_project.wsgi.application"
 
 TEMPLATES = [
     {
@@ -69,9 +93,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'training_project.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -108,17 +129,25 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
+TIME_ZONE = "Asia/Kolkata"
+
 USE_TZ = True
+
+
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -129,6 +158,151 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR , 'static')
 ]
 
+# =========================================================
+# EMAIL CONFIGURATION
+# =========================================================
+
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend",
+)
+
+EMAIL_HOST = os.environ.get(
+    "EMAIL_HOST",
+    "smtp.gmail.com",
+)
+
+EMAIL_PORT = int(
+    os.environ.get(
+        "EMAIL_PORT",
+        "587",
+    )
+)
+
+EMAIL_USE_TLS = (
+    os.environ.get(
+        "EMAIL_USE_TLS",
+        "True",
+    ).lower() == "true"
+)
+
+EMAIL_HOST_USER = os.environ.get(
+    "EMAIL_HOST_USER",
+    os.environ.get("EMAIL_USER", ""),
+)
+
+EMAIL_HOST_PASSWORD = os.environ.get(
+    "EMAIL_HOST_PASSWORD",
+    os.environ.get("EMAIL_PASS", ""),
+)
+
+DEFAULT_FROM_EMAIL = (
+    os.environ.get("DEFAULT_FROM_EMAIL")
+    or EMAIL_HOST_USER
+)
+
+
+# =========================================================
+# AUTHENTICATION REDIRECTS
+# =========================================================
+
+LOGIN_URL = "/login/"
+
+LOGIN_REDIRECT_URL = "/"
+
+LOGOUT_REDIRECT_URL = "/login/"
+
+
+# =========================================================
+# SESSION SECURITY
+# =========================================================
+
+# Prevent JavaScript from accessing the session cookie.
+SESSION_COOKIE_HTTPONLY = True
+
+# Expire session when browser closes.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Session lifetime: 1 hour.
+SESSION_COOKIE_AGE = 3600
+
+
+# =========================================================
+# GENERAL SECURITY
+# =========================================================
+
+SECURE_BROWSER_XSS_FILTER = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+X_FRAME_OPTIONS = "DENY"
+
+
+# =========================================================
+# HTTPS / PRODUCTION SECURITY
+# =========================================================
+
+# These are controlled through environment variables.
+#
+# Keep them False/0 during local HTTP development.
+# Enable them when the production server is HTTPS-only.
+
+SECURE_SSL_REDIRECT = (
+    os.environ.get(
+        "DJANGO_SECURE_SSL_REDIRECT",
+        "False",
+    ).lower()
+    == "true"
+)
+
+SESSION_COOKIE_SECURE = (
+    os.environ.get(
+        "DJANGO_SESSION_COOKIE_SECURE",
+        "False",
+    ).lower()
+    == "true"
+)
+
+CSRF_COOKIE_SECURE = (
+    os.environ.get(
+        "DJANGO_CSRF_COOKIE_SECURE",
+        "False",
+    ).lower()
+    == "true"
+)
+
+SECURE_HSTS_SECONDS = int(
+    os.environ.get(
+        "DJANGO_SECURE_HSTS_SECONDS",
+        "0",
+    )
+)
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = (
+    os.environ.get(
+        "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
+        "False",
+    ).lower()
+    == "true"
+)
+
+SECURE_HSTS_PRELOAD = (
+    os.environ.get(
+        "DJANGO_SECURE_HSTS_PRELOAD",
+        "False",
+    ).lower()
+    == "true"
+)
+
+
+# =========================================================
+# DEFAULT PRIMARY KEY
+# =========================================================
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+"""
 MAILERS = {
     "default": {
         "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
@@ -170,5 +344,9 @@ SESSION_COOKIE_AGE = 3600
 
 
 
-TIME_ZONE = "Asia/Kolkata"
-USE_TZ = True
+
+SECURE_BROWSER_XSS_FILTER = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+X_FRAME_OPTIONS = "DENY"""

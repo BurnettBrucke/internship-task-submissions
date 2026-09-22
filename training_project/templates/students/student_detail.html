@@ -2,13 +2,15 @@
 
 
 {% block title %}
-    Student Details
+    Student Details | Student Management
 {% endblock %}
 
 
 {% block content %}
 
+{% include "includes/breadcrumbs.html" %}
 <div class="container mt-4">
+
 
     <!-- ========================= -->
     <!-- PAGE HEADER -->
@@ -715,7 +717,7 @@
 
 
         <a
-            href="{% url 'dashboard' %}"
+            href="{% url 'students_list' %}"
             class="btn btn-secondary"
         >
             Back to Students

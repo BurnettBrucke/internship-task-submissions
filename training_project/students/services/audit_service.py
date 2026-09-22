@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 
-from .models import AuditLog
+from ..models import AuditLog
 
 
 def get_client_ip(request):
