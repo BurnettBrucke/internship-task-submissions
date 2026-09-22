@@ -1,0 +1,190 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Feedback Management{% endblock %}
+
+{% block content %}
+{% include 'includes/breadcrumbs.html' with breadcrumb_current="Feedback" %}
+<div class="mb-4">
+
+    <h2 class="fw-semibold mb-1">
+        Feedback Management
+    </h2>
+
+    <p class="text-muted mb-0">
+        View trainer feedback submitted for students.
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <div class="card-body p-0">
+
+        <div class="d-flex justify-content-between align-items-center p-4">
+
+            <div>
+                <h5 class="fw-semibold mb-1">
+                    Feedback Records
+                </h5>
+
+                <p class="text-muted small mb-0">
+                    Review student feedback, ratings and visibility status.
+                </p>
+            </div>
+
+        </div>
+
+
+        {% if feedbacks %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th class="ps-4">Student</th>
+                            <th>Trainer</th>
+                            <th>Course</th>
+                            <th>Rating</th>
+                            <th>Feedback</th>
+                            <th>Visibility</th>
+                            <th class="pe-4">Date</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for feedback in feedbacks %}
+
+                            <tr>
+
+                                <!-- Student -->
+
+                                <td class="ps-4">
+                                    <strong>
+                                        {{ feedback.student.name }}
+                                    </strong>
+                                </td>
+
+
+                                <!-- Trainer -->
+
+                                <td class="text-muted">
+                                    {{ feedback.trainer.username }}
+                                </td>
+
+
+                                <!-- Course -->
+
+                                <td>
+
+                                    {% if feedback.course %}
+
+                                        <span class="badge bg-info-subtle text-info-emphasis">
+                                            {{ feedback.course.course_name }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Rating -->
+
+                                <td>
+
+                                    {% if feedback.rating %}
+
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">
+                                            {{ feedback.rating }}/5
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            -
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Feedback -->
+
+                                <td>
+                                    {{ feedback.feedback }}
+                                </td>
+
+
+                                <!-- Visibility -->
+
+                                <td>
+
+                                    {% if feedback.is_visible %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            Visible
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            Hidden
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Date -->
+
+                                <td class="pe-4 text-muted small">
+                                    {{ feedback.created_at|date:"d M Y, h:i A" }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="text-center py-5">
+
+                <h5 class="text-muted mb-2">
+                    No feedback available
+                </h5>
+
+                <p class="text-muted mb-0">
+                    Trainer feedback records will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header">
+                <h4 class="mb-0">Edit User</h4>
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            value="{{ user.username }}"
+                            disabled
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-control"
+                            value="{{ user.email }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Role</label>
+
+                        <select name="role" class="form-select" required>
+
+                            <option value="admin"
+                                {% if user.profile.role == 'admin' %}selected{% endif %}>
+                                Admin
+                            </option>
+
+                            <option value="trainer"
+                                {% if user.profile.role == 'trainer' %}selected{% endif %}>
+                                Trainer
+                            </option>
+
+                            <option value="student"
+                                {% if user.profile.role == 'student' %}selected{% endif %}>
+                                Student
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Student</label>
+
+                        <select name="student" class="form-select">
+                            <option value="">---------</option>
+
+                            {% for student in students %}
+                                <option value="{{ student.id }}"
+                                    {% if user.profile.student and user.profile.student.id == student.id %}
+                                        selected
+                                    {% endif %}>
+                                    {{ student.name }} - {{ student.email }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Update User
+                    </button>
+
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

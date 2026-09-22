@@ -1,0 +1,17 @@
+{
+    "pihu": {
+        "English": 99,
+        "Hindi": 89,
+        "Maths": 79
+    },
+    "Riya": {
+        "English": 99,
+        "Hindi": 89,
+        "Maths": 98
+    },
+    "Priya": {
+        "English": 89,
+        "Hindi": 70,
+        "Maths": 40
+    }
+}

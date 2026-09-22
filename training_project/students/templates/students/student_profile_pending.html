@@ -1,0 +1,44 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Profile Setup Pending{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center py-5">
+
+    <div class="col-md-7 col-lg-6">
+
+        <div class="card shadow-sm border-0 text-center">
+
+            <div class="card-header bg-warning">
+                <h4 class="mb-0">Profile Setup Pending</h4>
+            </div>
+
+            <div class="card-body p-4">
+
+                <p class="mb-3">
+                    Your account has been created successfully.
+                </p>
+
+                <p class="text-muted">
+                    Your student profile has not been linked yet.
+                    Please contact the administrator to complete
+                    your student profile setup.
+                </p>
+
+                <a href="{% url 'logout' %}"
+                   class="btn btn-secondary">
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
