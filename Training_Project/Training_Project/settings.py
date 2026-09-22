@@ -20,12 +20,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&5yhgnq5ro18ok4w&oe)^+1rj9imwpyg6zv%!6j=gmp+gl9@^^'
+import os
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+PRODUCTION = os.environ.get("DJANGO_PRODUCTION", "False").lower() == "true"
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -74,9 +78,15 @@ WSGI_APPLICATION = 'Training_Project.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": os.environ.get(
+            "DB_ENGINE",
+            "django.db.backends.sqlite3"
+        ),
+        "NAME": os.environ.get(
+            "DB_NAME",
+            BASE_DIR / "db.sqlite3"
+        ),
     }
 }
 
@@ -120,6 +130,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "students" / "static",
+]
+
 LOGIN_URL = '/login/'
 
 LOGIN_REDIRECT_URL = '/students/'
@@ -141,11 +157,16 @@ SESSION_COOKIE_HTTPONLY = True
 
 # Keep these False for local HTTP development.
 # Enable them in production when using HTTPS.
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = PRODUCTION
+
+CSRF_COOKIE_SECURE = PRODUCTION
 
 # Session expires when the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Maximum session age: 1 hour (3600 seconds)
 SESSION_COOKIE_AGE = 3600
+
+SECURE_SSL_REDIRECT = PRODUCTION
+
+SECURE_HSTS_SECONDS = 31536000 if PRODUCTION else 0

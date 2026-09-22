@@ -18,6 +18,85 @@ The project is a basic Django-based Student Management System that demonstrates 
 
 ---
 
+---
+
+## Setup & Installation
+
+### 1. Clone the repository
+
+git clone <repository-url>
+cd Training_Project
+
+### 2. Create and activate virtual environment
+
+python -m venv venv
+venv\Scripts\activate
+
+### 3. Install dependencies
+
+pip install django
+
+### 4. Apply migrations
+
+python manage.py migrate
+
+### 5. Create demo data
+
+python manage.py seed_demo_data
+
+This command creates or verifies demo departments, courses, students, and related demo data.
+
+### 6. Collect static files
+
+python manage.py collectstatic --noinput
+
+### 7. Run the development server
+
+python manage.py runserver
+
+#### For local testing with DEBUG=False:
+
+python manage.py runserver --insecure
+
+---
+
+## Environment Variables
+
+For production, sensitive configuration should be provided through environment variables instead of hardcoding values in `settings.py`.
+
+### Required variables
+
+- DJANGO_SECRET_KEY=your-secret-key
+- DB_ENGINE=django.db.backends.sqlite3
+- DB_NAME=db.sqlite3
+
+Never commit real production secrets, passwords, or API keys to GitHub.
+
+For production deployment, use a secure database such as PostgreSQL or MySQL and configure the corresponding DB_ENGINE and DB_NAME values according to the deployment environment.
+
+## Production settings
+
+For production: *DEBUG = False*
+Configure ALLOWED_HOSTS with the actual production domain(s).
+
+Static files should be collected using: *python manage.py collectstatic --noinput*
+A production web server or hosting platform should serve the collected static files.
+
+---
+
+## Demo Credentials
+
+These are example credentials for local/demo testing only.
+Do not use real passwords or production credentials in this file.
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | demo_admin | DemoAdmin@123 |
+| Trainer | demo_trainer | DemoTrainer@123 |
+| Student | demo_student | DemoStudent@123 |
+
+> Note: These are documentation examples only. Create local demo users with these credentials if login testing is required.
+
 ## Project Structure
 
 Training_Project/
@@ -82,7 +161,7 @@ Training_Project/
 - Name
 - Email
 - Age
-- Course
+- Courses
 - Marks
 - Joined date
 - Active status
@@ -139,7 +218,6 @@ Training_Project/
 - Email	  =   Must be valid
 - Age	  =   Must be between 16 and 60
 - Marks	  =   Must be between 0 and 100
-- Course  =   Cannot be empty
 
 ---
 

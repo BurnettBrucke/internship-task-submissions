@@ -2,6 +2,19 @@
 
 {% block title %}Dashboard - Student Training Portal{% endblock %}
 
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item">
+            <a href="{% url 'home' %}">Home</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            Admin Dashboard
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 
 <style>
