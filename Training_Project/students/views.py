@@ -10,6 +10,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
 from django.shortcuts import render, redirect, get_object_or_404
+# from django.db import connection
 
 from .forms import (
     StudentForm,
@@ -27,6 +28,11 @@ from .models import (
     Feedback,
     CourseMark,
     MarksHistory,
+)
+from .services import (
+    update_student_marks,
+    create_student_feedback,
+    get_admin_dashboard_data,
 )
 
 
@@ -508,62 +514,13 @@ def admin_dashboard(request):
     on the Trainers page.
     """
 
-    # --------------------------------------------------------
-    # Student statistics
-    # --------------------------------------------------------
-
-    total_students = Student.objects.count()
-
-    total_active_students = Student.objects.filter(
-        active=True
-    ).count()
-
-    # --------------------------------------------------------
-    # Department and course statistics
-    # --------------------------------------------------------
-
-    total_departments = Department.objects.count()
-
-    total_courses = Course.objects.count()
-
-    total_trainers = User.objects.filter(
-        profile__role='trainer'
-    ).count()
-
-    # --------------------------------------------------------
-    # Marks statistics
-    # --------------------------------------------------------
-
-    average_marks = Student.objects.aggregate(
-        average=Avg('marks')
-    )['average']
-
-    highest_student = Student.objects.order_by(
-        '-marks'
-    ).first()
-
-    # --------------------------------------------------------
-    # Recent students
-    # --------------------------------------------------------
-
-    recent_students = Student.objects.order_by(
-        '-joined_date'
-    )[:5]
+    dashboard_data = get_admin_dashboard_data()
 
     return render(
-        request,
-        'admin_dashboard.html',
-        {
-            'total_students': total_students,
-            'total_active_students': total_active_students,
-            'total_departments': total_departments,
-            'total_courses': total_courses,
-            'total_trainers': total_trainers,
-            'average_marks': average_marks,
-            'highest_student': highest_student,
-            'recent_students': recent_students,
-        }
-    )
+    request,
+    'admin_dashboard.html',
+    dashboard_data
+)
 
 # ============================================================
 # ADMIN - COURSE LIST
@@ -973,6 +930,10 @@ def student_list(request):
     departments = Department.objects.all()
 
     courses = Course.objects.all()
+
+    # department_ids = Department.objects.values_list('id', flat=True)
+
+    # course_data = Course.objects.values('id', 'course_name')
 
     # ========================================================
     # TOTAL STUDENT COUNTS
@@ -1820,33 +1781,34 @@ def add_feedback(request, student_id, course_id):
     # Trainer must be assigned to this course
     # --------------------------------------------------------
 
-    if not course.trainer.filter(
-        id=request.user.id
-    ).exists():
-        raise PermissionDenied
+    # if not course.trainer.filter(
+    #     id=request.user.id
+    # ).exists():
+    #     raise PermissionDenied
 
     # --------------------------------------------------------
     # Student must belong to this course
     # --------------------------------------------------------
 
-    if not student.courses.filter(
-        id=course.id
-    ).exists():
-        raise PermissionDenied
+    # if not student.courses.filter(
+    #     id=course.id
+    # ).exists():
+    #     raise PermissionDenied
 
     if request.method == 'POST':
 
         form = FeedbackForm(request.POST)
 
         if form.is_valid():
+            feedback_data = form.cleaned_data
 
-            feedback = form.save(commit=False)
-
-            feedback.student = student
-            feedback.trainer = request.user
-            feedback.course = course
-
-            feedback.save()
+            feedback = create_student_feedback(
+                student=student,
+                course=course,
+                trainer=request.user,
+                feedback_data=feedback_data,
+                request=request,
+            )
 
             create_audit_log(
                 request,
@@ -2023,29 +1985,12 @@ def update_marks(request, student_id, course_id):
             new_marks = form.cleaned_data['marks']
             reason = form.cleaned_data['reason']
 
-            previous_marks = (
-                course_mark.marks if course_mark else 0
-            )
-
-            if course_mark:
-                course_mark.marks = new_marks
-                course_mark.updated_by = request.user
-                course_mark.save()
-            else:
-                course_mark = CourseMark.objects.create(
-                    student=student,
-                    course=course,
-                    marks=new_marks,
-                    updated_by=request.user
-                )
-
-            MarksHistory.objects.create(
+            course_mark, previous_marks = update_student_marks(
                 student=student,
                 course=course,
-                previous_marks=previous_marks,
+                trainer=request.user,
                 new_marks=new_marks,
-                updated_by=request.user,
-                reason=reason
+                reason=reason,
             )
 
             create_audit_log(

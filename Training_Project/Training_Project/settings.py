@@ -25,12 +25,11 @@ import os
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
 PRODUCTION = os.environ.get("DJANGO_PRODUCTION", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+DEBUG = not PRODUCTION
 
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Application definition
 

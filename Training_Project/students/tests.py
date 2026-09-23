@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from datetime import date
 from django.contrib.auth.models import User
 
 from .models import (
@@ -591,6 +592,79 @@ class StudentPortalTests(TestCase):
         )
 
     # =============================================================
+    # 15. Student pagination
+    # =============================================================
+
+    def test_student_pagination(self):
+
+        self.client.login(
+            username='testuser',
+            password='testpassword'
+        )
+
+        # Create enough students to require multiple pages
+        for i in range(6):
+            Student.objects.create(
+                name=f'Pagination Student {i}',
+                email=f'pagination{i}@example.com',
+                age=22,
+                marks=75,
+                department=self.department,
+                joined_date=date.today()
+            )
+
+        response = self.client.get(
+            reverse('student_list'),
+            {'page': 2}
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTrue(
+            response.context['students'].has_other_pages()
+        )
+
+    # =============================================================
+    # 16. Search + Department filter + Pagination
+    # =============================================================
+
+    def test_search_filter_pagination_combination(self):
+
+        self.client.login(
+            username='testuser',
+            password='testpassword'
+        )
+
+        for i in range(6):
+            Student.objects.create(
+                name=f'Rahul Pagination {i}',
+                email=f'rahulpagination{i}@example.com',
+                age=22,
+                marks=80,
+                department=self.department,
+                joined_date=date.today()
+            )
+
+        response = self.client.get(
+            reverse('student_list'),
+            {
+                'search': 'Rahul',
+                'department': self.department.id,
+                'page': 2
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTrue(
+            response.context['students'].has_other_pages()
+        )
+
+        self.assertContains(
+            response,
+            'Rahul Pagination'
+        )
+    # =============================================================
     # 15. Dashboard totals
     # =============================================================
 
@@ -980,3 +1054,81 @@ class StudentPortalTests(TestCase):
             response,
             'Private feedback'
         )
+
+    def test_values_returns_selected_fields(self):
+        data = list(
+            Department.objects.values('id', 'name')
+        )
+
+        self.assertTrue(data)
+        self.assertIn('id', data[0])
+        self.assertIn('name', data[0])
+
+
+    def test_values_list_returns_only_ids(self):
+        department_ids = list(
+            Department.objects.values_list('id', flat=True)
+        )
+
+        self.assertTrue(department_ids)
+        self.assertIsInstance(department_ids[0], int)
+
+    def test_n_plus_one_and_select_related(self):
+        for i in range(3):
+            Student.objects.create(
+                name=f'NPlusOne Student {i}',
+                email=f'nplus{i}@example.com',
+                age=22,
+                marks=75,
+                department=self.department,
+                joined_date=date.today()
+            )
+
+        # N+1 example
+        with self.assertNumQueries(5):
+            students = list(
+                Student.objects.filter(department=self.department)
+            )
+
+            for student in students:
+                student.department.name
+
+        # Optimized version
+        with self.assertNumQueries(1):
+            students = list(
+                Student.objects
+                .select_related('department')
+                .filter(department=self.department)
+            )
+
+            for student in students:
+                student.department.name
+
+    def test_prefetch_related_for_many_to_many(self):
+        student = Student.objects.create(
+            name='Prefetch Student',
+            email='prefetch@example.com',
+            age=22,
+            marks=80,
+            department=self.department,
+            joined_date=date.today()
+        )
+
+        course = Course.objects.create(
+            course_name='Prefetch Course',
+            code='PREF01',
+            duration='3 Months',
+            active=True
+        )
+
+        student.courses.add(course)
+
+        with self.assertNumQueries(2):
+            students = list(
+                Student.objects
+                .prefetch_related('courses')
+                .filter(id=student.id)
+            )
+
+            for student in students:
+                list(student.courses.all())
