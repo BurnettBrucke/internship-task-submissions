@@ -1,78 +1,55 @@
 from django.db import transaction
 from django.shortcuts import redirect,render,get_object_or_404 # type: ignore
-from .form import (RegisterForm,StudentForm,AssignTrainerForm,MarksUpdateForm,FeedbackForm,AuditLogFilterForm,)
-from .models import Course, LoginAttempt, student,UserProfile,AuditLog
+from .form import (RegisterForm,StudentForm,AssignTrainerForm,MarksUpdateForm,FeedbackForm,AuditLogFilterForm,BootstrapPasswordChangeForm,BootstrapLoginForm,)
+from .models import (
+    student,
+    department,
+    UserProfile,
+    AuditLog,
+    Course,
+    CourseMark,
+    MarksHistory,
+    Feedback,
+    LoginAttempt,
+)
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate,login,logout
-from django.contrib.auth.forms import AuthenticationForm,PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import login,logout
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Avg,Max,Min
 
 from .decorators import role_required
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from datetime import timedelta
-from .models import (student,department,UserProfile,AuditLog,Course,CourseMark,MarksHistory,Feedback,)
 
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
-from .form import BootstrapPasswordChangeForm
 from django.contrib.auth.views import PasswordChangeDoneView
-from django.contrib.auth import logout
-from .form import (AssignTrainerForm,StudentForm,RegisterForm,BootstrapPasswordChangeForm,BootstrapLoginForm,)
+from .services.audit import create_audit_log
+from .services.marks import (
+    get_course_for_trainer,
+    get_assigned_student,
+    get_course_mark,
+    update_course_marks,
+    
+    get_marks_history_for_user,
+)
+
+from .services.feedback import (get_course_for_feedback, get_assigned_student_for_feedback, create_feedback, get_feedback_for_edit, update_feedback, get_feedback_for_user,)
+
+from student.services.dashboard import (
+    get_admin_dashboard_data,
+    get_trainer_dashboard_data,
+    get_student_dashboard_data,
+)
 
 
-# should be at the top after import
-def get_client_ip(request):
-    """
-    Get the client's IP address.
-    """
-
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-
-    return request.META.get("REMOTE_ADDR")
 
 
-def create_audit_log(
-    request,
-    action_type,
-    description,
-    affected_object=None,
-    action=None,
-):
-    """
-    Create a centralized audit log entry.
-    """
-
-    content_type = None
-    object_id = None
-
-    if affected_object is not None:
-        content_type = ContentType.objects.get_for_model(
-            affected_object
-        )
-        object_id = affected_object.pk
-
-    AuditLog.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        action=action or action_type,
-        action_type=action_type,
-        description=description,
-        content_type=content_type,
-        object_id=object_id,
-        ip_address=get_client_ip(request),
-    )
-
+# Authetication
 def custom_login(request):
 
     if request.user.is_authenticated:
@@ -237,8 +214,7 @@ def custom_login(request):
         }
     )
 
-
-
+@login_required
 def custom_logout(request):
 
     username = request.user.username
@@ -261,69 +237,28 @@ def custom_logout(request):
 
     return redirect("login")
 
-@login_required
-@role_required(["admin"])
-def audit_log_list(request):
-
-    form = AuditLogFilterForm(request.GET or None)
-
-    logs = AuditLog.objects.select_related(
-        "user"
-    ).order_by("-created_at")
-
-    if form.is_valid():
-
-        search = form.cleaned_data.get("search")
-        action_type = form.cleaned_data.get("action_type")
-        date_from = form.cleaned_data.get("date_from")
-        date_to = form.cleaned_data.get("date_to")
-
-        if search:
-            logs = logs.filter(
-                Q(user__username__icontains=search)
-                | Q(description__icontains=search)
-                | Q(action__icontains=search)
-            )
-
-        if action_type:
-            logs = logs.filter(
-                action_type=action_type
-            )
-
-        if date_from:
-            logs = logs.filter(
-                created_at__date__gte=date_from
-            )
-
-        if date_to:
-            logs = logs.filter(
-                created_at__date__lte=date_to
-            )
-
-    paginator = Paginator(logs, 20)
-
-    page_number = request.GET.get("page")
-
-    page_obj = paginator.get_page(page_number)
-
-    return render(
-        request,
-        "admin/audit_logs.html",
-        {
-            "logs": page_obj,
-            "page_obj": page_obj,
-            "form": form,
-        }
-    )
-
-
 class CustomPasswordChangeView(PasswordChangeView):
-
     form_class = BootstrapPasswordChangeForm
 
     template_name = "registration/password_change.html"
 
     success_url = reverse_lazy("password_change_done")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        create_audit_log(
+            request=self.request,
+            action_type="UPDATE",
+            action="Password changed",
+            description=(
+                f"User {self.request.user.username} "
+                f"changed their password."
+            ),
+            affected_object=self.request.user,
+        )
+
+        return response
 
 class CustomPasswordChangeDoneView(
     PasswordChangeDoneView
@@ -332,28 +267,9 @@ class CustomPasswordChangeDoneView(
     template_name = "registration/password_change_done.html"
 
 
-# Role Redirect
-def redirect_user_by_role(user):
-    profile=getattr(user,"userprofile",None)
-
-    if profile is None:
-        return redirect("login")
-    if profile.role=="admin":
-        return redirect("admin_dashboard")
-    if profile.role=="trainer":
-        return redirect("trainer_dashboard")
-    if profile.role=="student":
-        return redirect("student_dashboard")
-    return redirect("login")
 
 
-# #LOGOUT
-# @login_required
-# def logout_view(request):
-#     logout(request)
-#     messages.success(request,"You have been logged out!!")
-#     return redirect("login")
-
+# Registration
 
 # REGISTER
 def register_view(request):
@@ -379,6 +295,15 @@ def register_view(request):
                     active=True,
                     department=department_value
                 )
+            create_audit_log(
+                request=request,
+                action_type="CREATE",
+                description=(
+                    f"Registered new user: "
+                    f"{user.username} with role {role}."
+                ),
+                affected_object=user,
+            )
             messages.success(
                 request,"Account Created Successfully!!"
             )
@@ -391,130 +316,79 @@ def register_view(request):
 
         )
 
+# Role Redirect
+def redirect_user_by_role(user):
+    profile=getattr(user,"userprofile",None)
 
+    if profile is None:
+        return redirect("login")
+    if profile.role=="admin":
+        return redirect("admin_dashboard")
+    if profile.role=="trainer":
+        return redirect("trainer_dashboard")
+    if profile.role=="student":
+        return redirect("student_dashboard")
+    return redirect("login")
+
+
+
+
+
+# Dashboards-----------------------------------------------------
+
+def home(request):
+    return render(request,"website/home.html")
 
 # Admin Dashboard
 @role_required(["admin"])
 def admin_dashboard(request):
 
-    total_users = User.objects.count()
-
-    total_students = student.objects.count()
-
-    total_trainers = UserProfile.objects.filter(role__iexact="trainer").count() 
-
-    courses = Course.objects.all()
-
-    total_courses = courses.count()
-
-    recent_users = User.objects.order_by("-date_joined")[:5]
-
-    recent_students = student.objects.order_by("-id")[:5]
-
-    # Trainer approval
-    pending_trainers = UserProfile.objects.filter(role="trainer",is_approved=False)
-
-    context = {
-        "total_users": total_users,
-        "total_students": total_students,
-        "total_trainers": total_trainers,
-        "total_courses": total_courses,
-        "recent_users": recent_users,
-        "recent_students": recent_students,
-        "courses": courses,
-        "pending_trainers":pending_trainers,
-    }
+    context = get_admin_dashboard_data()
 
     return render(
         request,
         "dashboards/admin_dashboard.html",
-        
         context
     )
+
 
 
 # Trainer Dashboard
 @role_required(["trainer"])
 def trainer_dashboard(request):
-    trainer=request.user
-    try:
-        courses=trainer.training_courses.all().prefetch_related("students")
-    except AttributeError:
-        courses=[]
 
-    assigned_students=student.objects.filter(
-        courses__trainer=trainer).distinct()
+    trainer = request.user
 
-    context = {
-        "courses": courses,
-        "assigned_students": assigned_students,
-        "assigned_courses_count": len(courses),
-        "assigned_students_count": assigned_students.count(),
-    }
-
-    return render(request,
-                  "dashboards/trainer_dashboard.html",
-                  context)
-
-@role_required(["admin"])
-def assign_trainer(request, pk):
-
-    course = get_object_or_404(
-        Course,
-        pk=pk
-    )
-
-    # Don't allow assigning another trainer
-    if course.trainer is not None:
-        messages.warning(
-            request,
-            "A trainer is already assigned to this course."
-        )
-        return redirect("course_list")
-
-    if request.method == "POST":
-
-        form = AssignTrainerForm(request.POST)
-
-        if form.is_valid():
-
-            trainer = form.cleaned_data["trainer"]
-
-            course.trainer = trainer
-            course.save()
-
-            create_audit_log(
-                request=request,
-                action_type="UPDATE",
-                description=(
-                    f"Assigned trainer "
-                    f"{course.trainer.username} "
-                    f"to course {course.course_name}."
-                ),
-                affected_object=course,
-            )
-
-            messages.success(
-                request,
-                f"{trainer.username} assigned to {course.course_name}."
-            )
-
-            return redirect("admin_dashboard")
-
-    else:
-
-        form = AssignTrainerForm()
+    context = get_trainer_dashboard_data(trainer)
 
     return render(
         request,
-        "website/assign_trainer.html",
-        {
-            "form": form,
-            "course": course,
-        }
+        "dashboards/trainer_dashboard.html",
+        context
     )
 
 
+# Student Dashboard
+@role_required(["student"])
+def student_dashboard(request):
+
+    students = get_object_or_404(
+        student,
+        user=request.user
+    )
+
+    context = get_student_dashboard_data(students)
+
+    return render(
+        request,
+        "dashboards/student_dashboard.html",
+        context
+    )
+
+
+
+
+# Trainer /Account management
 
 @role_required(["admin"])
 def trainer_list(request):
@@ -567,41 +441,6 @@ def approve_trainer(request, user_id):
 
     return redirect("admin_dashboard")
 
-@role_required(["admin"])
-def deactivate_account(request, user_id):
-
-    if request.method != "POST":
-     return HttpResponseForbidden(
-        "This action requires a POST request."
-    )
-    
-    profile = get_object_or_404(
-        UserProfile,
-        user_id=user_id
-    )
-
-    profile.is_active = False
-    profile.save()
-
-    profile.user.is_active = False
-    profile.user.save()
-
-    create_audit_log(
-        request=request,
-        action_type="UPDATE",
-        description=(
-            f"Deactivated account: "
-            f"{profile.user.username}"
-        ),
-        affected_object=profile,
-    )
-
-    messages.success(
-        request,
-        f"Account {profile.user.username} deactivated."
-    )
-
-    return redirect("trainer_list")
 
 @role_required(["admin"])
 def activate_account(request, user_id):
@@ -640,51 +479,112 @@ def activate_account(request, user_id):
     return redirect("trainer_list")
 
 
+@role_required(["admin"])
+def deactivate_account(request, user_id):
 
-# Student Dashboard
-@role_required(["student"])
-def student_dashboard(request):
-    students=get_object_or_404(
-        student,
-        user=request.user
+    if request.method != "POST":
+     return HttpResponseForbidden(
+        "This action requires a POST request."
+    )
+    
+    profile = get_object_or_404(
+        UserProfile,
+        user_id=user_id
     )
 
-    marks=students.marks
+    profile.is_active = False
+    profile.save()
 
-    if marks is None:
-        marks=0
-    profile_completion=100
-    if not students.email:
-        profile_completion-=20
-    if not students.age:
-        profile_completion-=20
+    profile.user.is_active = False
+    profile.user.save()
 
-    course_marks = CourseMark.objects.filter(
-         student=students).select_related(
-            "course",
-            "updated_by",
+    create_audit_log(
+        request=request,
+        action_type="UPDATE",
+        description=(
+            f"Deactivated account: "
+            f"{profile.user.username}"
+        ),
+        affected_object=profile,
+    )
+
+    messages.success(
+        request,
+        f"Account {profile.user.username} deactivated."
+    )
+
+    return redirect("trainer_list")
+
+@role_required(["admin"])
+def assign_trainer(request, pk):
+
+    course = get_object_or_404(
+        Course,
+        pk=pk
+    )
+
+    # Don't allow assigning another trainer
+    if course.trainer is not None:
+        messages.warning(
+            request,
+            "A trainer is already assigned to this course."
         )
+        return redirect("admin_dashboard")
 
-    feedback = Feedback.objects.filter(
-            student=students,
-            is_visible=True,
-        ).select_related(
-            "course",
-            "trainer",
-        )
-    context={
-        "student":students,
-        "course_marks": course_marks,
-        "feedback": feedback,
-        "profile_completion":profile_completion,
-        "marks":marks,
-    }
+    if request.method == "POST":
+
+        form = AssignTrainerForm(request.POST)
+
+        if form.is_valid():
+
+            trainer = form.cleaned_data["trainer"]
+
+            course.trainer = trainer
+            course.save()
+
+            create_audit_log(
+                request=request,
+                action_type="UPDATE",
+                description=(
+                    f"Assigned trainer "
+                    f"{course.trainer.username} "
+                    f"to course {course.course_name}."
+                ),
+                affected_object=course,
+            )
+
+            messages.success(
+                request,
+                f"{trainer.username} assigned to {course.course_name}."
+            )
+
+            return redirect("admin_dashboard")
+
+    else:
+
+        form = AssignTrainerForm()
+
     return render(
         request,
-        "dashboards/student_dashboard.html",
-        context
+        "website/assign_trainer.html",
+        {
+            "form": form,
+            "course": course,
+        }
     )
 
+# Account information 
+@login_required
+def account_information(request):
+
+    return render(
+        request,
+        "account/account_information.html"
+    )
+
+
+
+# Student Management -------------------------------------------------
 # Student List
 @role_required(["admin","trainer"])
 def student_list(request):
@@ -719,6 +619,7 @@ def student_list(request):
 # Student Detail
 
 @login_required
+@role_required(["student", "admin", "trainer"])
 def student_detail(request,pk):
     profile=getattr(
         request.user,
@@ -748,9 +649,9 @@ def student_detail(request,pk):
 
     return render(request,"students/student_detail.html",{"student":students})
 
-
 # Add Student
 @login_required
+@role_required(["admin"])
 def student_create(request):
 
     if request.method == "POST":
@@ -914,94 +815,44 @@ def student_delete(request, pk):
         }
     )
 
-def home(request):
-    return render(request,"website/home.html")
-
-# Account information 
-@login_required
-def account_information(request):
-
-    return render(
-        request,
-        "account/account_information.html"
-    )
-
-
+# Marks----------------------------------------------------
 
 @login_required
+@role_required(["trainer"])
 def update_course_marks(request, course_id, student_id):
 
-    # Only trainers can update marks.
-    if request.user.userprofile.role != "trainer":
-        return HttpResponseForbidden(
-            "Only assigned trainers can update marks."
+    course = get_course_for_trainer(
+            course_id=course_id,
+            user=request.user,
         )
+  
 
-    course = get_object_or_404(
-        Course,
-        pk=course_id
-    )
-
-    # Make sure the logged-in trainer is assigned to this course.
-    if course.trainer_id != request.user.id:
-        return HttpResponseForbidden(
-            "You are not assigned to this course."
-        )
-
-    # Make sure the student belongs to this course.
-    assigned_student = get_object_or_404(
-        course.students,
-        pk=student_id
-    )
-
-    course_mark, created = CourseMark.objects.get_or_create(
+    assigned_student = get_assigned_student(
         course=course,
-        student=assigned_student,
-        defaults={
-            "marks": assigned_student.marks,
-            "updated_by": request.user,
-        }
+        student_id=student_id,
+    )
+
+    course_mark = get_course_mark(
+        course=course,
+        assigned_student=assigned_student,
+        user=request.user,
     )
 
     if request.method == "POST":
 
         form = MarksUpdateForm(
             request.POST,
-            instance=course_mark
+            instance=course_mark,
         )
 
         if form.is_valid():
 
-            with transaction.atomic():
-
-                old_marks = course_mark.marks
-                new_marks = form.cleaned_data["marks"]
-                reason = form.cleaned_data["reason"]
-
-                course_mark.marks = new_marks
-                course_mark.updated_by = request.user
-                course_mark.save()
-
-                MarksHistory.objects.create(
-                    course_mark=course_mark,
-                    previous_marks=old_marks,
-                    new_marks=new_marks,
-                    updated_by=request.user,
-                    reason=reason,
-                )
-
-                create_audit_log(
-                    request=request,
-                    action_type="UPDATE",
-                    description=(
-                        f"Updated marks for "
-                        f"{assigned_student.name} in "
-                        f"{course.course_name}: "
-                        f"{old_marks} -> {new_marks}. "
-                        f"Reason: {reason}"
-                    ),
-                    affected_object=course_mark,
-                )
+            update_course_marks(
+                request=request,
+                course=course,
+                assigned_student=assigned_student,
+                form=form,
+            )
 
             messages.success(
                 request,
@@ -1015,8 +866,9 @@ def update_course_marks(request, course_id, student_id):
             )
 
     else:
+
         form = MarksUpdateForm(
-            instance=course_mark
+            instance=course_mark,
         )
 
     return render(
@@ -1027,58 +879,24 @@ def update_course_marks(request, course_id, student_id):
             "course": course,
             "student": assigned_student,
             "course_mark": course_mark,
-        }
+        },
     )
+
 
 
 @login_required
 def marks_history(request, course_id, student_id):
 
-    user_role = request.user.userprofile.role
-
-    course = get_object_or_404(
-        Course,
-        pk=course_id
+    (
+        course,
+        assigned_student,
+        course_mark,
+        history,
+    ) = get_marks_history_for_user(
+        user=request.user,
+        course_id=course_id,
+        student_id=student_id,
     )
-
-    assigned_student = get_object_or_404(
-        course.students,
-        pk=student_id
-    )
-
-    # Student can only see their own marks.
-    if user_role == "student":
-
-        if assigned_student.user_id != request.user.id:
-            return HttpResponseForbidden(
-                "You are not authorized to view these marks."
-            )
-
-    # Trainer can only see marks for their assigned course.
-    elif user_role == "trainer":
-
-        if course.trainer_id != request.user.id:
-            return HttpResponseForbidden(
-                "You are not assigned to this course."
-            )
-
-    # Only admin, assigned trainer and owning student are allowed.
-    elif user_role != "admin":
-
-        return HttpResponseForbidden(
-            "You are not authorized to view marks history."
-        )
-
-    course_mark = CourseMark.objects.filter(
-        course=course,
-        student=assigned_student
-    ).first()
-
-    history = MarksHistory.objects.filter(
-        course_mark=course_mark
-    ).select_related(
-        "updated_by"
-    ) if course_mark else MarksHistory.objects.none()
 
     return render(
         request,
@@ -1091,44 +909,36 @@ def marks_history(request, course_id, student_id):
         }
     )
 
+# Feedback -----------------------------------------------
 
 @login_required
+@role_required(["trainer"])
 def feedback_create(request, course_id, student_id):
 
-    if request.user.userprofile.role != "trainer":
-        return HttpResponseForbidden(
-            "Only trainers can create feedback."
-        )
-
-    course = get_object_or_404(
-        Course,
-        pk=course_id
+    course = get_course_for_feedback(
+        course_id=course_id,
+        user=request.user,
     )
 
-    # Trainer must be assigned to this course.
-    if course.trainer_id != request.user.id:
-        return HttpResponseForbidden(
-            "You are not assigned to this course."
-        )
-
-    assigned_student = get_object_or_404(
-        course.students,
-        pk=student_id
+    assigned_student = get_assigned_student_for_feedback(
+        course=course,
+        student_id=student_id,
     )
 
     if request.method == "POST":
 
-        form = FeedbackForm(request.POST)
+        form = FeedbackForm(
+            request.POST
+        )
 
         if form.is_valid():
 
-            feedback = form.save(commit=False)
-
-            feedback.course = course
-            feedback.student = assigned_student
-            feedback.trainer = request.user
-
-            feedback.save()
+            feedback = create_feedback(
+                user=request.user,
+                course=course,
+                assigned_student=assigned_student,
+                form=form,
+            )
 
             create_audit_log(
                 request=request,
@@ -1152,6 +962,7 @@ def feedback_create(request, course_id, student_id):
             )
 
     else:
+
         form = FeedbackForm()
 
     return render(
@@ -1165,34 +976,30 @@ def feedback_create(request, course_id, student_id):
         }
     )
 
+
+
 @login_required
+@role_required(["trainer"])
 def feedback_edit(request, feedback_id):
 
-    if request.user.userprofile.role != "trainer":
-        return HttpResponseForbidden(
-            "Only trainers can edit feedback."
-        )
-
-    feedback = get_object_or_404(
-        Feedback,
-        pk=feedback_id
+    feedback = get_feedback_for_edit(
+        feedback_id=feedback_id,
+        user=request.user,
     )
-
-    if feedback.trainer_id != request.user.id:
-        return HttpResponseForbidden(
-            "You can only edit your own feedback."
-        )
 
     if request.method == "POST":
 
         form = FeedbackForm(
             request.POST,
-            instance=feedback
+            instance=feedback,
         )
 
         if form.is_valid():
 
-            feedback = form.save()
+            feedback = update_feedback(
+                feedback=feedback,
+                form=form,
+            )
 
             create_audit_log(
                 request=request,
@@ -1216,6 +1023,7 @@ def feedback_edit(request, feedback_id):
             )
 
     else:
+
         form = FeedbackForm(
             instance=feedback
         )
@@ -1232,44 +1040,13 @@ def feedback_edit(request, feedback_id):
         }
     )
 
+
 @login_required
 def feedback_list(request):
 
-    role = request.user.userprofile.role
-
-    feedback_queryset = Feedback.objects.select_related(
-        "course",
-        "student",
-        "trainer",
-    ).order_by("-created_at")
-
-    if role == "student":
-
-        student_profile = get_object_or_404(
-            student,
-            user=request.user
-        )
-
-        feedback_queryset = feedback_queryset.filter(
-            student=student_profile,
-            is_visible=True
-        )
-
-    elif role == "trainer":
-
-        feedback_queryset = feedback_queryset.filter(
-            trainer=request.user
-        )
-
-    elif role == "admin":
-
-        pass
-
-    else:
-
-        return HttpResponseForbidden(
-            "You are not authorized to view feedback."
-        )
+    feedback_queryset = get_feedback_for_user(
+        user=request.user,
+    )
 
     return render(
         request,
@@ -1280,3 +1057,58 @@ def feedback_list(request):
     )
 
 
+# Audit log list ----------------------------------------
+@login_required
+@role_required(["admin"])
+def audit_log_list(request):
+
+    form = AuditLogFilterForm(request.GET or None)
+
+    logs = AuditLog.objects.select_related(
+        "user"
+    ).order_by("-created_at")
+
+    if form.is_valid():
+
+        search = form.cleaned_data.get("search")
+        action_type = form.cleaned_data.get("action_type")
+        date_from = form.cleaned_data.get("date_from")
+        date_to = form.cleaned_data.get("date_to")
+
+        if search:
+            logs = logs.filter(
+                Q(user__username__icontains=search)
+                | Q(description__icontains=search)
+                | Q(action__icontains=search)
+            )
+
+        if action_type:
+            logs = logs.filter(
+                action_type=action_type
+            )
+
+        if date_from:
+            logs = logs.filter(
+                created_at__date__gte=date_from
+            )
+
+        if date_to:
+            logs = logs.filter(
+                created_at__date__lte=date_to
+            )
+
+    paginator = Paginator(logs, 20)
+
+    page_number = request.GET.get("page")
+
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "admin/audit_logs.html",
+        {
+            "logs": page_obj,
+            "page_obj": page_obj,
+            "form": form,
+        }
+    )

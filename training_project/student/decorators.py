@@ -1,7 +1,7 @@
 from functools import wraps
 from django.contrib import messages
 from django.shortcuts import redirect
-
+from django.core.exceptions import PermissionDenied
 
 def role_required(allowed_roles):
 
@@ -14,11 +14,7 @@ def role_required(allowed_roles):
                 return redirect("login")
 
             if request.user.userprofile.role not in allowed_roles:
-                messages.error(
-                    request,
-                    "You are not authorized to access this page."
-                )
-                return redirect("home")
+                raise PermissionDenied
 
             return view_func(request, *args, **kwargs)
 

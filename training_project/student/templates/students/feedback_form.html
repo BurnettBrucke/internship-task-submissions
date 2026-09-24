@@ -4,6 +4,34 @@
 {{ page_title }}
 {% endblock %}
 
+{% block breadcrumbs %}
+
+<nav aria-label="breadcrumb">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'trainer_dashboard' %}">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'feedback_list' %}">
+                Feedback
+            </a>
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">
+            {{ page_title }}
+        </li>
+
+    </ol>
+
+</nav>
+
+{% endblock %}
+
 {% block content %}
 
 <div class="row justify-content-center">
@@ -39,7 +67,7 @@
 
                 {% include "includes/form_errors.html" %}
 
-                <form method="post">
+                <form method="post" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
 
                     {% csrf_token %}
 

@@ -4,6 +4,35 @@
 Student Details
 {% endblock %}
 
+{% block breadcrumbs %}
+
+<nav aria-label="breadcrumb">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="{% if user.userprofile.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.userprofile.role == 'trainer' %}{% url 'trainer_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'student_list' %}">
+                Students
+            </a>
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">
+            Student Details
+        </li>
+
+    </ol>
+
+</nav>
+
+{% endblock %}
+
+
 {% block content %}
 
 <div class="row justify-content-center">
@@ -230,8 +259,5 @@ Student Details
     </div>
 
 </div>
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-</script>
 
 {% endblock %}

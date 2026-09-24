@@ -1,5 +1,32 @@
 {% extends "base.html" %}
 
+{% block title %}
+Login
+{% endblock %}
+
+{% block breadcrumbs %}
+
+<nav aria-label="breadcrumb">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'home' %}">
+                Home
+            </a>
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">
+            Login
+        </li>
+
+    </ol>
+
+</nav>
+
+{% endblock %}
+
+
 {% block content %}
 
 <div class="container py-5">
@@ -22,7 +49,7 @@
                         </div>
                     {% endif %}
 
-                    <form method="POST">
+                    <form method="POST" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
 
                         {% csrf_token %}
 

@@ -4,6 +4,34 @@
 Marks History
 {% endblock %}
 
+{% block breadcrumbs %}
+
+<nav aria-label="breadcrumb">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="{% if user.userprofile.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.userprofile.role == 'trainer' %}{% url 'trainer_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'student_list' %}">
+                Students
+            </a>
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">
+            Marks History
+        </li>
+
+    </ol>
+
+</nav>
+
+{% endblock %}
+
 {% block content %}
 
 <div class="container-fluid py-4">

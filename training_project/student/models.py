@@ -147,7 +147,7 @@ class student(models.Model):
 
 
 class StudentProfile(models.Model):
-    phone=models.IntegerField(max_length=10,blank=True)
+    phone=models.CharField(max_length=10,blank=True)
     address=models.TextField()
     date_of_birth=models.DateTimeField(null=True,blank=True)
     students=models.OneToOneField(student,on_delete=models.CASCADE,related_name='student_profile')

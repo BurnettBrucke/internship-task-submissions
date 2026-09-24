@@ -1,5 +1,32 @@
 {% extends "base.html" %}
 
+{% block title %}
+Trainer Management
+{% endblock %}
+
+
+{% block breadcrumbs %}
+
+<nav aria-label="breadcrumb">
+
+    <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="{% url 'admin_dashboard' %}">
+                Dashboard
+            </a>
+        </li>
+
+        <li class="breadcrumb-item active" aria-current="page">
+            Trainer Management
+        </li>
+
+    </ol>
+
+</nav>
+
+{% endblock %}
+
 {% block content %}
 
 <div class="container py-4">
