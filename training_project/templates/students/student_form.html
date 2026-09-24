@@ -1,122 +1,127 @@
 {% extends "base.html" %}
 
+
 {% block title %}
-Student Form
+
+    {% if student %}
+        Edit Student | Student Management
+    {% else %}
+        Add Student | Student Management
+    {% endif %}
+
 {% endblock %}
+
 
 {% block content %}
 
-<div class="container mt-4">
+{% include "includes/breadcrumbs.html" %}
 
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">Student Form</h3>
-        </div>
+<div class="container mt-5">
 
-        <div class="card-body">
+    <div class="row justify-content-center">
 
-            <form method="post">
-                {% csrf_token %}
+        <div class="col-md-7">
 
-                <!-- Non-field Errors -->
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            <p class="mb-0">{{ error }}</p>
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+
+                    {% if student %}
+
+                        <h1 class="mb-3">
+                            Edit Student
+                        </h1>
+
+                        <p class="text-muted">
+                            Update the information for
+                            <strong>{{ student.name }}</strong>.
+                        </p>
+
+                    {% else %}
+
+                        <h1 class="mb-3">
+                            Add Student
+                        </h1>
+
+                        <p class="text-muted">
+                            Enter the student's information below.
+                        </p>
+
+                    {% endif %}
+
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+                        {% include "includes/form_errors.html" %}
+
+
+                        {% for field in form %}
+
+                            <div class="mb-3">
+
+                                {{ field.label_tag }}
+
+                                {{ field }}
+
+                                {% if field.help_text %}
+                                    <div class="form-text">
+                                        {{ field.help_text }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
                         {% endfor %}
-                    </div>
-                {% endif %}
 
-                <!-- Name -->
-                <div class="mb-3">
-                    <label for="{{ form.name.id_for_label }}" class="form-label">
-                        Name
-                    </label>
-                    {{ form.name }}
-                    <div class="text-danger">
-                        {{ form.name.errors }}
-                    </div>
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+
+                                {% if student %}
+                                    Save Changes
+                                {% else %}
+                                    Add Student
+                                {% endif %}
+
+                            </button>
+
+
+                            {% if student %}
+
+                                <a
+                                    href="{% url 'student_detail' student.id %}"
+                                    class="btn btn-secondary"
+                                >
+                                    Cancel
+                                </a>
+
+                            {% else %}
+
+                                <a
+                                    href="{% url 'students_list' %}"
+                                    class="btn btn-secondary"
+                                >
+                                    Cancel
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    </form>
+
                 </div>
 
-                <!-- Email -->
-                <div class="mb-3">
-                    <label for="{{ form.email.id_for_label }}" class="form-label">
-                        Email
-                    </label>
-                    {{ form.email }}
-                    <div class="text-danger">
-                        {{ form.email.errors }}
-                    </div>
-                </div>
-
-                <!-- Age -->
-                <div class="mb-3">
-                    <label for="{{ form.age.id_for_label }}" class="form-label">
-                        Age
-                    </label>
-                    {{ form.age }}
-                    <div class="text-danger">
-                        {{ form.age.errors }}
-                    </div>
-                </div>
-
-                <!-- Marks -->
-                <div class="mb-3">
-                    <label for="{{ form.marks.id_for_label }}" class="form-label">
-                        Marks
-                    </label>
-                    {{ form.marks }}
-                    <div class="text-danger">
-                        {{ form.marks.errors }}
-                    </div>
-                </div>
-
-                <!-- Department -->
-                <div class="mb-3">
-                    <label for="{{ form.department.id_for_label }}" class="form-label">
-                        Department
-                    </label>
-                    {{ form.department }}
-                    <div class="text-danger">
-                        {{ form.department.errors }}
-                    </div>
-                </div>
-
-                <!-- Course -->
-                <div class="mb-3">
-                    <label for="{{ form.course.id_for_label }}" class="form-label">
-                        Course
-                    </label>
-                    {{ form.course }}
-                    <div class="text-danger">
-                        {{ form.course.errors }}
-                    </div>
-                </div>
-
-                <!-- Active Status -->
-                <div class="form-check mb-3">
-                    {{ form.active_status }}
-                    <label class="form-check-label" for="{{ form.active_status.id_for_label }}">
-                        Active Status
-                    </label>
-
-                    <div class="text-danger">
-                        {{ form.active_status.errors }}
-                    </div>
-                </div>
-
-                <!-- Buttons -->
-                <button type="submit" class="btn btn-success">
-                    Save Student
-                </button>
-
-                <a href="{% url 'student_list' %}" class="btn btn-secondary">
-                    Back to Student List
-                </a>
-
-            </form>
+            </div>
 
         </div>
+
     </div>
 
 </div>

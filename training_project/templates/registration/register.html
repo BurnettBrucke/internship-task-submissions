@@ -1,76 +1,105 @@
 {% extends "base.html" %}
 
+
 {% block title %}
-Register
+    Trainer Registration
 {% endblock %}
+
 
 {% block content %}
 
 <div class="container mt-5">
+
     <div class="row justify-content-center">
+
         <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white text-center">
-                    <h3>Create Account</h3>
-                </div>
+
+            <div class="card shadow-sm">
+
                 <div class="card-body">
+
+                    <h2 class="mb-3">
+                        Trainer Registration
+                    </h2>
+
+
+                    <p class="text-muted">
+
+                        Create your trainer account.
+
+                        Your account will require administrator
+                        approval before you can access the
+                        trainer dashboard.
+
+                    </p>
+
+
                     <form method="post">
+
                         {% csrf_token %}
 
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        {% include "includes/form_errors.html" %}
+
 
                         <div class="mb-3">
-                            <label class="form-label">Username</label>
+
+                            {{ form.username.label_tag }}
                             {{ form.username }}
-                            <div class="text-danger">
-                                {{ form.username.errors }}
-                            </div>
+
                         </div>
 
+
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
+
+                            {{ form.email.label_tag }}
                             {{ form.email }}
-                            <div class="text-danger">
-                                {{ form.email.errors }}
-                            </div>
+
                         </div>
+                        <div class="mb-3">
+                            {{ form.requested_course.label_tag }}
+                            {{ form.requested_course }}
+                        </div>
+                        
 
                         <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            {{ form.password1 }}
-                            <div class="text-danger">
-                                {{ form.password1.errors }}
-                            </div>
+
+                            {{ form.password.label_tag }}
+                            {{ form.password }}
+
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Confirm Password</label>
-                            {{ form.password2 }}
-                            <div class="text-danger">
-                                {{ form.password2.errors }}
-                            </div>
-                        </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-success">Register</button>
-                        </div>
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Register as Trainer
+                        </button>
 
                     </form>
+
+
                     <hr>
 
-                    <p class="text-center mb-0">
-                        Already have an account? <a href="{% url 'login' %}">Login</a>
+
+                    <p class="mb-0">
+
+                        Already have an account?
+
+                        <a href="{% url 'login' %}">
+                            Login
+                        </a>
+
                     </p>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
 {% endblock %}
