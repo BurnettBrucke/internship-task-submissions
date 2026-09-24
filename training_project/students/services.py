@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+'''from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
@@ -138,4 +138,4 @@ Student Management System
         "text/html",
     )
 
-    email_message.send()
+    email_message.send()'''

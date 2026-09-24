@@ -453,12 +453,32 @@ def delete_student(request, id):
         return redirect("admin_dashboard")
 
     return render(
-        request,
-        "students/student_confirm_delete.html",
-        {
-            "student": student
-        }
-    )
+    request,
+    "students/student_confirm_delete.html",
+    {
+        "student": student,
+        "breadcrumbs": [
+            {
+                "name": "Home",
+                "url": reverse("home"),
+            },
+            {
+                "name": "Students",
+                "url": reverse("students_list"),
+            },
+            {
+                "name": student.name,
+                "url": reverse(
+                    "student_detail",
+                    args=[student.id]
+                ),
+            },
+            {
+                "name": "Delete",
+            },
+        ],
+    }
+)
 
 def set_student_password(request, uidb64, token):
 
@@ -1689,5 +1709,4 @@ def error_500(request):
         "errors/500.html",
         status=500,
     )
-
 
