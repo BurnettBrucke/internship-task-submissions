@@ -1,0 +1,1160 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    Admin Dashboard
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+
+        <div>
+
+            <span class="badge bg-primary mb-2">
+                ADMIN PORTAL
+            </span>
+
+            <h1 class="mb-1">
+                Administration Dashboard
+            </h1>
+
+            <p class="text-muted mb-0">
+                Manage students, trainers, courses and user accounts.
+            </p>
+
+        </div>
+
+        <div>
+
+            <a
+                href="{% url 'add_students' %}"
+                class="btn btn-primary"
+            >
+                + Add Student
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- OVERVIEW CARDS -->
+    <!-- ===================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- Students -->
+
+        <div class="col-sm-6 col-xl-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small mb-1">
+                        Students
+                    </div>
+
+                    <div class="fs-2 fw-semibold">
+                        {{ total_students }}
+                    </div>
+
+                    <div class="small text-success mt-1">
+                        {{ active_students }} active
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Trainers -->
+
+        <div class="col-sm-6 col-xl-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small mb-1">
+                        Trainers
+                    </div>
+
+                    <div class="fs-2 fw-semibold">
+                        {{ total_trainers }}
+                    </div>
+
+                    <div class="small text-success mt-1">
+                        {{ active_trainers }} active
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Courses -->
+
+        <div class="col-sm-6 col-xl-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small mb-1">
+                        Courses
+                    </div>
+
+                    <div class="fs-2 fw-semibold">
+                        {{ total_courses }}
+                    </div>
+
+                    <div class="small text-success mt-1">
+                        {{ active_courses }} active
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Pending Trainers -->
+
+        <div class="col-sm-6 col-xl-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small mb-1">
+                        Pending Trainers
+                    </div>
+
+                    <div class="fs-2 fw-semibold">
+                        {{ pending_trainers }}
+                    </div>
+
+                    {% if pending_trainers %}
+
+                        <div class="small text-warning mt-1">
+                            Requires review
+                        </div>
+
+                    {% else %}
+
+                        <div class="small text-success mt-1">
+                            All requests reviewed
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- PENDING TRAINER ALERT -->
+    <!-- ===================================================== -->
+
+    {% if pending_trainers %}
+
+        <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <div>
+
+                <strong>
+                    {{ pending_trainers }}
+                </strong>
+
+                trainer{{ pending_trainers|pluralize }}
+                waiting for approval.
+
+            </div>
+
+            <a
+                href="#trainer-management"
+                class="btn btn-sm btn-outline-dark"
+            >
+                Review Trainers
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ===================================================== -->
+    <!-- STUDENT MANAGEMENT -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+
+                <div>
+
+                    <h3 class="mb-1">
+                        Student Management
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Search and manage students directly from the dashboard.
+                    </p>
+
+                </div>
+
+                <a
+                    href="{% url 'students_list' %}"
+                    class="btn btn-outline-primary"
+                >
+                    View Full Student List
+                </a>
+
+            </div>
+
+
+            <!-- Student Filters -->
+
+            <form method="get" class="mb-4">
+
+                <div class="row g-3">
+
+                    <!-- Search -->
+
+                    <div class="col-lg-4">
+
+                        <label class="form-label">
+                            Search
+                        </label>
+
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ search }}"
+                            class="form-control"
+                            placeholder="Name, email or course"
+                        >
+
+                    </div>
+
+
+                    <!-- Department -->
+
+                    <div class="col-sm-6 col-lg-2">
+
+                        <label class="form-label">
+                            Department
+                        </label>
+
+                        <select
+                            name="department"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All
+                            </option>
+
+                            {% for item in departments %}
+
+                                <option
+                                    value="{{ item.id }}"
+                                    {% if department == item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ item.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Course -->
+
+                    <div class="col-sm-6 col-lg-2">
+
+                        <label class="form-label">
+                            Course
+                        </label>
+
+                        <select
+                            name="course"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All
+                            </option>
+
+                            {% for item in all_courses %}
+
+                                <option
+                                    value="{{ item.id }}"
+                                    {% if course == item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ item.course_name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Status -->
+
+                    <div class="col-sm-6 col-lg-2">
+
+                        <label class="form-label">
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All
+                            </option>
+
+                            <option
+                                value="active"
+                                {% if status == "active" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="inactive"
+                                {% if status == "inactive" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="col-sm-6 col-lg-2 d-flex align-items-end gap-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Filter
+                        </button>
+
+                        <a
+                            href="{% url 'admin_dashboard' %}"
+                            class="btn btn-outline-secondary"
+                        >
+                            Clear
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+
+            <!-- Student Table -->
+
+            {% if students %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Courses</th>
+                                <th>Account</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for student in students %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            {{ student.name }}
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ student.email }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ student.department.name|default:"-" }}
+                                    </td>
+
+
+                                    <td>
+
+                                        <span class="badge bg-light text-dark border">
+                                            {{ student.course_count }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if student.active %}
+
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+                                                Inactive
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="d-flex gap-2 flex-wrap">
+
+                                            <a
+                                                href="{% url 'student_detail' student.id %}"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                View
+                                            </a>
+
+                                            <a
+                                                href="{% url 'edit_student' student.id %}"
+                                                class="btn btn-sm btn-outline-warning"
+                                            >
+                                                Edit
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                {% include "includes/pagination.html" with page_obj=students page_param="student_page" %}
+
+
+            {% else %}
+
+                <div class="text-center py-5">
+
+                    <div class="fs-1 mb-2">
+                        🔎
+                    </div>
+
+                    <h5>
+                        No students found
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Try changing your search or filters.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- TRAINER MANAGEMENT -->
+    <!-- ===================================================== -->
+
+    <div
+        class="card shadow-sm mb-4"
+        id="trainer-management"
+    >
+
+        <div class="card-body">
+
+            <div class="mb-4">
+
+                <h3 class="mb-1">
+                    Trainer Management
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Review trainer requests and manage account status.
+                </p>
+
+            </div>
+
+
+            {% if trainers %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Trainer</th>
+                                <th>Email</th>
+                                <th>Requested Course</th>
+                                <th>Approval</th>
+                                <th>Account</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for trainer in trainers %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            {{ trainer.username }}
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ trainer.email }}
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if trainer.profile.requested_course %}
+
+                                            <span class="badge bg-primary">
+                                                {{ trainer.profile.requested_course.course_name }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                Not selected
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if trainer.profile.status == "APPROVED" %}
+
+                                            <span class="badge bg-success">
+                                                Approved
+                                            </span>
+
+                                        {% elif trainer.profile.status == "PENDING" %}
+
+                                            <span class="badge bg-warning text-dark">
+                                                Pending
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-danger">
+                                                Rejected
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if trainer.is_active %}
+
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+                                                Inactive
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="d-flex flex-wrap gap-2">
+
+                                            <!-- View Trainer -->
+
+                                            <a
+                                                href="{% url 'trainer_detail' trainer.id %}"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                View
+                                            </a>
+
+
+                                            <!-- Pending Trainer Actions -->
+
+                                            {% if trainer.profile.status == "PENDING" %}
+
+                                                <!-- Approve -->
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'approve_trainer' trainer.profile.id %}"
+                                                    class="d-inline"
+                                                >
+
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-success"
+                                                    >
+                                                        Approve
+                                                    </button>
+
+                                                </form>
+
+
+                                                <!-- Reject -->
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'reject_trainer' trainer.profile.id %}"
+                                                    class="d-inline"
+                                                >
+
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-danger"
+                                                    >
+                                                        Reject
+                                                    </button>
+
+                                                </form>
+
+                                            {% endif %}
+
+
+                                            <!-- Delete Trainer -->
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'delete_trainer' trainer.id %}"
+                                                class="d-inline"
+                                            >
+
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Are you sure you want to delete {{ trainer.username }}? This action cannot be undone.');"
+                                                >
+                                                    Delete
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                {% include "includes/pagination.html" with page_obj=trainers page_param="trainer_page" %}
+
+
+            {% else %}
+
+                <div class="text-center py-4 text-muted">
+                    No trainers found.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- COURSE MANAGEMENT -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+
+                <div>
+
+                    <h3 class="mb-1">
+                        Course Management
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Create, edit and manage training courses.
+                    </p>
+
+                </div>
+
+                <a
+                    href="{% url 'add_course' %}"
+                    class="btn btn-primary"
+                >
+                    + Add Course
+                </a>
+
+            </div>
+
+
+            {% if courses %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Course</th>
+                                <th>Code</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for course in courses %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            {{ course.course_name }}
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ course.code }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ course.duration }}
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if course.active_status %}
+
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+                                                Inactive
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="d-flex gap-2 flex-wrap">
+
+                                            <a
+                                                href="{% url 'edit_course' course.id %}"
+                                                class="btn btn-sm btn-outline-warning"
+                                            >
+                                                Edit
+                                            </a>
+
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'toggle_course_status' course.id %}"
+                                            >
+
+                                                {% csrf_token %}
+
+                                                {% if course.active_status %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                    >
+                                                        Deactivate
+                                                    </button>
+
+                                                {% else %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-success"
+                                                    >
+                                                        Activate
+                                                    </button>
+
+                                                {% endif %}
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                {% include "includes/pagination.html" with page_obj=courses page_param="course_page" %}
+
+
+            {% else %}
+
+                <div class="text-center py-4 text-muted">
+                    No courses found.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- USER ACCOUNT MANAGEMENT -->
+    <!-- ===================================================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="mb-4">
+
+                <h3 class="mb-1">
+                    Account Management
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Activate, deactivate and monitor application user accounts.
+                </p>
+
+            </div>
+
+
+            {% if users %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Account Status</th>
+                                <th>Login Security</th>
+                                <th>Created</th>
+                                <th>Last Login</th>
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for account in users %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            {{ account.username }}
+                                        </div>
+
+                                        <div class="small text-muted">
+                                            {{ account.email }}
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <span class="badge bg-secondary">
+                                            {{ account.profile.get_role_display }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if account.is_active %}
+
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-danger">
+                                                Inactive
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if account.profile.login_blocked %}
+
+                                            <span class="badge bg-danger">
+                                                Blocked
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-success">
+                                                Normal
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ account.date_joined|date:"d M Y" }}
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if account.last_login %}
+
+                                            {{ account.last_login|date:"d M Y, h:i A" }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                Never
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if account != request.user %}
+
+                                            {% if account.is_active %}
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'deactivate_user' account.profile.id %}"
+                                                    class="d-inline"
+                                                >
+
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                    >
+                                                        Deactivate
+                                                    </button>
+
+                                                </form>
+
+                                            {% else %}
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'activate_user' account.profile.id %}"
+                                                    class="d-inline"
+                                                >
+
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-success"
+                                                    >
+                                                        Activate
+                                                    </button>
+
+                                                </form>
+
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            <span class="text-muted small">
+                                                Current account
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                {% include "includes/pagination.html" with page_obj=users page_param="user_page" %}
+
+
+            {% else %}
+
+                <div class="text-center py-4 text-muted">
+                    No user accounts found.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+</div>
+
+{% endblock %}
