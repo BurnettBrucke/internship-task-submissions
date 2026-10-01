@@ -2,7 +2,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 
 from datetime import datetime , timedelta, timezone
-from jose import JWTError , jwt
+from jose import jwt
 
 from app.core.config import settings
 

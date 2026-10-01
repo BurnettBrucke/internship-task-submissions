@@ -1,156 +1,262 @@
-from app.data.store import tasks
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.task import Task
+from app.models.task_history import TaskHistory
+from app.repositories.task_history_repository import TaskHistoryRepository
+from app.repositories.task_repository import TaskRepository
+from app.schemas.task import TaskListResponse
+from app.services.task_cache import (
+    get_cached_tasks,
+    invalidate_tasks_cache,
+    set_cached_tasks,
+)
 
-def create_task(
+import logging
+logger = logging.getLogger(__name__)
+
+async def create_task(
+    session: AsyncSession,
     title: str,
     description: str | None,
     priority: str,
-    completed: bool,
+    status: str,
     owner_id: int,
-):
-    task_id = max(tasks.keys(), default=0) + 1
+) -> Task:
+    repository = TaskRepository(session)
 
-    task = {
-        "id": task_id,
-        "title": title,
-        "description": description,
-        "priority": priority,
-        "completed": completed,
-        "owner_id": owner_id,
-    }
+    task = Task(
+        user_id=owner_id,
+        title=title,
+        description=description,
+        priority=priority,
+        status=status,
+    )
 
-    tasks[task_id] = task
+    try:
+        await repository.create(task)
+
+        await session.commit()
+        await session.refresh(task)
+
+    except Exception:
+        await session.rollback()
+        raise
+
+    # The user's task list has changed.
+    # Remove the old cached version only after a successful commit.
+    await invalidate_tasks_cache(owner_id)
 
     return task
 
 
-def can_access_task(task: dict, current_user: dict) -> bool:
-    if current_user["role"] == "admin":
-        return True
-
-    return task["owner_id"] == current_user["id"]
-
-
-def get_all_tasks(
-    current_user: dict,
+async def get_all_tasks(
+    session: AsyncSession,
+    current_user,
     search: str | None = None,
     priority: str | None = None,
-    completed: bool | None = None,
-    sort_by: str | None = None,
+    status: str | None = None,
     page: int = 1,
-    limit: int = 10,
-):
-    # Get tasks based on user role
-    if current_user["role"] == "admin":
-        user_tasks = list(tasks.values())
-    else:
-        user_tasks = [
-            task
-            for task in tasks.values()
-            if task["owner_id"] == current_user["id"]
-        ]
+    page_size: int = 10,
+) -> dict:
+    repository = TaskRepository(session)
 
-    # Search
-    if search:
-        search = search.lower()
+    # We use the required cache key:
+    # tasks:user:{user_id}
+    #
+    # Only the default first page for a normal user is cached.
+    # Admin results and filtered/paginated variants bypass this cache
+    # because they would otherwise need different cache keys.
+    cacheable = (
+        current_user.role != "admin"
+        and search is None
+        and priority is None
+        and status is None
+        and page == 1
+        and page_size == 10
+    )
 
-        user_tasks = [
-            task
-            for task in user_tasks
-            if search in task["title"].lower()
-            or (
-                task["description"]
-                and search in task["description"].lower()
+    if cacheable:
+        cached_data = await get_cached_tasks(current_user.id)
+    
+        if cached_data is not None:
+            logger.info(
+                "Task cache HIT: tasks:user:%s",
+                current_user.id,
             )
-        ]
-
-    # Priority filter
-    if priority:
-        user_tasks = [
-            task
-            for task in user_tasks
-            if task["priority"] == priority
-        ]
-
-    # Completed filter
-    if completed is not None:
-        user_tasks = [
-            task
-            for task in user_tasks
-            if task["completed"] == completed
-        ]
-
-    # Sorting
-    if sort_by:
-        user_tasks.sort(
-            key=lambda task: task[sort_by]
+            return cached_data
+    
+        logger.info(
+            "Task cache MISS: tasks:user:%s",
+            current_user.id,
         )
 
-    # Pagination
-    start = (page - 1) * limit
-    end = start + limit
+    # Normal users see only their own tasks.
+    # Admin users can see all tasks.
+    user_id = None
 
-    return user_tasks[start:end]
+    if current_user.role != "admin":
+        user_id = current_user.id
+
+    total = await repository.count_tasks(
+        user_id=user_id,
+        status=status,
+        priority=priority,
+        search=search,
+    )
+
+    tasks = await repository.list_tasks(
+        page=page,
+        page_size=page_size,
+        user_id=user_id,
+        status=status,
+        priority=priority,
+        search=search,
+    )
+
+    response_data = {
+        "items": tasks,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+    }
+
+    if cacheable:
+        # Convert SQLAlchemy ORM objects into JSON-safe data
+        # before storing them in Redis.
+        cache_payload = (
+            TaskListResponse
+            .model_validate(response_data)
+            .model_dump(mode="json")
+        )
+
+        await set_cached_tasks(
+            current_user.id,
+            cache_payload,
+        )
+
+    return response_data
 
 
-def get_task_by_id(
+async def get_task_by_id(
+    session: AsyncSession,
     task_id: int,
-    current_user: dict,
-):
-    task = tasks.get(task_id)
+    current_user,
+) -> tuple[Task | None, str | None]:
+    repository = TaskRepository(session)
+
+    task = await repository.get_by_id(task_id)
 
     if task is None:
         return None, "not_found"
 
-    if not can_access_task(task, current_user):
+    # Normal users can only access their own tasks.
+    # Admins can access any task.
+    if current_user.role != "admin" and task.user_id != current_user.id:
         return None, "forbidden"
 
     return task, None
 
 
-def update_task(
+async def update_task(
+    session: AsyncSession,
     task_id: int,
-    current_user: dict,
+    current_user,
     title: str | None = None,
     description: str | None = None,
     priority: str | None = None,
-    completed: bool | None = None,
-):
-    task = tasks.get(task_id)
+    status: str | None = None,
+) -> tuple[Task | None, str | None]:
+    task_repository = TaskRepository(session)
+    history_repository = TaskHistoryRepository(session)
+
+    task = await task_repository.get_by_id(task_id)
 
     if task is None:
         return None, "not_found"
 
-    if not can_access_task(task, current_user):
+    # Normal users cannot modify another user's task.
+    # Admins can modify any task.
+    if current_user.role != "admin" and task.user_id != current_user.id:
         return None, "forbidden"
 
-    if title is not None:
-        task["title"] = title
+    old_status = task.status
 
-    if description is not None:
-        task["description"] = description
+    status_changed = (
+        status is not None
+        and status != old_status
+    )
 
-    if priority is not None:
-        task["priority"] = priority
+    try:
+        if title is not None:
+            task.title = title
 
-    if completed is not None:
-        task["completed"] = completed
+        if description is not None:
+            task.description = description
+
+        if priority is not None:
+            task.priority = priority
+
+        if status_changed:
+            task.status = status
+
+            history = TaskHistory(
+                task_id=task.id,
+                changed_by=current_user.id,
+                old_status=old_status,
+                new_status=status,
+            )
+
+            await history_repository.create(history)
+
+        await task_repository.update(task)
+
+        # Task update + history insertion are committed together.
+        await session.commit()
+
+        await session.refresh(task)
+
+    except Exception:
+        # If either the task update or history insert fails,
+        # roll back the entire transaction.
+        await session.rollback()
+        raise
+
+    # Invalidate the cache belonging to the task owner,
+    # not the admin who may have performed the update.
+    await invalidate_tasks_cache(task.user_id)
 
     return task, None
 
 
-def delete_task(
+async def delete_task(
+    session: AsyncSession,
     task_id: int,
-    current_user: dict,
-):
-    task = tasks.get(task_id)
+    current_user,
+) -> tuple[Task | None, str | None]:
+    repository = TaskRepository(session)
+
+    task = await repository.get_by_id(task_id)
 
     if task is None:
         return None, "not_found"
 
-    if not can_access_task(task, current_user):
+    # Normal users cannot delete another user's task.
+    # Admins can delete any task.
+    if current_user.role != "admin" and task.user_id != current_user.id:
         return None, "forbidden"
 
-    deleted_task = tasks.pop(task_id)
+    owner_id = task.user_id
 
-    return deleted_task, None
+    try:
+        await repository.delete(task)
+
+        await session.commit()
+
+    except Exception:
+        await session.rollback()
+        raise
+
+    # Invalidate the cache belonging to the task owner.
+    await invalidate_tasks_cache(owner_id)
+
+    return task, None

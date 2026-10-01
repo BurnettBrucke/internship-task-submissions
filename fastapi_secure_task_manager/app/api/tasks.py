@@ -1,10 +1,11 @@
-from typing import Literal
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.database import get_db
 from app.dependencies.auth import get_current_user
 from app.schemas.task import (
     TaskCreate,
+    TaskListResponse,
     TaskResponse,
     TaskUpdate,
 )
@@ -20,7 +21,6 @@ from app.services.task_service import (
 router = APIRouter(
     prefix="/api/v1/tasks",
     tags=["Tasks"],
-    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -29,16 +29,18 @@ router = APIRouter(
     response_model=TaskResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_new_task(
+async def create_new_task(
     data: TaskCreate,
     current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
-    task = create_task(
+    task = await create_task(
+        session=session,
         title=data.title,
         description=data.description,
         priority=data.priority,
-        completed=data.completed,
-        owner_id=current_user["id"],
+        status=data.status,
+        owner_id=current_user.id,
     )
 
     return task
@@ -46,25 +48,39 @@ def create_new_task(
 
 @router.get(
     "",
-    response_model=list[TaskResponse],
+    response_model=TaskListResponse,
 )
-def list_tasks(
+async def list_tasks(
     search: str | None = None,
-    priority: Literal["low", "medium", "high"] | None = None,
-    completed: bool | None = None,
-    page: int = Query(default=1, ge=1),
-    limit: int = Query(default=10, ge=1, le=100),
-    sort_by: Literal["title", "priority", "completed"] | None = None,
+    priority: str | None = Query(
+        default=None,
+        pattern="^(low|medium|high)$",
+    ),
+    status_filter: str | None = Query(
+        default=None,
+        alias="status",
+        pattern="^(pending|in_progress|completed)$",
+    ),
+    page: int = Query(
+        default=1,
+        ge=1,
+    ),
+    page_size: int = Query(
+        default=10,
+        ge=1,
+        le=100,
+    ),
     current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
-    return get_all_tasks(
+    return await get_all_tasks(
+        session=session,
         current_user=current_user,
         search=search,
         priority=priority,
-        completed=completed,
-        sort_by=sort_by,
+        status=status_filter,
         page=page,
-        limit=limit,
+        page_size=page_size,
     )
 
 
@@ -72,11 +88,13 @@ def list_tasks(
     "/{task_id}",
     response_model=TaskResponse,
 )
-def get_task(
+async def get_task(
     task_id: int,
     current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
-    task, error = get_task_by_id(
+    task, error = await get_task_by_id(
+        session=session,
         task_id=task_id,
         current_user=current_user,
     )
@@ -100,18 +118,20 @@ def get_task(
     "/{task_id}",
     response_model=TaskResponse,
 )
-def update_existing_task(
+async def update_existing_task(
     task_id: int,
     data: TaskUpdate,
     current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
-    task, error = update_task(
+    task, error = await update_task(
+        session=session,
         task_id=task_id,
         current_user=current_user,
         title=data.title,
         description=data.description,
         priority=data.priority,
-        completed=data.completed,
+        status=data.status,
     )
 
     if error == "not_found":
@@ -133,11 +153,13 @@ def update_existing_task(
     "/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def remove_task(
+async def remove_task(
     task_id: int,
     current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
 ):
-    task, error = delete_task(
+    _, error = await delete_task(
+        session=session,
         task_id=task_id,
         current_user=current_user,
     )
