@@ -22,6 +22,7 @@ class Settings:
         "false"
     ).lower() == "true"
 
+    # Day 6 - JWT authentication settings
     JWT_SECRET_KEY = os.getenv(
         "JWT_SECRET_KEY"
     )
@@ -38,6 +39,7 @@ class Settings:
         )
     )
 
+    # Day 6 - password/login security settings
     PASSWORD_HASH_SCHEME = os.getenv(
         "PASSWORD_HASH_SCHEME",
         "argon2"
@@ -53,6 +55,38 @@ class Settings:
     LOG_LEVEL = os.getenv(
         "LOG_LEVEL",
         "INFO"
+    )
+
+    # Day 7 - PostgreSQL settings
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL"
+    )
+
+    DB_POOL_SIZE = int(
+        os.getenv(
+            "DB_POOL_SIZE",
+            "10"
+        )
+    )
+
+    DB_MAX_OVERFLOW = int(
+        os.getenv(
+            "DB_MAX_OVERFLOW",
+            "20"
+        )
+    )
+
+    # Day 7 - Redis settings
+    REDIS_URL = os.getenv(
+        "REDIS_URL",
+        "redis://localhost:6379/0"
+    )
+
+    CACHE_TTL_SECONDS = int(
+        os.getenv(
+            "CACHE_TTL_SECONDS",
+            "300"
+        )
     )
 
 

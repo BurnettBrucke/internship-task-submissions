@@ -59,3 +59,10 @@ class TaskResponse(BaseModel):
     priority: Literal["low", "medium", "high"]
     completed: bool
     owner_id: int
+
+
+class TaskListResponse(BaseModel):
+    items: list[TaskResponse]
+    page: int
+    page_size: int
+    total: int

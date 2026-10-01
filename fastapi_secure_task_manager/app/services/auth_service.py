@@ -1,70 +1,120 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import (
     create_access_token,
     hash_password,
     verify_password,
 )
-from app.data.store import users
+from app.repositories import user_repository
 from app.schemas.user import UserCreate
 
 
-def get_user_by_username(username: str):
-    for user in users:
-        if user["username"] == username:
-            return user
-
-    return None
-
-
-def get_user_by_id(user_id: int):
-    for user in users:
-        if user["id"] == user_id:
-            return user
-
-    return None
-
-
-def create_user(user_data: UserCreate):
-    if get_user_by_username(user_data.username):
-        return None
-
-    new_id = (
-        max(user["id"] for user in users) + 1
-        if users
-        else 1
-    )
-
-    new_user = {
-        "id": new_id,
-        "username": user_data.username,
-        "email": str(user_data.email),
-        "password_hash": hash_password(user_data.password),
-        "role": user_data.role,
+def user_to_dict(user) -> dict:
+    """
+    Convert SQLAlchemy User object into the dictionary
+    format used by the existing Day 6 authentication flow.
+    """
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
     }
 
-    users.append(new_user)
 
-    return new_user
-
-
-def authenticate_user(
+async def get_user_by_username(
+    db: AsyncSession,
     username: str,
-    password: str
 ):
-    user = get_user_by_username(username)
+    user = await user_repository.get_user_by_username(
+        db,
+        username,
+    )
+
+    if user is None:
+        return None
+
+    return user_to_dict(user)
+
+
+async def get_user_by_id(
+    db: AsyncSession,
+    user_id: int,
+):
+    user = await user_repository.get_user_by_id(
+        db,
+        user_id,
+    )
+
+    if user is None:
+        return None
+
+    return user_to_dict(user)
+
+
+async def create_user(
+    db: AsyncSession,
+    user_data: UserCreate,
+):
+    # Check username
+    existing_user = await user_repository.get_user_by_username(
+        db,
+        user_data.username,
+    )
+
+    if existing_user is not None:
+        return None
+
+    # Check email
+    existing_email = await user_repository.get_user_by_email(
+        db,
+        str(user_data.email),
+    )
+
+    if existing_email is not None:
+        return None
+
+    password_hash = hash_password(
+        user_data.password
+    )
+
+    user = await user_repository.create_user(
+        db,
+        username=user_data.username,
+        email=str(user_data.email),
+        password_hash=password_hash,
+        role=user_data.role,
+    )
+
+    return user_to_dict(user)
+
+
+async def authenticate_user(
+    db: AsyncSession,
+    username: str,
+    password: str,
+):
+    user = await user_repository.get_user_by_username(
+        db,
+        username,
+    )
 
     if user is None:
         return None
 
     if not verify_password(
         password,
-        user["password_hash"]
+        user.password_hash,
     ):
         return None
 
-    return user
+    return user_to_dict(user)
 
 
 def generate_token(user: dict) -> str:
+    """
+    Keep the existing Day 6 JWT payload structure.
+    """
     return create_access_token(
         user_id=user["id"],
         username=user["username"],

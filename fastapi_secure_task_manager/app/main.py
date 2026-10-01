@@ -1,9 +1,14 @@
+import logging
 from fastapi import FastAPI
 
 from app.api.auth import router as auth_router
 from app.api.tasks import router as task_router
 from app.core.config import settings
 from fastapi.exceptions import RequestValidationError
+
+logging.basicConfig(
+    level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+)
 
 from app.core.errors import (
     AppException,
