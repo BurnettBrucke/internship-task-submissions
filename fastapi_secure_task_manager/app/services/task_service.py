@@ -1,39 +1,45 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.task_history_repository import create_task_history
-from app.services.cache_service import get_cache, set_cache, invalidate_task_cache
 from app.repositories.task_repository import (
+    count_tasks,
     create_task as create_task_record,
     delete_task as delete_task_record,
-    get_all_tasks,
     get_task_by_id,
+    get_tasks as get_task_records,
     update_task as update_task_record,
+)
+from app.services.cache_service import (
+    get_cache,
+    invalidate_task_cache,
+    set_cache,
 )
 
 
 async def create_task(
     db: AsyncSession,
+    user_id: int,
     title: str,
     description: str | None,
     priority: str,
-    completed: bool,
-    owner_username: str,
+    status: str,
 ):
     try:
         task = await create_task_record(
             db=db,
+            user_id=user_id,
             title=title,
             description=description,
             priority=priority,
-            completed=completed,
-            owner_username=owner_username,
+            status=status,
         )
 
         await create_task_history(
             db=db,
             task_id=task.id,
-            action="created",
-            description=f"Task '{task.title}' was created.",
+            changed_by=user_id,
+            old_status=None,
+            new_status=status,
         )
 
         await db.commit()
@@ -50,46 +56,57 @@ async def create_task(
 
 async def get_tasks(
     db: AsyncSession,
-    owner_username: str | None = None,
+    user_id: int | None = None,
     offset: int = 0,
     limit: int = 10,
 ):
-    cache_key = (
-        f"tasks:{owner_username or 'admin'}:"
-        f"offset:{offset}:limit:{limit}"
-    )
+    cache_user = user_id if user_id is not None else "admin"
+    page = (offset // limit) + 1
 
-    cached_tasks = await get_cache(cache_key)
+    cache_key = f"tasks:user:{cache_user}:page:{page}:page_size:{limit}"
 
-    if cached_tasks is not None:
-        return cached_tasks
+    cached_data = await get_cache(cache_key)
 
-    tasks = await get_all_tasks(
+    if cached_data is not None:
+        return cached_data
+
+    tasks = await get_task_records(
         db=db,
-        owner_username=owner_username,
+        user_id=user_id,
         offset=offset,
         limit=limit,
+    )
+
+    total = await count_tasks(
+        db=db,
+        user_id=user_id,
     )
 
     task_data = [
         {
             "id": task.id,
+            "user_id": task.user_id,
             "title": task.title,
             "description": task.description,
             "priority": task.priority,
-            "completed": task.completed,
-            "owner_username": task.owner_username,
+            "status": task.status,
         }
         for task in tasks
     ]
 
+    response = {
+        "items": task_data,
+        "page": page,
+        "page_size": limit,
+        "total": total,
+    }
+
     await set_cache(
         key=cache_key,
-        data=task_data,
-        ttl=60,
+        data=response,
     )
 
-    return task_data
+    return response
 
 
 async def get_single_task(
@@ -105,6 +122,7 @@ async def get_single_task(
 async def update_task(
     db: AsyncSession,
     task_id: int,
+    changed_by: int,
     data: dict,
 ):
     task = await get_task_by_id(
@@ -115,6 +133,9 @@ async def update_task(
     if task is None:
         return None
 
+    old_status = task.status
+    new_status = data.get("status", old_status)
+
     try:
         await update_task_record(
             db=db,
@@ -122,12 +143,14 @@ async def update_task(
             data=data,
         )
 
-        await create_task_history(
-            db=db,
-            task_id=task.id,
-            action="updated",
-            description=f"Task '{task.title}' was updated.",
-        )
+        if new_status != old_status:
+            await create_task_history(
+                db=db,
+                task_id=task.id,
+                changed_by=changed_by,
+                old_status=old_status,
+                new_status=new_status,
+            )
 
         await db.commit()
         await db.refresh(task)
@@ -154,15 +177,6 @@ async def remove_task(
         return None
 
     try:
-        task_title = task.title
-
-        await create_task_history(
-            db=db,
-            task_id=task.id,
-            action="deleted",
-            description=f"Task '{task_title}' was deleted.",
-        )
-
         await delete_task_record(
             db=db,
             task=task,

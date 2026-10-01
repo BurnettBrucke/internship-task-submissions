@@ -4,7 +4,7 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 
-@pytest_asyncio.fixture(loop_scope="session")
+@pytest_asyncio.fixture
 async def client():
     async with AsyncClient(
         transport=ASGITransport(app=app),

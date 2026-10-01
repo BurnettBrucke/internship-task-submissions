@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -10,6 +12,7 @@ from app.core.security import (
 )
 from app.repositories.user_repository import (
     create_user,
+    get_user_by_email,
     get_user_by_username,
 )
 
@@ -24,17 +27,34 @@ async def register_user(
     existing_user = await get_user_by_username(db, username)
 
     if existing_user:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already exists",
+        )
+
+    existing_email = await get_user_by_email(db, email)
+
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already exists",
+        )
 
     password_hash = hash_password(password)
 
-    return await create_user(
-        db=db,
-        username=username,
-        email=email,
-        password_hash=password_hash,
-        role=role,
-    )
+    try:
+        return await create_user(
+            db=db,
+            username=username,
+            email=email,
+            password_hash=password_hash,
+            role=role,
+        )
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email already exists",
+        )
 
 
 async def authenticate_user(

@@ -19,8 +19,7 @@ router = APIRouter(
 )
 
 
-
-@router.get("", response_model=list[TaskResponse])
+@router.get("")
 async def list_tasks(
     page: int = 1,
     page_size: int = 10,
@@ -35,13 +34,14 @@ async def list_tasks(
 
     offset = (page - 1) * page_size
 
-    owner_username = None
+    user_id = None
+
     if current_user["role"] != "admin":
-        owner_username = current_user["username"]
+        user_id = current_user["id"]
 
     return await get_tasks(
         db=db,
-        owner_username=owner_username,
+        user_id=user_id,
         offset=offset,
         limit=page_size,
     )
@@ -59,11 +59,11 @@ async def create_new_task(
 ):
     return await create_task(
         db=db,
+        user_id=current_user["id"],
         title=task_data.title,
         description=task_data.description,
         priority=task_data.priority,
-        completed=task_data.completed,
-        owner_username=current_user["username"],
+        status=task_data.status,
     )
 
 
@@ -89,7 +89,7 @@ async def get_task_by_id(
 
     if (
         current_user["role"] != "admin"
-        and task.owner_username != current_user["username"]
+        and task.user_id != current_user["id"]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -122,18 +122,21 @@ async def update_existing_task(
 
     if (
         current_user["role"] != "admin"
-        and task.owner_username != current_user["username"]
+        and task.user_id != current_user["id"]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to update this task.",
         )
 
-    update_data = task_data.model_dump(exclude_unset=True)
+    update_data = task_data.model_dump(
+        exclude_unset=True,
+    )
 
     return await update_task(
         db=db,
         task_id=task_id,
+        changed_by=current_user["id"],
         data=update_data,
     )
 
@@ -160,7 +163,7 @@ async def delete_existing_task(
 
     if (
         current_user["role"] != "admin"
-        and task.owner_username != current_user["username"]
+        and task.user_id != current_user["id"]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

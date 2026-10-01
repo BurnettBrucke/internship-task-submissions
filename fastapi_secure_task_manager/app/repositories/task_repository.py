@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task
@@ -6,18 +6,18 @@ from app.models.task import Task
 
 async def create_task(
     db: AsyncSession,
+    user_id: int,
     title: str,
     description: str | None,
     priority: str,
-    completed: bool,
-    owner_username: str,
+    status: str,
 ):
     task = Task(
+        user_id=user_id,
         title=title,
         description=description,
         priority=priority,
-        completed=completed,
-        owner_username=owner_username,
+        status=status,
     )
 
     db.add(task)
@@ -26,23 +26,36 @@ async def create_task(
     return task
 
 
-
-async def get_all_tasks(
+async def get_tasks(
     db: AsyncSession,
-    owner_username: str | None = None,
+    user_id: int | None = None,
     offset: int = 0,
     limit: int = 10,
 ):
     query = select(Task).order_by(Task.id)
 
-    if owner_username is not None:
-        query = query.where(Task.owner_username == owner_username)
+    if user_id is not None:
+        query = query.where(Task.user_id == user_id)
 
     query = query.offset(offset).limit(limit)
 
     result = await db.execute(query)
 
     return result.scalars().all()
+
+
+async def count_tasks(
+    db: AsyncSession,
+    user_id: int | None = None,
+):
+    query = select(func.count()).select_from(Task)
+
+    if user_id is not None:
+        query = query.where(Task.user_id == user_id)
+
+    result = await db.execute(query)
+
+    return result.scalar_one()
 
 
 async def get_task_by_id(

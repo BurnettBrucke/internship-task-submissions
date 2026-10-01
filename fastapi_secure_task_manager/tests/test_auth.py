@@ -50,6 +50,31 @@ async def test_duplicate_username(client):
 
     assert response.status_code == 409
 
+@pytest.mark.asyncio(loop_scope="session")
+async def test_duplicate_email(client):
+    username, email = unique_user("duplicate_email")
+
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "username": username,
+            "email": email,
+            "password": "password123",
+        },
+    )
+
+    second_username, _ = unique_user("second_user")
+
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "username": second_username,
+            "email": email,
+            "password": "password123",
+        },
+    )
+
+    assert response.status_code == 409
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_invalid_email(client):

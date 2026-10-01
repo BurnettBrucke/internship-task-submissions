@@ -1,7 +1,10 @@
 import redis.asyncio as redis
 
-redis_client = redis.Redis(
-    host="localhost",
-    port=6379,
-    decode_responses=True,
-)
+from app.core.config import settings
+
+
+def get_redis_client():
+    return redis.from_url(
+        settings.REDIS_URL,
+        decode_responses=True,
+    )
