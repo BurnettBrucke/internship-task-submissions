@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 from app.services.task_service import (
@@ -10,27 +12,39 @@ from app.services.task_service import (
     update_task,
 )
 
+
 router = APIRouter(
     prefix="/api/v1/tasks",
     tags=["Tasks"],
 )
 
 
-@router.get(
-    "",
-    response_model=list[TaskResponse],
-)
-async def list_tasks(current_user: dict = Depends(get_current_user)):
-    tasks = get_tasks()
 
-    if current_user["role"] == "admin":
-        return tasks
+@router.get("", response_model=list[TaskResponse])
+async def list_tasks(
+    page: int = 1,
+    page_size: int = 10,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if page < 1 or page_size < 1 or page_size > 100:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Page must be at least 1 and page_size must be between 1 and 100.",
+        )
 
-    return [
-        task
-        for task in tasks
-        if task["owner_username"] == current_user["username"]
-    ]
+    offset = (page - 1) * page_size
+
+    owner_username = None
+    if current_user["role"] != "admin":
+        owner_username = current_user["username"]
+
+    return await get_tasks(
+        db=db,
+        owner_username=owner_username,
+        offset=offset,
+        limit=page_size,
+    )
 
 
 @router.post(
@@ -41,8 +55,10 @@ async def list_tasks(current_user: dict = Depends(get_current_user)):
 async def create_new_task(
     task_data: TaskCreate,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    return create_task(
+    return await create_task(
+        db=db,
         title=task_data.title,
         description=task_data.description,
         priority=task_data.priority,
@@ -58,8 +74,12 @@ async def create_new_task(
 async def get_task_by_id(
     task_id: int,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    task = get_single_task(task_id)
+    task = await get_single_task(
+        db=db,
+        task_id=task_id,
+    )
 
     if task is None:
         raise HTTPException(
@@ -69,7 +89,7 @@ async def get_task_by_id(
 
     if (
         current_user["role"] != "admin"
-        and task["owner_username"] != current_user["username"]
+        and task.owner_username != current_user["username"]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -87,8 +107,12 @@ async def update_existing_task(
     task_id: int,
     task_data: TaskUpdate,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    task = get_single_task(task_id)
+    task = await get_single_task(
+        db=db,
+        task_id=task_id,
+    )
 
     if task is None:
         raise HTTPException(
@@ -98,7 +122,7 @@ async def update_existing_task(
 
     if (
         current_user["role"] != "admin"
-        and task["owner_username"] != current_user["username"]
+        and task.owner_username != current_user["username"]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -107,7 +131,11 @@ async def update_existing_task(
 
     update_data = task_data.model_dump(exclude_unset=True)
 
-    return update_task(task_id, update_data)
+    return await update_task(
+        db=db,
+        task_id=task_id,
+        data=update_data,
+    )
 
 
 @router.delete(
@@ -117,8 +145,12 @@ async def update_existing_task(
 async def delete_existing_task(
     task_id: int,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    task = get_single_task(task_id)
+    task = await get_single_task(
+        db=db,
+        task_id=task_id,
+    )
 
     if task is None:
         raise HTTPException(
@@ -128,11 +160,14 @@ async def delete_existing_task(
 
     if (
         current_user["role"] != "admin"
-        and task["owner_username"] != current_user["username"]
+        and task.owner_username != current_user["username"]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to delete this task.",
         )
 
-    remove_task(task_id)
+    await remove_task(
+        db=db,
+        task_id=task_id,
+    )

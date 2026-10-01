@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     PASSWORD_HASH_SCHEME: str = "argon2"
     MAX_LOGIN_ATTEMPTS: int = 5
     LOG_LEVEL: str = "INFO"
+    
+    DATABASE_URL: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

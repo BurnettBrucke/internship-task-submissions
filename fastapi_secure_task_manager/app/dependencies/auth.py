@@ -1,15 +1,18 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import decode_access_token
-from app.data.store import get_user
+from app.database import get_db
+from app.repositories.user_repository import get_user_by_username
 
 
 security = HTTPBearer(auto_error=False)
 
 
-def get_current_user(
+async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db),
 ):
     if credentials is None:
         raise HTTPException(
@@ -35,7 +38,10 @@ def get_current_user(
             detail="Invalid authentication token.",
         )
 
-    user = get_user(username)
+    user = await get_user_by_username(
+        db=db,
+        username=username,
+    )
 
     if not user:
         raise HTTPException(
@@ -43,4 +49,9 @@ def get_current_user(
             detail="User not found.",
         )
 
-    return user
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+    }

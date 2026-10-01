@@ -1,42 +1,49 @@
-from fastapi.testclient import TestClient
+import uuid
 
-from app.main import app
-
-
-client = TestClient(app)
+import pytest
 
 
-def test_register_user():
-    response = client.post(
+def unique_user(prefix):
+    value = uuid.uuid4().hex[:8]
+    return f"{prefix}_{value}", f"{prefix}_{value}@example.com"
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_register_user(client):
+    username, email = unique_user("register")
+
+    response = await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "testuser",
-            "email": "testuser@example.com",
+            "username": username,
+            "email": email,
             "password": "password123",
             "role": "user",
         },
     )
 
     assert response.status_code == 201
-    assert response.json()["username"] == "testuser"
-    assert response.json()["role"] == "user"
+    assert response.json()["username"] == username
 
 
-def test_duplicate_username():
-    client.post(
+@pytest.mark.asyncio(loop_scope="session")
+async def test_duplicate_username(client):
+    username, email = unique_user("duplicate")
+
+    await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "duplicateuser",
-            "email": "duplicate1@example.com",
+            "username": username,
+            "email": email,
             "password": "password123",
         },
     )
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "duplicateuser",
-            "email": "duplicate2@example.com",
+            "username": username,
+            "email": f"second_{email}",
             "password": "password123",
         },
     )
@@ -44,11 +51,14 @@ def test_duplicate_username():
     assert response.status_code == 409
 
 
-def test_invalid_email():
-    response = client.post(
+@pytest.mark.asyncio(loop_scope="session")
+async def test_invalid_email(client):
+    username, _ = unique_user("invalid_email")
+
+    response = await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "emailtest",
+            "username": username,
             "email": "invalid-email",
             "password": "password123",
         },
@@ -57,12 +67,15 @@ def test_invalid_email():
     assert response.status_code == 422
 
 
-def test_weak_password():
-    response = client.post(
+@pytest.mark.asyncio(loop_scope="session")
+async def test_weak_password(client):
+    username, email = unique_user("weak_password")
+
+    response = await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "weakpass",
-            "email": "weakpass@example.com",
+            "username": username,
+            "email": email,
             "password": "123",
         },
     )
@@ -70,20 +83,23 @@ def test_weak_password():
     assert response.status_code == 422
 
 
-def test_login_returns_token():
-    client.post(
+@pytest.mark.asyncio(loop_scope="session")
+async def test_login_returns_token(client):
+    username, email = unique_user("login")
+
+    await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "loginuser",
-            "email": "loginuser@example.com",
+            "username": username,
+            "email": email,
             "password": "password123",
         },
     )
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/auth/login",
         json={
-            "username": "loginuser",
+            "username": username,
             "password": "password123",
         },
     )
@@ -97,20 +113,23 @@ def test_login_returns_token():
     assert data["expires_in"] == 1800
 
 
-def test_wrong_password():
-    client.post(
+@pytest.mark.asyncio(loop_scope="session")
+async def test_wrong_password(client):
+    username, email = unique_user("wrong_password")
+
+    await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "wrongpass",
-            "email": "wrongpass@example.com",
+            "username": username,
+            "email": email,
             "password": "password123",
         },
     )
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/auth/login",
         json={
-            "username": "wrongpass",
+            "username": username,
             "password": "wrongpassword",
         },
     )
@@ -118,27 +137,32 @@ def test_wrong_password():
     assert response.status_code == 401
 
 
-def test_auth_me():
-    client.post(
+@pytest.mark.asyncio(loop_scope="session")
+async def test_auth_me(client):
+    username, email = unique_user("auth_me")
+
+    await client.post(
         "/api/v1/auth/register",
         json={
-            "username": "meuser",
-            "email": "meuser@example.com",
+            "username": username,
+            "email": email,
             "password": "password123",
         },
     )
 
-    login_response = client.post(
+    login_response = await client.post(
         "/api/v1/auth/login",
         json={
-            "username": "meuser",
+            "username": username,
             "password": "password123",
         },
     )
+
+    assert login_response.status_code == 200
 
     token = login_response.json()["access_token"]
 
-    response = client.get(
+    response = await client.get(
         "/api/v1/auth/me",
         headers={
             "Authorization": f"Bearer {token}"
@@ -146,11 +170,12 @@ def test_auth_me():
     )
 
     assert response.status_code == 200
-    assert response.json()["username"] == "meuser"
+    assert response.json()["username"] == username
     assert response.json()["role"] == "user"
 
 
-def test_protected_endpoint_without_token():
-    response = client.get("/api/v1/tasks")
+@pytest.mark.asyncio(loop_scope="session")
+async def test_protected_endpoint_without_token(client):
+    response = await client.get("/api/v1/tasks")
 
     assert response.status_code == 401

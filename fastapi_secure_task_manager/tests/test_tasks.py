@@ -1,13 +1,21 @@
-from fastapi.testclient import TestClient
+import uuid
 
-from app.main import app
-
-
-client = TestClient(app)
+import pytest
 
 
-def get_token(username: str, email: str, password: str, role: str = "user"):
-    client.post(
+def unique_user(prefix):
+    value = uuid.uuid4().hex[:8]
+    return f"{prefix}_{value}", f"{prefix}_{value}@example.com"
+
+
+async def get_token(
+    client,
+    username,
+    email,
+    password="password123",
+    role="user",
+):
+    register_response = await client.post(
         "/api/v1/auth/register",
         json={
             "username": username,
@@ -17,7 +25,9 @@ def get_token(username: str, email: str, password: str, role: str = "user"):
         },
     )
 
-    response = client.post(
+    assert register_response.status_code == 201
+
+    login_response = await client.post(
         "/api/v1/auth/login",
         json={
             "username": username,
@@ -25,17 +35,22 @@ def get_token(username: str, email: str, password: str, role: str = "user"):
         },
     )
 
-    return response.json()["access_token"]
+    assert login_response.status_code == 200
+
+    return login_response.json()["access_token"]
 
 
-def test_create_task():
-    token = get_token(
-        "taskuser",
-        "taskuser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_create_task(client):
+    username, email = unique_user("create")
+
+    token = await get_token(
+        client,
+        username,
+        email,
     )
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token}"},
         json={
@@ -51,14 +66,17 @@ def test_create_task():
     assert response.json()["priority"] == "high"
 
 
-def test_get_tasks():
-    token = get_token(
-        "getuser",
-        "getuser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_get_tasks(client):
+    username, email = unique_user("get")
+
+    token = await get_token(
+        client,
+        username,
+        email,
     )
 
-    client.post(
+    create_response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token}"},
         json={
@@ -67,7 +85,9 @@ def test_get_tasks():
         },
     )
 
-    response = client.get(
+    assert create_response.status_code == 201
+
+    response = await client.get(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -76,14 +96,17 @@ def test_get_tasks():
     assert len(response.json()) >= 1
 
 
-def test_update_task():
-    token = get_token(
-        "updateuser",
-        "updateuser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_update_task(client):
+    username, email = unique_user("update")
+
+    token = await get_token(
+        client,
+        username,
+        email,
     )
 
-    create_response = client.post(
+    create_response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token}"},
         json={
@@ -92,9 +115,11 @@ def test_update_task():
         },
     )
 
+    assert create_response.status_code == 201
+
     task_id = create_response.json()["id"]
 
-    response = client.put(
+    response = await client.put(
         f"/api/v1/tasks/{task_id}",
         headers={"Authorization": f"Bearer {token}"},
         json={
@@ -108,14 +133,17 @@ def test_update_task():
     assert response.json()["completed"] is True
 
 
-def test_delete_task():
-    token = get_token(
-        "deleteuser",
-        "deleteuser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_delete_task(client):
+    username, email = unique_user("delete")
+
+    token = await get_token(
+        client,
+        username,
+        email,
     )
 
-    create_response = client.post(
+    create_response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token}"},
         json={
@@ -124,9 +152,11 @@ def test_delete_task():
         },
     )
 
+    assert create_response.status_code == 201
+
     task_id = create_response.json()["id"]
 
-    response = client.delete(
+    response = await client.delete(
         f"/api/v1/tasks/{task_id}",
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -134,20 +164,24 @@ def test_delete_task():
     assert response.status_code == 204
 
 
-def test_task_ownership():
-    token_a = get_token(
-        "owneruser",
-        "owneruser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_task_ownership(client):
+    username_a, email_a = unique_user("owner")
+    username_b, email_b = unique_user("other")
+
+    token_a = await get_token(
+        client,
+        username_a,
+        email_a,
     )
 
-    token_b = get_token(
-        "otheruser",
-        "otheruser@example.com",
-        "password123",
+    token_b = await get_token(
+        client,
+        username_b,
+        email_b,
     )
 
-    create_response = client.post(
+    create_response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token_a}"},
         json={
@@ -156,9 +190,11 @@ def test_task_ownership():
         },
     )
 
+    assert create_response.status_code == 201
+
     task_id = create_response.json()["id"]
 
-    response = client.get(
+    response = await client.get(
         f"/api/v1/tasks/{task_id}",
         headers={"Authorization": f"Bearer {token_b}"},
     )
@@ -166,21 +202,25 @@ def test_task_ownership():
     assert response.status_code == 403
 
 
-def test_admin_can_access_other_users_task():
-    user_token = get_token(
-        "normaluser",
-        "normaluser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_admin_can_access_other_users_task(client):
+    user_username, user_email = unique_user("normal")
+    admin_username, admin_email = unique_user("admin")
+
+    user_token = await get_token(
+        client,
+        user_username,
+        user_email,
     )
 
-    admin_token = get_token(
-        "adminuser",
-        "adminuser@example.com",
-        "password123",
+    admin_token = await get_token(
+        client,
+        admin_username,
+        admin_email,
         role="admin",
     )
 
-    create_response = client.post(
+    create_response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {user_token}"},
         json={
@@ -189,25 +229,30 @@ def test_admin_can_access_other_users_task():
         },
     )
 
+    assert create_response.status_code == 201
+
     task_id = create_response.json()["id"]
 
-    response = client.get(
+    response = await client.get(
         f"/api/v1/tasks/{task_id}",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
 
     assert response.status_code == 200
-    assert response.json()["owner_username"] == "normaluser"
+    assert response.json()["owner_username"] == user_username
 
 
-def test_invalid_priority():
-    token = get_token(
-        "priorityuser",
-        "priorityuser@example.com",
-        "password123",
+@pytest.mark.asyncio(loop_scope="session")
+async def test_invalid_priority(client):
+    username, email = unique_user("priority")
+
+    token = await get_token(
+        client,
+        username,
+        email,
     )
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/tasks",
         headers={"Authorization": f"Bearer {token}"},
         json={

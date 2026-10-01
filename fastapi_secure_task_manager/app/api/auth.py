@@ -1,15 +1,20 @@
-from fastapi import APIRouter,Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import get_db
 from app.dependencies.auth import get_current_user
-from app.schemas.auth import AuthUserResponse, LoginRequest, TokenResponse
-
-from app.schemas.auth import LoginRequest, TokenResponse
+from app.schemas.auth import (
+    AuthUserResponse,
+    LoginRequest,
+    TokenResponse,
+)
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import (
     authenticate_user,
     create_user_token,
     register_user,
 )
+
 
 router = APIRouter(
     prefix="/api/v1/auth",
@@ -22,8 +27,12 @@ router = APIRouter(
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def register(user_data: UserCreate):
-    user = register_user(
+async def register(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await register_user(
+        db=db,
         username=user_data.username,
         email=user_data.email,
         password=user_data.password,
@@ -38,12 +47,17 @@ async def register(user_data: UserCreate):
 
     return user
 
+
 @router.post(
     "/login",
     response_model=TokenResponse,
 )
-async def login(login_data: LoginRequest):
-    user = authenticate_user(
+async def login(
+    login_data: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await authenticate_user(
+        db=db,
         username=login_data.username,
         password=login_data.password,
     )
@@ -68,9 +82,12 @@ async def login(login_data: LoginRequest):
         "expires_in": 1800,
     }
 
+
 @router.get(
     "/me",
     response_model=AuthUserResponse,
 )
-async def get_me(current_user: dict = Depends(get_current_user)):
+async def get_me(
+    current_user: dict = Depends(get_current_user),
+):
     return current_user
