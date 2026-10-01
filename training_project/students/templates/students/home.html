@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Home | Student Training Portal{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center" style="min-height: 65vh;">
+
+    <div class="col-md-9 col-lg-8">
+
+        <div class="card shadow-sm border-0 text-center">
+
+            <div class="card-body p-5">
+
+                <h1 class="fw-bold mb-3">
+                    Welcome to Student Training Portal
+                </h1>
+
+                <p class="text-muted mb-4">
+                    Welcome to {{ company_name }} Training Program.
+                    Manage students, courses, marks and training activities
+                    through a simple and secure portal.
+                </p>
+
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+    {% if request.user.is_authenticated %}
+
+        {% if request.user.profile.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}"
+               class="btn btn-primary px-4">
+                Go to Dashboard
+            </a>
+
+        {% elif request.user.profile.role == 'trainer' %}
+            <a href="{% url 'trainer_dashboard' %}"
+               class="btn btn-primary px-4">
+                Go to Dashboard
+            </a>
+
+        {% elif request.user.profile.role == 'student' %}
+            <a href="{% url 'student_dashboard' %}"
+               class="btn btn-primary px-4">
+                Go to Dashboard
+            </a>
+        {% endif %}
+
+    {% else %}
+
+        <a href="{% url 'login' %}"
+           class="btn btn-primary px-4">
+            Login
+        </a>
+
+    {% endif %}
+
+    <a href="{% url 'about' %}"
+       class="btn btn-outline-secondary px-4">
+        About
+    </a>
+
+</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

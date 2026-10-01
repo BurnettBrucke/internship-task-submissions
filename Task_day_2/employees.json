@@ -1,0 +1,23 @@
+[
+    {
+        "id": "1",
+        "name": "Riya",
+        "email": "riya@gmail.com",
+        "department": "cse ",
+        "salary": 2000.0
+    },
+    {
+        "id": "2",
+        "name": "Priya",
+        "email": "priya@gmail.com",
+        "department": "IT",
+        "salary": 3000.0
+    },
+    {
+        "id": "3",
+        "name": "pihu",
+        "email": "pihu@gmail.com",
+        "department": "cse",
+        "salary": 1000.0
+    }
+]
