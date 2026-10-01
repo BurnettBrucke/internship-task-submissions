@@ -61,6 +61,31 @@ def test_duplicate_username():
 
     assert response.status_code == 409
 
+def test_duplicate_email(client):
+    payload = {
+        "username": "user_one",
+        "email": "duplicate@example.com",
+        "password": "TestUser@123",
+        "role": "user",
+    }
+
+    response = client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 201
+
+    duplicate_email_payload = {
+        "username": "user_two",
+        "email": "duplicate@example.com",
+        "password": "TestUser@123",
+        "role": "user",
+    }
+
+    response = client.post(
+        "/api/v1/auth/register",
+        json=duplicate_email_payload,
+    )
+
+    assert response.status_code == 409
+
 
 def test_invalid_email():
     response = client.post(

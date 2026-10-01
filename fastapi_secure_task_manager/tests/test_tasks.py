@@ -96,8 +96,13 @@ def test_list_tasks_returns_own_tasks():
 
     data = response.json()
 
-    assert len(data) == 1
-    assert data[0]["owner_username"] == "user1"
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+
+    assert data["items"][0]["title"] == "My Task"
+    assert data["items"][0]["owner_username"] == "user1"
 
 
 def test_task_requires_authentication():
@@ -488,3 +493,317 @@ def test_admin_can_delete_other_users_task():
     )
 
     assert response.status_code == 404
+
+def test_task_history_created_after_status_update():
+    token = register_and_login(
+        "history_user",
+        "history@example.com",
+        "HistoryUser@123",
+    )
+
+    # Create task
+    response = client.post(
+        "/api/v1/tasks",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "title": "History Test Task",
+            "priority": "medium",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 201
+
+    task_id = response.json()["id"]
+
+    # Update task status: pending -> completed
+    response = client.put(
+        f"/api/v1/tasks/{task_id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "completed": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["completed"] is True
+
+    # Verify task_history directly from PostgreSQL
+    import asyncio
+    from sqlalchemy import select
+
+    from tests.conftest import TestSessionLocal
+    from app.models.task_history import TaskHistory
+
+    async def get_history():
+        async with TestSessionLocal() as session:
+            result = await session.execute(
+                select(TaskHistory).where(
+                    TaskHistory.task_id == task_id
+                )
+            )
+            return result.scalar_one_or_none()
+
+    history = asyncio.run(get_history())
+
+    assert history is not None
+    assert history.old_status == "pending"
+    assert history.new_status == "completed"
+
+def test_transaction_rollback_when_history_creation_fails():
+    import asyncio
+    from unittest.mock import AsyncMock, patch
+
+    import pytest
+    from sqlalchemy import select
+
+    from tests.conftest import TestSessionLocal
+    from app.models.task import Task
+    from app.services.task_service import update_task
+    from app.schemas.task import TaskUpdate
+
+    token = register_and_login(
+        "rollback_user",
+        "rollback@example.com",
+        "RollbackUser@123",
+    )
+
+    # Create task
+    response = client.post(
+        "/api/v1/tasks",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "title": "Rollback Test Task",
+            "priority": "medium",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 201
+
+    task_id = response.json()["id"]
+
+    async def run_rollback_test():
+        async with TestSessionLocal() as session:
+
+            # Force task history creation to fail
+            with patch(
+                "app.services.task_service.create_task_history",
+                new=AsyncMock(
+                    side_effect=RuntimeError("Forced history failure")
+                ),
+            ):
+
+                with pytest.raises(RuntimeError):
+                    await update_task(
+                        db=session,
+                        task_id=task_id,
+                        task=TaskUpdate(completed=True),
+                        changed_by=1,
+                    )
+
+            # Check task status after rollback
+            result = await session.execute(
+                select(Task).where(Task.id == task_id)
+            )
+
+            task = result.scalar_one()
+
+            return task.status
+
+    status = asyncio.run(run_rollback_test())
+
+    # Because history creation failed,
+    # task update should also be rolled back.
+    assert status == "pending"
+
+def test_redis_cache_created_after_get_tasks():
+    from app.core.redis import redis_client
+
+    token = register_and_login(
+        "cache_user",
+        "cache@example.com",
+        "CacheUser@123",
+    )
+
+    # Create a task
+    response = client.post(
+        "/api/v1/tasks",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "title": "Cache Test Task",
+            "priority": "medium",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 201
+
+    # Clear Redis before testing cache creation
+    redis_client.flushdb()
+
+    # GET tasks -> should create cache
+    response = client.get(
+        "/api/v1/tasks?page=1&page_size=10",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+
+    # Verify Redis cache key exists
+    keys = redis_client.keys("tasks:user:*")
+
+    assert len(keys) == 1
+    assert keys[0].startswith("tasks:user:")
+
+def test_redis_cache_hit_returns_cached_response():
+    from unittest.mock import AsyncMock, patch
+
+    from app.core.redis import redis_client
+
+    token = register_and_login(
+        "cache_hit_user",
+        "cachehit@example.com",
+        "CacheHitUser@123",
+    )
+
+    # Create a task
+    response = client.post(
+        "/api/v1/tasks",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "title": "Cache Hit Task",
+            "priority": "high",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 201
+
+    # First GET -> creates the cache
+    response = client.get(
+        "/api/v1/tasks?page=1&page_size=10",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+
+    cached_response = response.json()
+
+    # Verify that the cache exists
+    keys = redis_client.keys("tasks:user:*")
+
+    assert len(keys) == 1
+
+    # Second GET should use Redis cache.
+    # If PostgreSQL task queries are called, fail the test.
+    with patch(
+        "app.services.task_service.get_tasks",
+        new=AsyncMock(side_effect=AssertionError("Database query should not run on cache HIT")),
+    ), patch(
+        "app.services.task_service.count_tasks",
+        new=AsyncMock(side_effect=AssertionError("Database count query should not run on cache HIT")),
+    ):
+        response = client.get(
+            "/api/v1/tasks?page=1&page_size=10",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == cached_response
+
+def test_redis_cache_invalidates_after_create_update_delete():
+    from app.core.redis import redis_client
+
+    token = register_and_login(
+        "invalidate_user",
+        "invalidate@example.com",
+        "InvalidateUser@123",
+    )
+
+    # ---------------------------------------------------------
+    # CREATE TASK
+    # ---------------------------------------------------------
+    response = client.post(
+        "/api/v1/tasks",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "title": "Invalidation Test Task",
+            "priority": "medium",
+            "completed": False,
+        },
+    )
+
+    assert response.status_code == 201
+
+    task_id = response.json()["id"]
+
+    # Create cache
+    response = client.get(
+        "/api/v1/tasks?page=1&page_size=10",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert len(redis_client.keys("tasks:user:*")) == 1
+
+    # ---------------------------------------------------------
+    # UPDATE TASK -> CACHE SHOULD BE INVALIDATED
+    # ---------------------------------------------------------
+    response = client.put(
+        f"/api/v1/tasks/{task_id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "title": "Updated Invalidation Task",
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert len(redis_client.keys("tasks:user:*")) == 0
+
+    # Create cache again
+    response = client.get(
+        "/api/v1/tasks?page=1&page_size=10",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert len(redis_client.keys("tasks:user:*")) == 1
+
+    # ---------------------------------------------------------
+    # DELETE TASK -> CACHE SHOULD BE INVALIDATED
+    # ---------------------------------------------------------
+    response = client.delete(
+        f"/api/v1/tasks/{task_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 204
+
+    assert len(redis_client.keys("tasks:user:*")) == 0
+
+def test_invalid_foreign_key_is_handled():
+    import asyncio
+
+    import pytest
+    from sqlalchemy.exc import IntegrityError
+
+    from tests.conftest import TestSessionLocal
+    from app.models.task_history import TaskHistory
+
+    async def create_invalid_history():
+        async with TestSessionLocal() as session:
+            invalid_history = TaskHistory(
+                task_id=999999,
+                changed_by=999999,
+                old_status="pending",
+                new_status="completed",
+            )
+
+            session.add(invalid_history)
+
+            with pytest.raises(IntegrityError):
+                await session.commit()
+
+    asyncio.run(create_invalid_history())

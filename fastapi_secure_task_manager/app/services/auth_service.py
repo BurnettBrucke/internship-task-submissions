@@ -1,94 +1,182 @@
 # ============================================================
-# 1. IMPORTS
+# AUTH SERVICE
 # ============================================================
+# Authentication business logic.
+#
+# Day 7:
+# PostgreSQL is now the source of truth for users.
+#
+# Day 6 functionality preserved:
+# - Password hashing
+# - Password verification
+# - JWT generation
+# - User roles
+# - Login attempt protection
+# ============================================================
+
+from datetime import datetime
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
-from app.data.store import users_db, login_attempts
-from app.schemas.user import UserCreate
 from app.core.security import (
     hash_password,
     verify_password,
     create_access_token,
 )
-# MAX_LOGIN_ATTEMPTS = 5
+from app.models.user import User
+from app.repositories.task_repository import get_user_by_username
+from app.schemas.user import UserCreate
+from app.data.store import login_attempts
 
 # ============================================================
-# 2. REGISTER USER
+# REGISTER USER
 # ============================================================
 
-def register_user(user: UserCreate) -> dict:
+async def register_user(
+    db: AsyncSession,
+    user: UserCreate,
+) -> dict:
     """
-    Register a new user.
-
-    Steps:
-    1. Check whether username already exists.
-    2. Hash the password.
-    3. Store user information.
-    4. Never store the plain-text password.
+    Register a new user in PostgreSQL.
     """
 
-    # --------------------------------------------------------
-    # Check duplicate username
-    # --------------------------------------------------------
-    if user.username in users_db:
+    # Check whether username already exists.
+    existing_user = await get_user_by_username(
+        db,
+        username=user.username,
+    )
+
+    if existing_user is not None:
         raise ValueError("Username already exists")
 
-    # --------------------------------------------------------
-    # Hash password
-    # --------------------------------------------------------
+    # Check email separately.
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(User).where(User.email == str(user.email))
+    )
+
+    existing_email = result.scalar_one_or_none()
+
+    if existing_email is not None:
+        raise ValueError("Email already exists")
+
+    # Hash password before storing it.
     password_hash = hash_password(user.password)
 
-    # --------------------------------------------------------
-    # Store user
-    # --------------------------------------------------------
-    user_data = {
-        "username": user.username,
-        "email": str(user.email),
-        "password_hash": password_hash,
-        "role": user.role.value,
-    }
+    db_user = User(
+        username=user.username,
+        email=str(user.email),
+        password_hash=password_hash,
+        role=user.role.value,
+        is_active=True,
+    )
 
-    users_db[user.username] = user_data
+    db.add(db_user)
 
-    # --------------------------------------------------------
-    # Return safe user information
-    # --------------------------------------------------------
+    try:
+        await db.commit()
+        await db.refresh(db_user)
+
+    except Exception:
+        await db.rollback()
+        raise
+
     return {
-        "username": user_data["username"],
-        "email": user_data["email"],
-        "role": user_data["role"],
+        "username": db_user.username,
+        "email": db_user.email,
+        "role": db_user.role,
     }
 
+
 # ============================================================
-# 3. LOGIN USER
+# LOGIN USER
 # ============================================================
 
-def login_user(username: str, password: str) -> dict:
-    user = users_db.get(username)
+async def login_user(
+    db: AsyncSession,
+    username: str,
+    password: str,
+) -> dict:
+    """
+    Authenticate a user using PostgreSQL.
+    """
 
-    # Check whether the account has reached the maximum failed attempts
+    user = await get_user_by_username(
+        db,
+        username=username,
+    )
+
+    # --------------------------------------------------------
+    # Check login attempts
+    # --------------------------------------------------------
+
     if login_attempts.get(username, 0) >= settings.MAX_LOGIN_ATTEMPTS:
         raise ValueError(
-            "Too many failed login attempts. Please try again later."
+            "Too many failed login attempts. "
+            "Please try again later."
         )
 
-    # User does not exist
+    # --------------------------------------------------------
+    # User not found
+    # --------------------------------------------------------
+
     if user is None:
-        login_attempts[username] = login_attempts.get(username, 0) + 1
+        login_attempts[username] = (
+            login_attempts.get(username, 0) + 1
+        )
 
-        raise ValueError("Invalid username or password")
+        raise ValueError(
+            "Invalid username or password"
+        )
 
-    # Password is incorrect
-    if not verify_password(password, user["password_hash"]):
-        login_attempts[username] = login_attempts.get(username, 0) + 1
+    # --------------------------------------------------------
+    # Check active status
+    # --------------------------------------------------------
 
-        raise ValueError("Invalid username or password")
+    if not user.is_active:
+        raise ValueError("User account is inactive")
 
-    # Successful login → reset failed attempts
+    # --------------------------------------------------------
+    # Verify password
+    # --------------------------------------------------------
+
+    if not verify_password(
+        password,
+        user.password_hash,
+    ):
+        login_attempts[username] = (
+            login_attempts.get(username, 0) + 1
+        )
+
+        raise ValueError(
+            "Invalid username or password"
+        )
+
+    # --------------------------------------------------------
+    # Successful login
+    # --------------------------------------------------------
+
     login_attempts[username] = 0
 
+    user.last_login_at = datetime.utcnow()
+
+    try:
+        await db.commit()
+        await db.refresh(user)
+
+    except Exception:
+        await db.rollback()
+        raise
+
+    # --------------------------------------------------------
+    # Create JWT
+    # --------------------------------------------------------
+
     access_token = create_access_token(
-        username=user["username"],
-        role=user["role"],
+        username=user.username,
+        role=user.role,
     )
 
     return {

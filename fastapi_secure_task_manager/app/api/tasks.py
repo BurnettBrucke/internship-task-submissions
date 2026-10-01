@@ -1,5 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+# ============================================================
+# TASK API ROUTES
+# ============================================================
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.database import get_db
+from app.dependencies.auth import get_current_user
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.services.task_service import (
     create_task,
@@ -8,7 +15,6 @@ from app.services.task_service import (
     update_task,
     delete_task,
 )
-from app.dependencies.auth import get_current_user
 from app.core.errors import (
     forbidden_error,
     not_found_error,
@@ -21,6 +27,10 @@ router = APIRouter(
 )
 
 
+# ============================================================
+# CREATE TASK
+# ============================================================
+
 @router.post(
     "",
     response_model=TaskResponse,
@@ -29,30 +39,74 @@ router = APIRouter(
 async def create_new_task(
     task: TaskCreate,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
+    """
+    Create a new task.
+
+    The logged-in user becomes the owner.
+    """
+
     username = current_user["sub"]
 
-    return create_task(
+    return await create_task(
+        db=db,
         task=task,
         owner_username=username,
     )
 
 
-@router.get(
-    "",
-    response_model=list[TaskResponse],
-)
+# ============================================================
+# GET ALL TASKS
+# ============================================================
+
+@router.get("")
 async def list_tasks(
+    page: int = Query(
+        default=1,
+        ge=1,
+    ),
+    page_size: int = Query(
+        default=10,
+        ge=1,
+        le=100,
+    ),
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    username = current_user["sub"]
+    """
+    Get paginated tasks.
+
+    Admin:
+        Can see all tasks.
+
+    Normal user:
+        Can see only their own tasks.
+    """
+
     role = current_user["role"]
 
     if role == "admin":
-        return get_all_tasks()
+        return await get_all_tasks(
+            db=db,
+            owner_username=None,
+            page=page,
+            page_size=page_size,
+        )
 
-    return get_all_tasks(owner_username=username)
+    username = current_user["sub"]
 
+    return await get_all_tasks(
+        db=db,
+        owner_username=username,
+        page=page,
+        page_size=page_size,
+    )
+
+
+# ============================================================
+# GET SINGLE TASK
+# ============================================================
 
 @router.get(
     "/{task_id}",
@@ -61,37 +115,19 @@ async def list_tasks(
 async def get_single_task(
     task_id: int,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    task = get_task(task_id)
+    """
+    Get one task.
 
-    if task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-        )
+    Admin can access any task.
+    Normal users can access only their own task.
+    """
 
-    username = current_user["sub"]
-    role = current_user["role"]
-
-    if role != "admin" and task["owner_username"] != username:
-        raise forbidden_error(
-            "You do not have permission to access this task"
-        )
-
-    return task
-
-
-@router.put(
-    "/{task_id}",
-    response_model=TaskResponse,
-)
-
-async def update_existing_task(
-    task_id: int,
-    task_data: TaskUpdate,
-    current_user: dict = Depends(get_current_user),
-):
-    task = get_task(task_id)
+    task = await get_task(
+        db=db,
+        task_id=task_id,
+    )
 
     if task is None:
         raise not_found_error("Task not found")
@@ -99,16 +135,83 @@ async def update_existing_task(
     username = current_user["sub"]
     role = current_user["role"]
 
-    if role != "admin" and task["owner_username"] != username:
+    if (
+        role != "admin"
+        and task["owner_username"] != username
+    ):
+        raise forbidden_error(
+            "You do not have permission to access this task"
+        )
+
+    return task
+
+
+# ============================================================
+# UPDATE TASK
+# ============================================================
+
+@router.put(
+    "/{task_id}",
+    response_model=TaskResponse,
+)
+async def update_existing_task(
+    task_id: int,
+    task_data: TaskUpdate,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Update a task.
+
+    Admin can update any task.
+    Normal users can update only their own task.
+
+    Status changes are recorded in task_history.
+    """
+
+    task = await get_task(
+        db=db,
+        task_id=task_id,
+    )
+
+    if task is None:
+        raise not_found_error("Task not found")
+
+    username = current_user["sub"]
+    role = current_user["role"]
+
+    if (
+        role != "admin"
+        and task["owner_username"] != username
+    ):
         raise forbidden_error(
             "You do not have permission to update this task"
         )
 
-    return update_task(
-        task_id=task_id,
-        task=task_data,
+    # Get database user ID for task history.
+    from app.repositories.task_repository import (
+        get_user_by_username,
     )
 
+    user = await get_user_by_username(
+        db,
+        username=username,
+    )
+
+    if user is None:
+        raise not_found_error("User not found")
+
+    return await update_task(
+        db=db,
+        task_id=task_id,
+        task=task_data,
+        changed_by=user.id,
+    )
+
+
+# ============================================================
+# DELETE TASK
+# ============================================================
 
 @router.delete(
     "/{task_id}",
@@ -117,8 +220,19 @@ async def update_existing_task(
 async def delete_existing_task(
     task_id: int,
     current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    task = get_task(task_id)
+    """
+    Delete a task.
+
+    Admin can delete any task.
+    Normal users can delete only their own task.
+    """
+
+    task = await get_task(
+        db=db,
+        task_id=task_id,
+    )
 
     if task is None:
         raise not_found_error("Task not found")
@@ -126,9 +240,15 @@ async def delete_existing_task(
     username = current_user["sub"]
     role = current_user["role"]
 
-    if role != "admin" and task["owner_username"] != username:
+    if (
+        role != "admin"
+        and task["owner_username"] != username
+    ):
         raise forbidden_error(
             "You do not have permission to delete this task"
         )
 
-    delete_task(task_id)
+    await delete_task(
+        db=db,
+        task_id=task_id,
+    )

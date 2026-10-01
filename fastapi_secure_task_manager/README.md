@@ -10,6 +10,16 @@ This project demonstrates:
 - Role-based authorization
 - Task CRUD operations
 - Task ownership
+- PostgreSQL database integration
+- Async SQLAlchemy
+- Alembic database migrations
+- Repository and service layer architecture
+- Task status history
+- Database transactions and rollback
+- Pagination
+- Database indexing
+- Redis caching
+- Cache invalidation
 - Pydantic validation
 - Environment-based configuration
 - Login attempt protection
@@ -22,41 +32,90 @@ This project demonstrates:
 
 fastapi_secure_task_manager/
 │
+├── alembic/
+│   ├── versions/
+│   │   ├── 6bf9dbd6db39_create_task_tables.py
+│   │   └── b03166270966_add_last_login_timestamp.py
+│   ├── env.py
+│   ├── README
+│   └── script.py.mako
+│
 ├── app/
-│   ├── main.py
-│   │
 │   ├── api/
+│   │   ├── __init__.py
 │   │   ├── auth.py
 │   │   └── tasks.py
 │   │
 │   ├── core/
+│   │   ├── __init__.py
 │   │   ├── config.py
-│   │   ├── security.py
-│   │   └── errors.py
+│   │   ├── errors.py
+│   │   ├── redis.py
+│   │   └── security.py
 │   │
 │   ├── data/
+│   │   ├── __init__.py
 │   │   └── store.py
 │   │
+│   ├── db/
+│   │   └── database.py
+│   │
 │   ├── dependencies/
+│   │   ├── __init__.py
 │   │   └── auth.py
 │   │
-│   ├── schemas/
-│   │   ├── auth.py
-│   │   ├── user.py
-│   │   └── task.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── task.py
+│   │   ├── task_history.py
+│   │   └── user.py
 │   │
-│   └── services/
-│       ├── auth_service.py
-│       └── task_service.py
+│   ├── repositories/
+│   │   ├── __init__.py
+│   │   └── task_repository.py
+│   │
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── task.py
+│   │   └── user.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── auth_service.py
+│   │   └── task_service.py
+│   │
+│   ├── __init__.py
+│   └── main.py
 │
 ├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
 │   ├── test_auth.py
 │   └── test_tasks.py
 │
 ├── .env.example
 ├── .gitignore
-├── requirements.txt
-└── README.md
+├── alembic.ini
+├── README.md
+└── requirements.txt
+
+---
+
+## Architecture
+
+The application follows a layered architecture:
+
+API Router
+    ↓
+Service Layer
+    ↓
+Repository Layer
+    ↓
+PostgreSQL
+
+Redis is used as a caching layer for task list responses.
 
 ---
 
@@ -66,6 +125,13 @@ fastapi_secure_task_manager/
 - FastAPI
 - Pydantic
 - Pydantic Settings
+- PostgreSQL
+- SQLAlchemy
+- Async SQLAlchemy
+- asyncpg
+- Alembic
+- Redis
+- redis-py
 - JWT
 - Argon2 password hashing
 - Uvicorn
@@ -98,6 +164,33 @@ pip install -r requirements.txt
 
 ---
 
+## PostgreSQL Configuration
+
+The application uses PostgreSQL as the primary database.
+
+**Create a PostgreSQL database named:** task_db
+
+Database tables are created and managed through SQLAlchemy models and Alembic migrations.
+
+Production/application data is not stored in in-memory task lists or dictionaries.
+
+---
+
+## Redis Configuration
+
+The application uses Redis for caching task list responses.
+
+**Redis should be running locally on:** localhost:6379
+
+The application uses the Redis URL configured in .env.
+
+Example:
+
+REDIS_URL=redis://localhost:6379/0
+CACHE_TTL_SECONDS=300
+
+---
+
 ## Environment Configuration
 
 Create a .env file in the project root.
@@ -106,9 +199,18 @@ Use .env.example as a template.
 
 **Example:**
 
-APP_NAME=fastapi_secure_task_manager
+APP_NAME=task-management-api
 APP_ENV=local
 DEBUG=true
+
+DATABASE_URL=postgresql+asyncpg://postgres:change_me@localhost:5432/task_db
+TEST_DATABASE_URL=postgresql+asyncpg://postgres:change_me@localhost:5432/task_test_db
+
+REDIS_URL=redis://localhost:6379/0
+
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+CACHE_TTL_SECONDS=300
 
 JWT_SECRET_KEY=change_me
 JWT_ALGORITHM=HS256
@@ -116,6 +218,7 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 PASSWORD_HASH_SCHEME=argon2
 MAX_LOGIN_ATTEMPTS=5
+
 LOG_LEVEL=INFO
 
 **Important**
@@ -124,9 +227,88 @@ Do not commit the real .env file.
 **Never expose:**
 
 - JWT secret
-- Passwords
+- Database/User Passwords
 - Access tokens
 - Other sensitive configuration
+
+---
+
+## Database Migrations
+
+Alembic is used to manage database schema changes.
+
+### Create a Migration
+
+alembic revision --autogenerate -m "create task tables"
+
+### Apply Migrations
+
+alembic upgrade head
+
+### Roll Back One Migration
+
+alembic downgrade -1
+
+### Reapply the Migration
+
+alembic upgrade head
+
+Database schema changes should be managed through Alembic migrations rather than manually creating or modifying tables.
+
+---
+
+## Database Models
+
+The application uses three main database tables.
+
+### Users
+
+The users table contains:
+
+- id
+- username
+- email
+- password_hash
+- role
+- is_active
+- created_at
+- last_login_at
+
+### Tasks
+
+The tasks table contains:
+
+- id
+- user_id
+- title
+- description
+- priority
+- status
+- created_at
+- updated_at
+
+### Task History
+
+The task_history table contains:
+
+- id
+- task_id
+- changed_by
+- old_status
+- new_status
+- changed_at
+
+### Relationships
+
+User
+  │
+  └── 1 ──────── Many ──── Task
+                              │
+                              └── 1 ──────── Many ──── TaskHistory
+
+A user can have multiple tasks.
+
+A task can have multiple status history records.
 
 ---
 
@@ -255,6 +437,23 @@ All task endpoints require authentication.
 - Normal users receive their own tasks.
 - Admins can access all tasks.
 
+#### Pagination
+
+The task list supports pagination:
+
+/api/v1/tasks?page=1&page_size=10
+
+**Example response:**
+
+{
+  "items": [],
+  "page": 1,
+  "page_size": 10,
+  "total": 0
+}
+
+Pagination is performed at the database query level using LIMIT/OFFSET rather than loading all tasks into memory.
+
 ### Get Task
 
 #### GET
@@ -274,6 +473,8 @@ All task endpoints require authentication.
   "title": "Updated Task",
   "completed": true
 }
+
+When the task status changes, a corresponding record is created in task_history.
 
 ### Delete Task
 
@@ -320,6 +521,7 @@ Pydantic validation is used for request data.
 - Task title validation
 - Task priority validation
 - Task completion boolean validation
+- Pagination parameter validation
 
 **Invalid request data returns:** 422 Unprocessable Entity
 
@@ -339,7 +541,7 @@ Pydantic validation is used for request data.
 
 Passwords are never stored as plain text.
 
-The JWT contains user identity, role and expiration information.
+The JWT tokens contains user identity, role and expiration information.
 
 ---
 
@@ -370,11 +572,150 @@ A successful login resets the failed-attempt counter.
 
 ---
 
+## Repository and Service Layer
+
+Database queries are separated from API route handlers.
+
+The application follows:
+
+API Router
+     ↓
+Service Layer
+     ↓
+Repository Layer
+     ↓
+PostgreSQL
+
+### Repository Layer
+
+The repository layer handles database operations such as:
+
+- Creating tasks
+- Retrieving tasks
+- Updating tasks
+- Deleting tasks
+- Counting tasks
+- Creating task history
+- Retrieving 
+
+### Service Layer
+
+The service layer handles application/business logic such as:
+
+- Task ownership
+- Status conversion
+- Task history creation
+- Transactions
+- Redis cache handling
+- Cache invalidation
+
+---
+
+## Transactions and Task History
+
+Task status changes and their corresponding history records are handled in the same database transaction.
+
+**For example:**
+
+Task Status Update
+        +
+Task History Insert
+        ↓
+   Same Transaction
+
+If the history insertion fails, the task status update is rolled back.
+
+This keeps the task data and task history consistent.
+
+---
+
+## Redis Caching
+
+Redis is used to cache task list responses.
+
+The application follows a cache-aside pattern.
+
+### Cache Key
+
+Task list cache keys follow this format:
+
+tasks:user:{user_id}:page:{page}:size:{page_size}
+
+**Example:**
+
+tasks:user:1:page:1:size:10
+
+### Cache TTL
+
+The default cache TTL is:
+
+300 seconds
+
+### Cache Miss
+
+GET /tasks
+     ↓
+Redis Cache
+     ↓
+Cache MISS
+     ↓
+PostgreSQL
+     ↓
+Store response in Redis
+     ↓
+Return response
+
+### Cache Hit
+
+GET /tasks
+     ↓
+Redis Cache
+     ↓
+Cache HIT
+     ↓
+Return cached response
+
+### Cache Invalidation
+
+The task cache is invalidated after:
+
+- Task creation
+- Task update
+- Task deletion
+
+This prevents stale task data from being returned.
+
+---
+
+## Database Indexing
+
+The application uses indexes on frequently queried fields.
+
+**Examples include:**
+
+- users.email
+- tasks.user_id
+- tasks.status
+
+Indexes improve lookup performance for commonly filtered columns.
+
+Indexes also have storage and write/update overhead, so they are used for meaningful query patterns.
+
+---
+
 ## Running Tests
+
+The project uses Pytest for automated testing.
 
 **Run all automated tests:** pytest -q
 
-**Current test suite:** 24 passed
+**Current test suite:** 31 passed
+
+The tests use a separate PostgreSQL test database configured through:
+
+TEST_DATABASE_URL=postgresql+asyncpg://postgres:change_me@localhost:5432/task_test_db
+
+This keeps test data separate from the development database.
 
 ### The tests cover:
 
@@ -405,27 +746,120 @@ A successful login resets the failed-attempt counter.
 **Do not commit the following to Git**:
 
 - .env
-- Passwords
+- Database/User Passwords
 - JWT secrets
 - Access tokens
+- Other sensitive configuration
 
 The .env.example file can be committed because it contains placeholder configuration only.
+
+### Task Management
+
+- Task creation
+- Task listing
+- Task retrieval
+- Task update
+- Task deletion
+- Task ownership
+- Admin authorization
+- Task validation
+- User cannot update another user's task
+- Admin can delete another user's task
+
+### PostgreSQL and Transactions
+
+- Creating users and tasks in PostgreSQL
+- Retrieving tasks from PostgreSQL
+- Task updates
+- Task deletion
+- Task history creation
+- Transaction rollback
+- Invalid foreign key handling
+
+### Pagination
+
+- Correct page response
+- Page size handling
+- Total task count
+
+### Redis
+
+- Cache creation after task list request
+- Cache hit
+- Cache invalidation after create
+- Cache invalidation after update
+- Cache invalidation after delete
 
 ---
 
 ## Project Status
 
-Day 6 FastAPI Secure Task Manager implementation includes:
+### Day 6 — FastAPI Secure Task Manager
+
+**Completed:**
 
 - FastAPI project structure
-- Authentication
-- JWT authorization
+- User registration
+- Login
+- JWT authentication
 - Argon2 password hashing
 - User/admin roles
 - Task CRUD
 - Task ownership
-- Validation
+- Pydantic validation
 - Error handling
 - Login attempt protection
-- Automated tests
 - Swagger/OpenAPI documentation
+- Automated testing
+
+### Day 7 — PostgreSQL + Redis Integration
+
+**Completed:**
+
+- PostgreSQL database integration
+- Async SQLAlchemy
+- AsyncSession
+- SQLAlchemy models
+- User-Task relationship
+- Task-TaskHistory relationship
+- Alembic initial migration
+- Alembic schema update migration
+- Migration rollback and reapply
+- Repository layer
+- Service layer
+- PostgreSQL-backed task CRUD
+- Task status history
+- Database transactions
+- Transaction rollback handling
+- Pagination
+- Database indexes
+- Redis integration
+- Redis task caching
+- Cache-aside pattern
+- Cache invalidation
+- Separate PostgreSQL test database
+- Automated Day 7 tests
+- Full test suite passing
+
+---
+
+## Definition of Done
+
+The Day 7 implementation is complete when:
+
+- Day 6 authentication and authorization continue to work
+- Task data persists in PostgreSQL
+- Alembic manages database schema changes
+- Task history is stored in PostgreSQL
+- Transactions and rollback work correctly
+- Pagination is implemented
+- Meaningful database indexes are present
+- Redis caching works
+- Redis cache invalidation works after task changes
+- Automated tests pass
+
+**Current result:**
+
+30 passed
+
+---
