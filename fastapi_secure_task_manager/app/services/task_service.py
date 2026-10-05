@@ -77,14 +77,14 @@ async def get_all_tasks(
 
     if cacheable:
         cached_data = await get_cached_tasks(current_user.id)
-    
+
         if cached_data is not None:
             logger.info(
                 "Task cache HIT: tasks:user:%s",
                 current_user.id,
             )
             return cached_data
-    
+
         logger.info(
             "Task cache MISS: tasks:user:%s",
             current_user.id,
@@ -197,7 +197,7 @@ async def update_task(
             task.priority = priority
 
         if status_changed:
-            task.status = status
+            task.status = status # type: ignore
 
             history = TaskHistory(
                 task_id=task.id,

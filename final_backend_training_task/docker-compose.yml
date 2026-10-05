@@ -1,0 +1,55 @@
+services:
+
+  gateway-service:
+    build:
+      context: ./gateway_service
+    container_name: gateway-service
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - processing-service
+
+  processing-service:
+    build:
+      context: ./processing_service
+    container_name: processing-service
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build:
+      context: ./processing_service
+    container_name: processing-worker
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:18
+    container_name: day8-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: jobs_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  redis:
+    image: redis:7
+    container_name: day8-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
