@@ -1,17 +1,16 @@
+import logging
+
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.models.job import Job
-from app.repositories.job_repositories import JobRepository
-from app.schemas.job import JobCreate, JobStatus
-from app.services.queue_service import enqueue_process_job
-
-import logging
 
 from app.core.request_context import (
     get_correlation_id,
     get_request_id,
 )
+from app.models.job import Job
+from app.repositories.job_repositories import JobRepository
+from app.schemas.job import JobCreate, JobStatus
+from app.services.queue_service import enqueue_process_job
 
 logger = logging.getLogger(__name__)
 job_repository = JobRepository()
@@ -43,7 +42,8 @@ async def create_job(
         await enqueue_process_job(
             job.id,
             get_request_id(),
-            get_correlation_id(),)
+            get_correlation_id(),
+        )
 
     except Exception as exc:
         job.status = JobStatus.FAILED

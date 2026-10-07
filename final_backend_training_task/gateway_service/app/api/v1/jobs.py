@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 from app.core.redis import redis
+from app.dependencies.auth import get_current_user
 from app.schemas.job import JobCreate, JobResponse
 from app.services.idempotency_service import (
     create_fingerprint,
@@ -11,10 +12,10 @@ from app.services.idempotency_service import (
 )
 from app.services.job_service import create_job, get_job
 
-
 router = APIRouter(
     prefix="/api/v1/jobs",
     tags=["Jobs"],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -44,15 +45,11 @@ async def create_gateway_job(
     )
 
     if existing is not None:
-
         # Same key, different payload.
         if existing["fingerprint"] != fingerprint:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    "Idempotency-Key was already used "
-                    "with a different payload."
-                ),
+                detail=("Idempotency-Key was already used with a different payload."),
             )
 
         # Same key, completed request.
@@ -63,10 +60,7 @@ async def create_gateway_job(
         if existing["state"] == "IN_PROGRESS":
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    "Request with this Idempotency-Key "
-                    "is already in progress."
-                ),
+                detail=("Request with this Idempotency-Key is already in progress."),
             )
 
     # Atomically reserve the key.
@@ -79,10 +73,7 @@ async def create_gateway_job(
     if owner is None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "Request with this Idempotency-Key "
-                "is already in progress."
-            ),
+            detail=("Request with this Idempotency-Key is already in progress."),
         )
 
     try:

@@ -33,4 +33,3 @@ class JobResponse(BaseModel):
     job_type: JobType
     priority: JobPriority
     status: JobStatus
-    

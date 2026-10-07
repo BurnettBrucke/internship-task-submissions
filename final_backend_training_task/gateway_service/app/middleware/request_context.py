@@ -10,12 +10,10 @@ from app.core.request_context import (
     request_id_ctx,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
-
     async def dispatch(
         self,
         request: Request,
@@ -46,11 +44,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
             job_id = None
 
-            last_part = (
-                request.url.path
-                .rstrip("/")
-                .split("/")[-1]
-            )
+            last_part = request.url.path.rstrip("/").split("/")[-1]
 
             if last_part.isdigit():
                 job_id = int(last_part)

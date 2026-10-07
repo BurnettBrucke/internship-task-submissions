@@ -5,7 +5,6 @@ from app.models.job import Job
 
 
 class JobRepository:
-
     async def create(
         self,
         session: AsyncSession,
@@ -23,8 +22,6 @@ class JobRepository:
         session: AsyncSession,
         job_id: int,
     ) -> Job | None:
-        result = await session.execute(
-            select(Job).where(Job.id == job_id)
-        )
+        result = await session.execute(select(Job).where(Job.id == job_id))
 
         return result.scalar_one_or_none()

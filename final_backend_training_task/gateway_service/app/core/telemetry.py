@@ -18,16 +18,10 @@ def configure_tracing() -> None:
         resource=resource,
     )
 
-    provider.add_span_processor(
-        SimpleSpanProcessor(
-            ConsoleSpanExporter()
-        )
-    )
+    provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
 
     trace.set_tracer_provider(provider)
 
 
 def get_tracer():
-    return trace.get_tracer(
-        "day8.gateway"
-    )
+    return trace.get_tracer("day8.gateway")

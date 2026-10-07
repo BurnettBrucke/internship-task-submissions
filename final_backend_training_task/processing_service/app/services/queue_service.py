@@ -1,14 +1,10 @@
 from arq.jobs import Job
-
 from opentelemetry import trace
 from opentelemetry.propagate import inject
 
 from app.core.arq import create_arq_pool
 
-
-tracer = trace.get_tracer(
-    "day8.processing.queue"
-)
+tracer = trace.get_tracer("day8.processing.queue")
 
 
 async def enqueue_process_job(
@@ -20,10 +16,7 @@ async def enqueue_process_job(
     redis = await create_arq_pool()
 
     try:
-        with tracer.start_as_current_span(
-            "arq.enqueue"
-        ) as span:
-
+        with tracer.start_as_current_span("arq.enqueue") as span:
             span.set_attribute(
                 "job.id",
                 job_id,
@@ -63,6 +56,4 @@ async def enqueue_process_job(
             )
 
     finally:
-        await redis.close(
-            close_connection_pool=True
-        )
+        await redis.close(close_connection_pool=True)

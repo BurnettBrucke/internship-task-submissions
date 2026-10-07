@@ -10,12 +10,10 @@ from app.core.request_context import (
     request_id_ctx,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
-
     async def dispatch(
         self,
         request: Request,

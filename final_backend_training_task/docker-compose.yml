@@ -90,6 +90,8 @@ services:
       PROCESSING_BASE_URL: http://processing-service:8001
       GATEWAY_HOST: 0.0.0.0
       GATEWAY_PORT: 8000
+      JWT_DEMO_USERNAME: ${JWT_DEMO_USERNAME}
+      JWT_DEMO_PASSWORD: ${JWT_DEMO_PASSWORD}
 
     depends_on:
       processing-service:

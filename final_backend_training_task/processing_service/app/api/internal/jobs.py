@@ -1,3 +1,5 @@
+# ruff: noqa: B008
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,7 +7,6 @@ from app.core.auth import verify_service_token
 from app.db.session import get_session
 from app.schemas.job import JobCreate, JobResponse
 from app.services.job_service import create_job, get_job
-
 
 router = APIRouter(
     prefix="/internal/v1/jobs",

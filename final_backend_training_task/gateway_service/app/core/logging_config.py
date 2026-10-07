@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 
 
 class JsonFormatter(logging.Formatter):
-
     def format(self, record: logging.LogRecord) -> str:
         data = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

@@ -4,7 +4,6 @@ import uuid
 
 from redis.asyncio import Redis
 
-
 IDEMPOTENCY_PREFIX = "idempotency:"
 IN_PROGRESS_TTL = 300
 COMPLETED_TTL = 86400
@@ -21,9 +20,7 @@ def create_fingerprint(payload: dict) -> str:
         separators=(",", ":"),
     )
 
-    return hashlib.sha256(
-        normalized_payload.encode("utf-8")
-    ).hexdigest()
+    return hashlib.sha256(normalized_payload.encode("utf-8")).hexdigest()
 
 
 async def get_record(
@@ -101,8 +98,5 @@ async def release_key(
 
     record = json.loads(raw)
 
-    if (
-        record.get("state") == "IN_PROGRESS"
-        and record.get("owner") == owner
-    ):
+    if record.get("state") == "IN_PROGRESS" and record.get("owner") == owner:
         await redis.delete(redis_key)

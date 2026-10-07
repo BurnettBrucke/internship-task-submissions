@@ -25,6 +25,4 @@ def get_redis_settings() -> RedisSettings:
 
 
 async def create_arq_pool() -> ArqRedis:
-    return await create_pool(
-        get_redis_settings()
-    )
+    return await create_pool(get_redis_settings())

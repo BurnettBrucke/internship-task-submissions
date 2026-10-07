@@ -13,15 +13,12 @@ from app.schemas.job import JobCreate
 
 
 class ProcessingClient:
-
     MAX_GET_ATTEMPTS = 2
     RETRY_DELAY_SECONDS = 0.2
 
     def _headers(self) -> dict[str, str]:
         return {
-            "Authorization": (
-                f"Bearer {settings.processing_service_token}"
-            ),
+            "Authorization": (f"Bearer {settings.processing_service_token}"),
             "X-Request-ID": get_request_id() or "",
             "X-Correlation-ID": get_correlation_id() or "",
         }
@@ -89,18 +86,45 @@ class ProcessingClient:
                 base_url=settings.processing_base_url,
                 timeout=self._timeout(),
             ) as client:
-
                 response = await client.post(
                     "/internal/v1/jobs",
                     json=payload.model_dump(mode="json"),
                     headers=self._headers(),
                 )
 
-        except httpx.TimeoutException as exc:
+        except httpx.ConnectTimeout as exc:
+            raise GatewayServiceError(
+                status_code=503,
+                code="PROCESSING_UNAVAILABLE",
+                message="Processing service is unavailable",
+            ) from exc
+
+        except httpx.ReadTimeout as exc:
             raise GatewayServiceError(
                 status_code=504,
                 code="PROCESSING_TIMEOUT",
                 message="Processing service timed out",
+            ) from exc
+
+        except httpx.WriteTimeout as exc:
+            raise GatewayServiceError(
+                status_code=504,
+                code="PROCESSING_TIMEOUT",
+                message="Processing service timed out",
+            ) from exc
+
+        except httpx.PoolTimeout as exc:
+            raise GatewayServiceError(
+                status_code=503,
+                code="PROCESSING_UNAVAILABLE",
+                message="Processing service is unavailable",
+            ) from exc
+
+        except httpx.ConnectError as exc:
+            raise GatewayServiceError(
+                status_code=503,
+                code="PROCESSING_UNAVAILABLE",
+                message="Processing service is unavailable",
             ) from exc
 
         except httpx.RequestError as exc:
@@ -109,7 +133,6 @@ class ProcessingClient:
                 code="PROCESSING_UNAVAILABLE",
                 message="Processing service is unavailable",
             ) from exc
-
         self._map_response_error(response)
 
         return response.json()
@@ -122,25 +145,23 @@ class ProcessingClient:
         last_error: Exception | None = None
 
         for attempt in range(self.MAX_GET_ATTEMPTS):
-
             try:
                 async with httpx.AsyncClient(
                     base_url=settings.processing_base_url,
                     timeout=self._timeout(),
                 ) as client:
-
                     response = await client.get(
                         f"/internal/v1/jobs/{job_id}",
                         headers=self._headers(),
                     )
 
                 # Retry only transient downstream errors.
-                if response.status_code in {502, 503, 504}:
-                    if attempt < self.MAX_GET_ATTEMPTS - 1:
-                        await asyncio.sleep(
-                            self.RETRY_DELAY_SECONDS
-                        )
-                        continue
+                if (
+                    response.status_code in {502, 503, 504}
+                    and attempt < self.MAX_GET_ATTEMPTS - 1
+                ):
+                    await asyncio.sleep(self.RETRY_DELAY_SECONDS)
+                    continue
 
                 self._map_response_error(response)
 
@@ -150,9 +171,7 @@ class ProcessingClient:
                 last_error = exc
 
                 if attempt < self.MAX_GET_ATTEMPTS - 1:
-                    await asyncio.sleep(
-                        self.RETRY_DELAY_SECONDS
-                    )
+                    await asyncio.sleep(self.RETRY_DELAY_SECONDS)
                     continue
 
                 raise GatewayServiceError(
@@ -165,9 +184,7 @@ class ProcessingClient:
                 last_error = exc
 
                 if attempt < self.MAX_GET_ATTEMPTS - 1:
-                    await asyncio.sleep(
-                        self.RETRY_DELAY_SECONDS
-                    )
+                    await asyncio.sleep(self.RETRY_DELAY_SECONDS)
                     continue
 
                 raise GatewayServiceError(

@@ -1,25 +1,23 @@
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-
-from app.api.v1.jobs import router as jobs_router
-from app.core.config import settings
-from app.core.errors import GatewayServiceError
-from app.core.request_context import (
-    get_correlation_id,
-    get_request_id,
-)
 from opentelemetry.instrumentation.fastapi import (
     FastAPIInstrumentor,
 )
 from opentelemetry.instrumentation.httpx import (
     HTTPXClientInstrumentor,
 )
-from app.core.telemetry import configure_tracing
 
-
-from app.middleware.request_context import RequestContextMiddleware
+from app.api.v1.auth import router as auth_router
+from app.api.v1.jobs import router as jobs_router
+from app.core.config import settings
+from app.core.errors import GatewayServiceError
 from app.core.logging_config import configure_logging
+from app.core.request_context import (
+    get_request_id,
+)
+from app.core.telemetry import configure_tracing
+from app.middleware.request_context import RequestContextMiddleware
 
 configure_tracing()
 
@@ -50,8 +48,8 @@ async def gateway_service_error_handler(
     )
 
 
+app.include_router(auth_router)
 app.include_router(jobs_router)
-
 
 FastAPIInstrumentor.instrument_app(app)
 HTTPXClientInstrumentor().instrument()
@@ -73,7 +71,6 @@ async def ready():
             base_url=settings.processing_base_url,
             timeout=2.0,
         ) as client:
-
             response = await client.get("/ready")
 
         if response.status_code == 200:
@@ -97,7 +94,6 @@ async def ready():
         )
 
     except httpx.RequestError:
-
         return JSONResponse(
             status_code=503,
             content={

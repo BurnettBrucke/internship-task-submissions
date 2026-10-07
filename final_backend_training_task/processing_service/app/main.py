@@ -1,20 +1,17 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from opentelemetry.instrumentation.fastapi import (
+    FastAPIInstrumentor,
+)
+from redis.asyncio import Redis
 from sqlalchemy import text
 
 from app.api.internal.jobs import router as jobs_router
 from app.core.config import settings
+from app.core.logging_config import configure_logging
+from app.core.telemetry import configure_tracing
 from app.db.session import engine
 from app.middleware.request_context import RequestContextMiddleware
-from redis.asyncio import Redis
-from app.core.logging_config import configure_logging
-
-from app.core.telemetry import configure_tracing
-
-from opentelemetry.instrumentation.fastapi import (
-    FastAPIInstrumentor,
-)
-
 
 configure_logging()
 configure_tracing()
@@ -30,6 +27,7 @@ app.add_middleware(RequestContextMiddleware)
 app.include_router(jobs_router)
 
 FastAPIInstrumentor.instrument_app(app)
+
 
 @app.get("/health")
 async def health():
@@ -49,7 +47,7 @@ async def ready():
     try:
         async with engine.connect() as connection:
             await connection.execute(text("SELECT 1"))
-    except Exception:
+    except Exception:  # noqa: BLE001
         database_status = "unavailable"
 
     # Check Redis
@@ -60,15 +58,12 @@ async def ready():
 
     try:
         await redis_client.ping()
-    except Exception:
+    except Exception:  # noqa: BLE001
         redis_status = "unavailable"
     finally:
         await redis_client.aclose()
 
-    is_ready = (
-        database_status == "ok"
-        and redis_status == "ok"
-    )
+    is_ready = database_status == "ok" and redis_status == "ok"
 
     response = {
         "status": "ready" if is_ready else "not_ready",
