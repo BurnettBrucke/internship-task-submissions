@@ -1,55 +1,141 @@
 services:
 
-  gateway-service:
-    build:
-      context: ./gateway_service
-    container_name: gateway-service
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - processing-service
-
-  processing-service:
-    build:
-      context: ./processing_service
-    container_name: processing-service
-    ports:
-      - "8001:8001"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-
-  worker:
-    build:
-      context: ./processing_service
-    container_name: processing-worker
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-
   postgres:
     image: postgres:18
     container_name: day8-postgres
+
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: jobs_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
     ports:
       - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 
   redis:
     image: redis:7
     container_name: day8-redis
+
     ports:
       - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+
+  processing-service:
+    build:
+      context: ./processing_service
+
+    container_name: processing-service
+
+    ports:
+      - "8001:8001"
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      PROCESSING_HOST: 0.0.0.0
+      PROCESSING_PORT: 8001
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+
+  gateway-service:
+    build:
+      context: ./gateway_service
+
+    container_name: gateway-service
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    environment:
+      PROCESSING_BASE_URL: http://processing-service:8001
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORT: 8000
+
+    depends_on:
+      processing-service:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+
+  worker:
+    build:
+      context: ./processing_service
+
+    container_name: processing-worker
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      PROCESSING_HOST: 0.0.0.0
+      PROCESSING_PORT: 8001
+
+    command:
+        [
+          "arq",
+          "app.workers.worker.WorkerSettings"
+        ]
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 
 volumes:
   postgres_data:

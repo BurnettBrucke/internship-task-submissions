@@ -1,12 +1,26 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+BASE_DIR = Path(__file__).resolve().parents[3]
+
 
 class Settings(BaseSettings):
     processing_base_url: str
     processing_timeout_seconds: float
-    gateway_service_token: str
+    processing_service_token: str
 
-    class Config:
-        env_file = ".env"
+    redis_url: str
+
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR / ".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
-settings = Settings() # type: ignore
+settings = Settings()  # type: ignore

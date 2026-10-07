@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 class Settings(BaseSettings):
     database_url: str
     processing_service_token: str
+    redis_url: str
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
@@ -17,4 +18,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings() #type : ignore
+settings = Settings()  # type: ignore
