@@ -1,0 +1,121 @@
+services:
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: gateway_service/Dockerfile
+    container_name: day8-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      PROCESSING_BASE_URL: http://processing-service:8001
+      PROCESSING_TIMEOUT_SECONDS: 5
+      GATEWAY_SERVICE_CLIENT_ID: gateway
+      GATEWAY_SERVICE_CLIENT_SECRET: change_me
+      JWT_SECRET_KEY: day8_microservices_secret_key_2026_change_me
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://jobs_user:jobs_password@postgres:5432/jobs_db
+    depends_on:
+      - processing-service
+      - redis
+      - postgres
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  processing-service:
+    build:
+      context: .
+      dockerfile: processing_service/Dockerfile
+    container_name: day8-processing
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://jobs_user:jobs_password@postgres:5432/jobs_db
+      REDIS_URL: redis://redis:6379/0
+      GATEWAY_SERVICE_CLIENT_ID: gateway
+      GATEWAY_SERVICE_CLIENT_SECRET: change_me
+      JWT_SECRET_KEY: day8_microservices_secret_key_2026_change_me
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: processing_service/Dockerfile
+    container_name: day8-worker
+    command:
+      - arq
+      - processing_service.app.workers.worker.WorkerSettings
+    environment:
+      DATABASE_URL: postgresql+asyncpg://jobs_user:jobs_password@postgres:5432/jobs_db
+      REDIS_URL: redis://redis:6379/0
+      GATEWAY_SERVICE_CLIENT_ID: gateway
+      GATEWAY_SERVICE_CLIENT_SECRET: change_me
+      JWT_SECRET_KEY: day8_microservices_secret_key_2026_change_me
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16
+    container_name: day8-postgres-compose
+    environment:
+      POSTGRES_USER: jobs_user
+      POSTGRES_PASSWORD: jobs_password
+      POSTGRES_DB: jobs_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U jobs_user -d jobs_db"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: day8-redis-compose
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

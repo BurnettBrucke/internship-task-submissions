@@ -1,0 +1,48 @@
+name: Day 8 CI
+
+on:
+  push:
+    branches:
+      - main
+      - "burnettbrucke-intern-task-*"
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install Gateway dependencies
+        run: |
+          if [ -f gateway_service/requirements.txt ]; then
+            pip install -r gateway_service/requirements.txt
+          fi
+
+      - name: Install Processing dependencies
+        run: |
+          if [ -f processing_service/requirements.txt ]; then
+            pip install -r processing_service/requirements.txt
+          fi
+
+      - name: Install test dependencies
+        run: |
+          pip install pytest pytest-asyncio httpx
+
+      - name: Run tests
+        run: |
+          pytest -q
