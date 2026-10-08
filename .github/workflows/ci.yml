@@ -69,6 +69,22 @@ jobs:
         run: |
           alembic upgrade head
 
+      - name: Start Processing Service
+        working-directory: microservices
+        run: |
+          nohup python -m uvicorn processing_service.app.main:app --host 0.0.0.0 --port 8001 > processing.log 2>&1 &
+
+      - name: Wait for Processing Service
+        run: |
+          for i in {1..20}; do
+            if curl -s http://127.0.0.1:8001/health; then
+              echo "Processing Service is ready"
+              break
+            fi
+            echo "Waiting for Processing Service..."
+            sleep 2
+          done
+
       - name: Run Gateway tests
         working-directory: microservices
         run: |
