@@ -49,7 +49,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run database migrations
-        working-directory: microservices/processing_service
+        working-directory: microservices
         run: |
           alembic upgrade head
 
