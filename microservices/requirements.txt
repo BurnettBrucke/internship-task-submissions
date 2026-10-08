@@ -6,6 +6,7 @@ asgiref==3.11.0
 async-timeout==5.0.1
 asyncpg==0.31.0
 attrs==25.4.0
+alembic==1.20.0
 beautifulsoup4==4.14.3
 bidict==0.23.1
 blinker==1.9.0
