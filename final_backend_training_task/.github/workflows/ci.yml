@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: |
+            gateway_service/requirements.txt
+            processing_service/requirements.txt
+            tests/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r gateway_service/requirements.txt
+          pip install -r processing_service/requirements.txt
+          pip install -r tests/requirements.txt
+          pip install ruff
+
+      - name: Lint
+        run: |
+          ruff check gateway_service/app processing_service/app tests
+
+      - name: Check formatting
+        run: |
+          ruff format --check gateway_service/app processing_service/app tests
+
+      - name: Create CI environment
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=ci_password
+          POSTGRES_DB=jobs_db
+
+          DATABASE_URL=postgresql+asyncpg://postgres:ci_password@postgres:5432/jobs_db
+
+          REDIS_URL=redis://redis:6379/0
+
+          PROCESSING_BASE_URL=http://processing-service:8001
+          PROCESSING_TIMEOUT_SECONDS=5
+          PROCESSING_SERVICE_TOKEN=ci-processing-token
+
+          JWT_SECRET_KEY=ci-jwt-secret-key-for-tests-only
+          JWT_ALGORITHM=HS256
+          JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+          JWT_DEMO_USERNAME=ci-user
+          JWT_DEMO_PASSWORD=ci-password
+          EOF
+
+      - name: Validate Docker Compose
+        run: |
+          docker compose config
+
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      - name: Start PostgreSQL and Redis
+        run: |
+          docker compose up -d postgres redis
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if docker compose exec -T postgres pg_isready \
+              -U postgres \
+              -d jobs_db; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Wait for Redis
+        run: |
+          for i in {1..30}; do
+            if docker compose exec -T redis redis-cli ping | grep -q PONG; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run database migrations
+        run: |
+          docker compose run --rm processing-service alembic upgrade head
+
+      - name: Start application services
+        run: |
+          docker compose up -d processing-service worker gateway-service
+
+      - name: Wait for Processing service
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8001/health; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Wait for Gateway service
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Check readiness
+        run: |
+          curl -fsS http://127.0.0.1:8001/ready
+          curl -fsS http://127.0.0.1:8000/ready
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration -v --tb=short
+
+      - name: Show Docker status
+        if: always()
+        run: |
+          docker compose ps
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose logs --no-color
+
+      - name: Stop Docker services
+        if: always()
+        run: |
+          docker compose down -v

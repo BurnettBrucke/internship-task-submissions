@@ -1,0 +1,256 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="container">
+
+        <a class="navbar-brand" href="{% url 'home' %}">
+            Student Management Portal
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar"
+            aria-controls="mainNavbar"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+
+        <!-- Navbar Content -->
+
+        <div
+            class="collapse navbar-collapse"
+            id="mainNavbar"
+        >
+
+            <!-- Left Side Navigation -->
+
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <!-- Home -->
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="{% url 'home' %}"
+                    >
+                        Home
+                    </a>
+
+                </li>
+
+
+                <!-- About -->
+
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        href="{% url 'about' %}"
+                    >
+                        About
+                    </a>
+
+                </li>
+
+
+                {% if user.is_authenticated %}
+
+                    <!-- Dashboard -->
+
+                    <li class="nav-item">
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'dashboard' %}"
+                        >
+                            Dashboard
+                        </a>
+
+                    </li>
+
+
+                    <!-- ========================= -->
+                    <!-- ADMIN NAVIGATION -->
+                    <!-- ========================= -->
+
+                    {% if user.profile.role == "ADMIN" %}
+
+                        <li class="nav-item">
+
+                            <a
+                                class="nav-link"
+                                href="{% url 'audit_logs' %}"
+                            >
+                                Audit Logs
+                            </a>
+
+                        </li>
+
+
+                        <li class="nav-item">
+
+                            <a
+                                class="nav-link"
+                                href="{% url 'add_students' %}"
+                            >
+                                Add Student
+                            </a>
+
+                        </li>
+
+
+                    <!-- ========================= -->
+                    <!-- TRAINER NAVIGATION -->
+                    <!-- ========================= -->
+
+                    {% elif user.profile.role == "TRAINER" %}
+
+                        {% comment %} <li class="nav-item">
+
+                            <a
+                                class="nav-link"
+                                href="{% url 'students_list' %}"
+                            >
+                                My Students
+                            </a>
+
+                        </li> {% endcomment %}
+
+
+                    <!-- ========================= -->
+                    <!-- STUDENT NAVIGATION -->
+                    <!-- ========================= -->
+
+                    {% elif user.profile.role == "STUDENT" %}
+
+                        <!-- Students only need Dashboard -->
+
+                    {% endif %}
+
+                {% endif %}
+
+            </ul>
+
+
+            <!-- ========================= -->
+            <!-- RIGHT SIDE NAVIGATION -->
+            <!-- ========================= -->
+
+            <ul class="navbar-nav">
+
+                {% if user.is_authenticated %}
+
+                    <!-- Welcome Message -->
+
+                    <li class="nav-item d-flex align-items-center">
+
+                        <span class="navbar-text me-2">
+
+                            {% if user.profile.role == "STUDENT" %}
+
+                                Welcome, {{ user.student.name }}
+
+                            {% else %}
+
+                                Welcome, {{ user.username }}
+
+                            {% endif %}
+
+                        </span>
+
+
+                        <!-- Role Badge -->
+
+                        <span class="badge role-badge text-white me-3">
+
+                            {{ user.profile.get_role_display }}
+
+                        </span>
+
+                    </li>
+
+
+                    <!-- Change Password -->
+
+                    <li class="nav-item">
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'password_change' %}"
+                        >
+                            Change Password
+                        </a>
+
+                    </li>
+
+
+                    <!-- Logout -->
+
+                    <li class="nav-item">
+
+                        <form
+                            method="post"
+                            action="{% url 'logout' %}"
+                            class="d-inline"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-link nav-link"
+                            >
+                                Logout
+                            </button>
+
+                        </form>
+
+                    </li>
+
+
+                {% else %}
+
+                    <!-- Login -->
+
+                    <li class="nav-item">
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'login' %}"
+                        >
+                            Login
+                        </a>
+
+                    </li>
+
+
+                    <!-- Trainer Registration -->
+
+                    <li class="nav-item">
+
+                        <a
+                            class="nav-link"
+                            href="{% url 'trainer_register' %}"
+                        >
+                            Trainer Register
+                        </a>
+
+                    </li>
+
+                {% endif %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
