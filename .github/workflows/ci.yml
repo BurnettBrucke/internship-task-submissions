@@ -12,6 +12,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      PROCESSING_BASE_URL: "http://127.0.0.1:8001"
+      INTERNAL_SERVICE_TOKEN: "test-internal-token"
+      JWT_SECRET_KEY: "test-jwt-secret-key"
+      DATABASE_URL: "postgresql+asyncpg://test:test@localhost:5432/testdb"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,3 +42,4 @@ jobs:
         working-directory: microservices
         run: |
           pytest -q processing_service/tests
+
