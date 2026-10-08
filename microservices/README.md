@@ -1,9 +1,8 @@
 # FastAPI Microservices – Day 8
 
-A production-oriented microservices backend built with **FastAPI**, **PostgreSQL**, **Redis/ARQ**, **JWT Authentication**, **OpenTelemetry**, and **GitHub Actions CI/CD**.
+A production-oriented microservices backend built with **FastAPI**, **PostgreSQL**, **Redis/ARQ**, **JWT Authentication**, **OpenTelemetry**, **Docker**, and **GitHub Actions CI/CD**.
 
 ## 1. Architecture
-
 
                     Client
                        |
@@ -397,11 +396,88 @@ The CI workflow is located at:
 
 ## 15. Docker
 
-Docker and Docker Compose were planned as part of the Day 8 production setup.
+The project supports Docker and Docker Compose for running the complete microservices environment.
 
-The Docker portion is currently **postponed** due to the local Windows Docker environment.
+### Docker Services
 
-The application and CI pipeline are functional without Docker.
+```text
+Gateway       :8000
+Processing    :8001
+PostgreSQL    :5432
+Redis         :6379
+ARQ Worker
+```
+
+### Build Containers
+
+From the `microservices` directory:
+
+```bash
+docker compose build
+```
+
+### Start Services
+
+```bash
+docker compose up -d
+```
+
+### Check Service Status
+
+```bash
+docker compose ps
+```
+
+PostgreSQL and Redis include health checks, and the Processing Service and Worker depend on these healthy services.
+
+### Database Migrations
+
+Gateway:
+
+```bash
+docker compose exec gateway alembic upgrade head
+```
+
+Processing:
+
+```bash
+docker compose exec processing alembic -c /app/alembic.ini upgrade head
+```
+
+### Health Checks
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8001/health
+```
+
+### View Worker Logs
+
+```bash
+docker compose logs worker --tail=30
+```
+
+### Docker Verification
+
+The complete Docker environment was verified successfully.
+
+```text
+Gateway:              HEALTHY
+Processing:           HEALTHY
+PostgreSQL:           HEALTHY
+Redis:                HEALTHY
+ARQ Worker:           RUNNING
+Database Migrations:  PASS
+```
+
+End-to-end job verification:
+
+```text
+POST /api/v1/jobs       → 201 Created
+Job Status              → QUEUED
+ARQ Worker              → PROCESSING
+Final Job Status        → COMPLETED
+```
 
 ## 16. Project Status
 
@@ -427,6 +503,12 @@ The application and CI pipeline are functional without Docker.
 * Database Migrations
 * Automated Tests
 * GitHub Actions CI/CD
+* Docker
+* Docker Compose
+* Containerized PostgreSQL
+* Containerized Redis
+* Containerized ARQ Worker
+* End-to-End Docker Verification
 
 ### Verification
 
@@ -435,17 +517,13 @@ Gateway:        12/12 tests passed
 Processing:     10/10 tests passed
 Total:          22/22 tests passed
 CI/CD:          PASS
-```
-
-### Pending / Postponed
-
-```text
-Docker / Docker Compose: Postponed
+Docker:         PASS
+E2E Job Flow:   PASS
 ```
 
 ## 17. Conclusion
 
-The Day 8 microservices backend is implemented and verified with automated tests and GitHub Actions CI/CD.
+The Day 8 microservices backend is implemented and verified with automated tests, GitHub Actions CI/CD, and Docker Compose.
 
 The final architecture provides:
 
@@ -458,3 +536,6 @@ The final architecture provides:
 * Structured logging
 * Health and readiness checks
 * Automated testing and CI validation
+* Containerized microservices deployment
+* PostgreSQL and Redis container integration
+* End-to-end background job processing
