@@ -22,14 +22,17 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
+        working-directory: microservices
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Gateway tests
+        working-directory: microservices
         run: |
           pytest -q gateway_service/tests
 
       - name: Run Processing tests
+        working-directory: microservices
         run: |
           pytest -q processing_service/tests
