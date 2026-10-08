@@ -124,7 +124,7 @@ async def test_create_job_same_idempotency_key_different_payload():
     ) as client:
 
         headers = {
-            "Authorization": "Bearer day8-internal-secret",
+            "Authorization": f"Bearer {INTERNAL_SERVICE_TOKEN}",
             "Idempotency-Key": "test-different-payload-001",
         }
 
@@ -168,7 +168,7 @@ async def test_job_status_flow():
     ) as client:
 
         headers = {
-            "Authorization": "Bearer day8-internal-secret",
+            "Authorization": f"Bearer {INTERNAL_SERVICE_TOKEN}",
             "Idempotency-Key": "status-flow-test-001",
         }
 

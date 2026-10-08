@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -9,6 +10,11 @@ from processing_service.app.main import app
 
 
 client = TestClient(app)
+
+INTERNAL_SERVICE_TOKEN = os.getenv(
+    "INTERNAL_SERVICE_TOKEN",
+    "day8-internal-secret",
+)
 
 
 def test_internal_auth_missing_token():
@@ -36,7 +42,7 @@ def test_internal_auth_valid_token():
     response = client.get(
         "/internal/v1/jobs/non-existing-job",
         headers={
-            "Authorization": "Bearer day8-internal-secret"
+            "Authorization": f"Bearer {INTERNAL_SERVICE_TOKEN}"
         },
     )
 
