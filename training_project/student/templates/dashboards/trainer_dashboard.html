@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Trainer Dashboard
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+    <!-- PAGE HEADING -->
+
+    <div class="mb-4">
+
+        <h1>Trainer Dashboard</h1>
+
+        <p class="text-muted">
+            Manage your assigned courses and students.
+        </p>
+
+    </div>
+
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- ASSIGNED COURSES -->
+
+        <div class="col-md-6">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-2">
+                        Assigned Courses
+                    </p>
+
+                    <h2 class="mb-0">
+                        {{ assigned_courses_count }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ASSIGNED STUDENTS -->
+
+        <div class="col-md-6">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-2">
+                        Assigned Students
+                    </p>
+
+                    <h2 class="mb-0">
+                        {{ assigned_students_count }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- COURSE AND STUDENT LIST -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+                Assigned Courses & Students
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            {% for course in courses %}
+            
+
+                <div class="card mb-4">
+
+                    <!-- COURSE HEADER -->
+
+                    <div class="card-header">
+
+                        <div class="row align-items-center">
+
+                            <div class="col-md-8">
+
+                                <h5 class="mb-1">
+                                    {{ course.course_name }}
+                                </h5>
+
+                                <small class="text-muted">
+                                    Course Code: {{ course.code }}
+                                </small>
+
+                            </div>
+
+
+                            <div class="col-md-4 text-md-end">
+
+                                <span class="badge bg-primary">
+
+                                    {{ course.students.count }}
+
+                                    Student{{ course.students.count|pluralize }}
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- STUDENTS -->
+
+                    <div class="card-body">
+
+                        <h6 class="mb-3">
+                            Enrolled Students
+                        </h6>
+
+
+                        {% for student in course.students.all %}
+
+                            <div class="border-bottom py-2">
+
+                                <div class="row">
+
+                                    <div class="col-md-6">
+
+                                        <p>{{ student.name }}</p>
+
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                
+                                            <a
+                                                href="{% url 'update_course_marks' course.id student.id %}"
+                                                class="btn btn-sm btn-primary"
+                                            >
+                                                Update Marks
+                                            </a>
+                                
+                                            <a
+                                                href="{% url 'marks_history' course.id student.id %}"
+                                                class="btn btn-sm btn-outline-secondary"
+                                            >
+                                                Marks History
+                                            </a>
+                                
+                                            <a
+                                                href="{% url 'feedback_create' course.id student.id %}"
+                                                class="btn btn-sm btn-outline-success"
+                                            >
+                                                Add Feedback
+                                            </a>
+                                
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% empty %}
+
+                            <p class="text-muted mb-0">
+
+                                No students enrolled in this course.
+
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <!-- NO COURSES -->
+
+                <div class="text-center py-5">
+
+                    <h5 class="text-muted">
+                        No courses assigned.
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        You currently don't have any courses assigned to you.
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
