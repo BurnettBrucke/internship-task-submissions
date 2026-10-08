@@ -6,6 +6,8 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
+    gateway_database_url: str
+
     processing_base_url: str
     processing_timeout_seconds: float
     processing_service_token: str

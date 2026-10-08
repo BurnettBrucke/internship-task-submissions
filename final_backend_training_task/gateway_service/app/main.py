@@ -13,9 +13,7 @@ from app.api.v1.jobs import router as jobs_router
 from app.core.config import settings
 from app.core.errors import GatewayServiceError
 from app.core.logging_config import configure_logging
-from app.core.request_context import (
-    get_request_id,
-)
+from app.core.request_context import get_request_id
 from app.core.telemetry import configure_tracing
 from app.middleware.request_context import RequestContextMiddleware
 
@@ -48,9 +46,14 @@ async def gateway_service_error_handler(
     )
 
 
+# API routers
 app.include_router(auth_router)
-app.include_router(jobs_router)
 
+app.include_router(
+    jobs_router,
+)
+
+# OpenTelemetry instrumentation
 FastAPIInstrumentor.instrument_app(app)
 HTTPXClientInstrumentor().instrument()
 
@@ -65,7 +68,6 @@ async def health():
 
 @app.get("/ready")
 async def ready():
-
     try:
         async with httpx.AsyncClient(
             base_url=settings.processing_base_url,
