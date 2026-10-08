@@ -48,6 +48,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run database migrations
+        working-directory: microservices/processing_service
+        run: |
+          alembic upgrade head
+
       - name: Run Gateway tests
         working-directory: microservices
         run: |
@@ -57,4 +62,3 @@ jobs:
         working-directory: microservices
         run: |
           pytest -q processing_service/tests
-           
