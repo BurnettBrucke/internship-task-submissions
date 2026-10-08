@@ -12,6 +12,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test -d testdb"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     env:
       PROCESSING_BASE_URL: "http://127.0.0.1:8001"
       INTERNAL_SERVICE_TOKEN: "test-internal-token"
@@ -42,4 +57,4 @@ jobs:
         working-directory: microservices
         run: |
           pytest -q processing_service/tests
-
+           
