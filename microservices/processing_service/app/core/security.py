@@ -1,6 +1,12 @@
+import os
+
 from fastapi import Header, HTTPException, status
 
-INTERNAL_SERVICE_TOKEN = "day8-internal-secret"
+
+INTERNAL_SERVICE_TOKEN = os.getenv(
+    "INTERNAL_SERVICE_TOKEN",
+    "day8-internal-secret",
+)
 
 
 def verify_internal_service(
