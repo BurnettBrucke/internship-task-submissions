@@ -1,9 +1,13 @@
-
 fastapi
 uvicorn[standard]
 httpx
 pydantic-settings
 python-jose[cryptography]
+sqlalchemy[asyncio]
+asyncpg
+passlib[argon2]
+email-validator
+alembic
 
 opentelemetry-api
 opentelemetry-sdk
@@ -13,3 +17,5 @@ opentelemetry-instrumentation-httpx
 pytest
 pytest-asyncio
 python-dotenv
+
+python-multipart

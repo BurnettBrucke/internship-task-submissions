@@ -11,6 +11,10 @@ import pytest_asyncio
 from dotenv import load_dotenv
 from jose import jwt
 
+
+AUTH_USERNAME = os.getenv("AUTH_USERNAME", "admin")
+AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "change_me_password")
+
 # ---------------------------------------------------------
 # Load environment before importing the Gateway application
 # ---------------------------------------------------------
@@ -116,6 +120,24 @@ async def client():
         yield client
 
 
+# ==========================================
+@pytest.mark.asyncio
+async def test_login_returns_access_token(client):
+    response = await client.post(
+        "/api/v1/auth/login",
+        data={
+            "username": AUTH_USERNAME,
+            "password": AUTH_PASSWORD,
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert "access_token" in body
+    assert body["token_type"] == "bearer"
+    assert body["access_token"]
 # =========================================================
 # 1. Gateway creates a job successfully
 # =========================================================

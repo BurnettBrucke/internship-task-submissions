@@ -3,17 +3,17 @@ name: CI
 on:
   push:
     branches:
-      - adityasingh
+      - main
   pull_request:
     branches:
-      - adityasingh
+      - main
 
 permissions:
   contents: read
 
 env:
-  JWT_SECRET_KEY: ci-test-secret
-  JWT_ALGORITHM: HS256
+  AUTH_USERNAME: admin
+  AUTH_PASSWORD: ci-test-password
   PROCESSING_SERVICE_TOKEN: change_me_internal_token
   PROCESSING_BASE_URL: http://127.0.0.1:8001
   PROCESSING_TEST_URL: http://127.0.0.1:8001
@@ -171,7 +171,7 @@ jobs:
 
     # Publish only after a successful push to main.
     # Pull requests should run CI but must not publish images.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/adityasingh'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     permissions:
       contents: read
@@ -179,8 +179,8 @@ jobs:
 
     env:
       REGISTRY: ghcr.io
-      GATEWAY_IMAGE: ghcr.io/Adity07a/gateway-service
-      PROCESSING_IMAGE: ghcr.io/Adity07a/processing-service
+      GATEWAY_IMAGE: ghcr.io/aditya045s/gateway-service
+      PROCESSING_IMAGE: ghcr.io/aditya045s/processing-service
 
     steps:
       - name: Checkout repository

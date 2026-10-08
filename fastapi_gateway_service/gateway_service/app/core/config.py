@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     processing_timeout_seconds: float = 5.0
     processing_service_token: str
 
+    database_url: str
+
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
 
