@@ -32,6 +32,7 @@ jobs:
       INTERNAL_SERVICE_TOKEN: "test-internal-token"
       JWT_SECRET_KEY: "test-jwt-secret-key"
       DATABASE_URL: "postgresql+asyncpg://test:test@localhost:5432/testdb"
+      REDIS_URL: "redis://localhost:6379"
 
     steps:
       - name: Checkout code
