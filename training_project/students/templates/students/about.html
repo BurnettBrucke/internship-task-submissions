@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}About | Student Training Portal{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center" style="min-height: 65vh;">
+
+    <div class="col-md-9 col-lg-8">
+
+        <div class="card shadow-sm border-0 text-center">
+
+            <div class="card-body p-5">
+
+                <h1 class="fw-bold mb-3">
+                    About Student Training Portal
+                </h1>
+
+                <p class="text-muted mb-4">
+                    {{ company_name }} Training Program is a Django-based
+                    student management portal created to manage students,
+                    courses, marks and training activities in one place.
+                </p>
+
+                <p class="text-muted mb-4">
+                    The portal provides role-based access for Administrators,
+                    Trainers and Students, allowing each user to access the
+                    features relevant to their role.
+                </p>
+
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+                    <a href="{% url 'home' %}"
+                       class="btn btn-primary px-4">
+                        Home
+                    </a>
+
+                    <a href="{% url 'login' %}"
+                       class="btn btn-outline-secondary px-4">
+                        Login
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

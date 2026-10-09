@@ -1,0 +1,170 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Course Management{% endblock %}
+
+{% block content %}
+{% include 'includes/breadcrumbs.html' with breadcrumb_current="Courses" %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
+    <div>
+        <h2 class="fw-semibold mb-1">
+            Course Management
+        </h2>
+
+        <p class="text-muted mb-0">
+            Manage available training courses and their status.
+        </p>
+    </div>
+
+    <a href="{% url 'add_course' %}"
+       class="btn btn-primary">
+        Add Course
+    </a>
+
+</div>
+
+
+<div class="card">
+
+    <div class="card-body p-0">
+
+        <div class="d-flex justify-content-between align-items-center p-4">
+
+            <div>
+                <h5 class="fw-semibold mb-1">
+                    Courses
+                </h5>
+
+                <p class="text-muted small mb-0">
+                    View course details and availability.
+                </p>
+            </div>
+
+        </div>
+
+
+        {% if courses %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th class="ps-4">Course Name</th>
+                            <th>Code</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th class="pe-4">Actions</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for course in courses %}
+
+                            <tr>
+
+                                <!-- Course Name -->
+                                <td class="ps-4">
+                                    <strong>
+                                        {{ course.course_name }}
+                                    </strong>
+                                </td>
+
+
+                                <!-- Course Code -->
+                                <td>
+                                    <span class="badge bg-info-subtle text-info-emphasis">
+                                        {{ course.code }}
+                                    </span>
+                                </td>
+
+
+                                <!-- Duration -->
+                                <td class="text-muted">
+                                    {{ course.duration }}
+                                </td>
+
+
+                                <!-- Status -->
+                                <td>
+
+                                    {% if course.active_status %}
+
+                                        <span class="badge bg-success-subtle text-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            Not Active
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Actions -->
+                                <td class="pe-4">
+
+                                    <div class="d-flex flex-wrap gap-1">
+
+                                        <a href="{% url 'edit_course' course.pk %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <a href="{% url 'delete_course' course.pk %}"
+                                           class="btn btn-sm btn-outline-danger">
+                                            Delete
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="text-center py-5">
+
+                <h5 class="text-muted mb-2">
+                    No courses found
+                </h5>
+
+                <p class="text-muted mb-3">
+                    Courses will appear here once they are added.
+                </p>
+
+                <a href="{% url 'add_course' %}"
+                   class="btn btn-primary btn-sm">
+                    Add Course
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+
